@@ -14,18 +14,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 interface TopicInputPopupProps {
   isOpen: boolean;
   onClose: () => void;
-  // Renamed from incorrectQuestions to questionsToTopic to reflect that we now get topics for all questions
   questionsToTopic: number[]; // Array of question numbers (1-25)
-  // Added initialTopics to pre-populate with default or previously entered topics
   initialTopics: { [questionNum: number]: string };
-  // Renamed from onSaveTopic to onSaveTopics to reflect saving topics for all questions at once
   onSaveTopics: (topics: { [questionNum: number]: string }) => void;
   topicOptions: string[];
 }
+
 export const TopicInputPopup: React.FC<TopicInputPopupProps> = ({
   isOpen,
   onClose,
-  questionsToTopic, // Now an array of all 25 question numbers
+  questionsToTopic,
   initialTopics,
   onSaveTopics,
   topicOptions,
@@ -38,9 +36,9 @@ export const TopicInputPopup: React.FC<TopicInputPopupProps> = ({
     if (isOpen) {
       setTopics(initialTopics);
     } else {
-        // Reset when closed
-        setTopics({});
-        setCurrentQuestionIndex(0);
+      // Reset when closed
+      setTopics({});
+      setCurrentQuestionIndex(0);
     }
   }, [isOpen, initialTopics]);
 
@@ -68,24 +66,41 @@ export const TopicInputPopup: React.FC<TopicInputPopupProps> = ({
     // Ensure a topic is selected/entered for the current question before moving on
     const topicForCurrentQuestion = topics[currentQuestionNumber];
     if (!topicForCurrentQuestion || topicForCurrentQuestion.trim() === "") {
-        // Optionally show a toast or highlight the field if a topic is required
-        // For now, we'll default to 'Other' if empty on save, but prompting might be better UX.
-        handleTopicChange("Other"); // Default to 'Other' if nothing was selected
+      handleTopicChange("Other"); // Default to 'Other' if nothing was selected
     }
     moveToNextQuestion();
   };
 
+  const handleSkip = () => {
+    handleTopicChange("Skipped/Other"); // Mark as skipped
+    moveToNextQuestion();
+  };
+
+  const handleSkipAll = () => {
+    const updatedTopics = { ...topics };
+    // Set all remaining questions to 'Skipped/Other'
+    for (let i = currentQuestionIndex; i < totalQuestions; i++) {
+      updatedTopics[questionsToTopic[i]] = "Skipped/Other";
+    }
+    setTopics(updatedTopics);
+    // Use a timeout to allow state to update before saving and closing
+    setTimeout(() => {
+        onSaveTopics(updatedTopics);
+        onClose();
+    }, 0);
+  };
+
   const handleSaveAllAndClose = () => {
-      // Before saving all, ensure the current question has a topic
-      const topicForCurrentQuestion = topics[currentQuestionNumber];
+    // Ensure the current question has a topic before saving all
+    const topicForCurrentQuestion = topics[currentQuestionNumber];
       if (!topicForCurrentQuestion || topicForCurrentQuestion.trim() === "") {
           handleTopicChange("Other"); // Default to 'Other' if nothing was selected
       }
-       // Use a timeout to allow state to update before saving
-       setTimeout(() => {
-            onSaveTopics(topics);
-            onClose();
-       }, 0);
+    // Use a timeout to allow state to update before saving
+    setTimeout(() => {
+        onSaveTopics(topics);
+        onClose();
+    }, 0);
   };
 
   // If questionsToTopic is empty (shouldn't happen if called correctly from TestEntryForm), return null
@@ -94,8 +109,8 @@ export const TopicInputPopup: React.FC<TopicInputPopupProps> = ({
       return null;
   }
 
-   // Determine the topic currently selected for the current question
-   const currentSelectedTopic = topics[currentQuestionNumber] || "";
+  // Determine the topic currently selected for the current question
+  const currentSelectedTopic = topics[currentQuestionNumber] || "";
 
   return (
     <AlertDialog open={isOpen} onOpenChange={onClose}>
@@ -106,7 +121,7 @@ export const TopicInputPopup: React.FC<TopicInputPopupProps> = ({
             Select the topic for question {currentQuestionNumber}.
           </AlertDialogDescription>
         </AlertDialogHeader>
-        
+
         <div className="space-y-4">
           <p className="text-sm font-medium">Question {currentQuestionIndex + 1} of {totalQuestions}</p>
           <Select value={currentSelectedTopic} onValueChange={handleTopicChange}>
@@ -122,14 +137,12 @@ export const TopicInputPopup: React.FC<TopicInputPopupProps> = ({
         </div>
 
         <AlertDialogFooter>
+          <Button variant="outline" onClick={handleSkip}>Skip</Button>
+          <Button variant="outline" onClick={handleSkipAll}>Skip All</Button>
           {currentQuestionIndex < totalQuestions - 1 ? (
-             <Button onClick={handleSaveAndNext}>
-               Save & Next
-            </Button>
+            <Button onClick={handleSaveAndNext}>Save & Next</Button>
           ) : (
-            <Button onClick={handleSaveAllAndClose}>
-              Save All Topics & Finish
-            </Button>
+            <Button onClick={handleSaveAllAndClose}>Save All Topics & Finish</Button>
           )}
         </AlertDialogFooter>
       </AlertDialogContent>
