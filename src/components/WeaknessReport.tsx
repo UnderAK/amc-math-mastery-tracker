@@ -24,13 +24,14 @@ export const WeaknessReport = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
 
-  const getTopicForQuestion = (questionNum: number): string => {
-    if (questionNum <= 5) return "Basic Arithmetic";
-    if (questionNum <= 10) return "Algebra";
-    if (questionNum <= 15) return "Geometry";
-    if (questionNum <= 20) return "Number Theory";
-    return "Advanced Topics";
-  };
+  // This function is no longer used for analysis as we use manual topic input
+  // const getTopicForQuestion = (questionNum: number): string => {
+  //   if (questionNum <= 5) return "Basic Arithmetic";
+  //   if (questionNum <= 10) return "Algebra";
+  //   if (questionNum <= 15) return "Geometry";
+  //   if (questionNum <= 20) return "Number Theory";
+  //   return "Advanced Topics";
+  // };
 
   const generateReport = () => {
     setIsGenerating(true);
@@ -48,17 +49,22 @@ export const WeaknessReport = () => {
         return;
       }
 
-      // Analyze topic weaknesses
-      const topicData: { [topic: string]: { mistakes: number; total: number } } = {};
+      // Analyze topic weaknesses using stored topicMistakes
+      const topicData: { [topic: string]: { mistakes: number; attempts: number } } = {};
       const questionData: { [question: number]: { errors: number; attempts: number } } = {};
 
       scores.forEach(score => {
-        // Topic analysis
+        // Topic analysis using saved topicMistakes
         if (score.topicMistakes) {
           Object.entries(score.topicMistakes).forEach(([topic, mistakes]) => {
-            if (!topicData[topic]) topicData[topic] = { mistakes: 0, total: 0 };
+            if (!topicData[topic]) topicData[topic] = { mistakes: 0, attempts: 0 };
             topicData[topic].mistakes += mistakes;
-            topicData[topic].total += 5; // Assuming 5 questions per topic
+            // To calculate accuracy per topic, we need total attempts per topic.
+            // Since we don't store which questions belong to which topic when saving,
+            // we'll approximate total attempts per topic by assuming each test covers all relevant topics once.
+            // A more accurate approach would require storing topic per question in the score object.
+            // For now, we'll just count total tests as total attempts per recorded topic.
+            topicData[topic].attempts++; 
           });
         }
 
@@ -82,7 +88,7 @@ export const WeaknessReport = () => {
         .map(([topic, data]) => ({
           topic,
           mistakes: data.mistakes,
-          accuracy: Math.round(((data.total - data.mistakes) / data.total) * 100)
+          accuracy: data.attempts > 0 ? Math.round(((data.attempts - data.mistakes) / data.attempts) * 100) : 0
         }))
         .filter(t => t.mistakes > 0)
         .sort((a, b) => a.accuracy - b.accuracy)
@@ -92,7 +98,7 @@ export const WeaknessReport = () => {
       const problematicQuestions = Object.entries(questionData)
         .map(([question, data]) => ({
           question: parseInt(question),
-          errorRate: Math.round((data.errors / data.attempts) * 100),
+          errorRate: data.attempts > 0 ? Math.round((data.errors / data.attempts) * 100) : 0,
           attempts: data.attempts
         }))
         .filter(q => q.attempts >= 3 && q.errorRate > 30)
@@ -103,18 +109,18 @@ export const WeaknessReport = () => {
       const recommendations: string[] = [];
       
       if (weakestTopics.length > 0) {
-        recommendations.push(`Focus on ${weakestTopics[0].topic} - your weakest area with ${weakestTopics[0].accuracy}% accuracy`);
+        recommendations.push(`Focus on ${weakestTopics[0].topic} - your weakest area${weakestTopics[0].accuracy > 0 ? ` with ${weakestTopics[0].accuracy}% accuracy` : ''}`);
       }
       
       if (problematicQuestions.length > 0) {
-        recommendations.push(`Practice question types similar to Q${problematicQuestions[0].question} (${problematicQuestions[0].errorRate}% error rate)`);
+        recommendations.push(`Practice question types similar to Q${problematicQuestions[0].question}${problematicQuestions[0].errorRate > 0 ? ` (${problematicQuestions[0].errorRate}% error rate)` : ''}`);
       }
 
       // Calculate recent vs older scores for trend
       const recentScores = scores.slice(-5);
-      const olderScores = scores.slice(0, Math.max(1, scores.length - 5));
+      const olderScores = scores.slice(0, Math.max(0, scores.length - 5)); // Ensure olderScores is not empty
       const recentAvg = recentScores.reduce((sum, s) => sum + s.score, 0) / recentScores.length;
-      const olderAvg = olderScores.length > 0 ? olderScores.reduce((sum, s) => sum + s.score, 0) / olderScores.length : recentAvg;
+      const olderAvg = olderScores.length > 0 ? olderScores.reduce((sum, s) => sum + s.score, 0) / olderScores.length : recentAvg; // Handle case with less than 5 scores
       
       let overallTrend = "stable";
       if (recentAvg > olderAvg + 1) overallTrend = "improving";
@@ -160,6 +166,23 @@ export const WeaknessReport = () => {
       default: return "text-blue-600 bg-blue-50 dark:bg-blue-900/20";
     }
   };
+
+  // Re-generate report when data updates (after test grading or topic input)
+  useEffect(() => {
+    generateReport();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Empty dependency array means this runs once on mount
+
+  useEffect(() => {
+    const handleDataUpdate = () => {
+      generateReport();
+    };
+    window.addEventListener('dataUpdate', handleDataUpdate);
+    return () => {
+      window.removeEventListener('dataUpdate', handleDataUpdate);
+    };
+  }, [generateReport]); // Re-run effect if generateReport changes
+
 
   return (
     <section className="glass p-6 rounded-2xl shadow-xl">
