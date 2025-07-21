@@ -13,7 +13,7 @@ interface TestScore {
 }
 
 interface WeaknessAnalysis {
-  weakestTopics: Array<{ topic: string; mistakes: number; accuracy: number }>;
+  weakestTopics: Array<{ topic: string; mistakes: number }>;
   problematicQuestions: Array<{ question: number; errorRate: number; attempts: number }>;
   recommendations: string[];
   overallTrend: string;
@@ -23,15 +23,6 @@ export const WeaknessReport = () => {
   const [analysis, setAnalysis] = useState<WeaknessAnalysis | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
-
-  // This function is no longer used for analysis as we use manual topic input
-  // const getTopicForQuestion = (questionNum: number): string => {
-  //   if (questionNum <= 5) return "Basic Arithmetic";
-  //   if (questionNum <= 10) return "Algebra";
-  //   if (questionNum <= 15) return "Geometry";
-  //   if (questionNum <= 20) return "Number Theory";
-  //   return "Advanced Topics";
-  // };
 
   const generateReport = () => {
     setIsGenerating(true);
@@ -59,11 +50,7 @@ export const WeaknessReport = () => {
           Object.entries(score.topicMistakes).forEach(([topic, mistakes]) => {
             if (!topicData[topic]) topicData[topic] = { mistakes: 0, attempts: 0 };
             topicData[topic].mistakes += mistakes;
-            // To calculate accuracy per topic, we need total attempts per topic.
-            // Since we don't store which questions belong to which topic when saving,
-            // we'll approximate total attempts per topic by assuming each test covers all relevant topics once.
-            // A more accurate approach would require storing topic per question in the score object.
-            // For now, we'll just count total tests as total attempts per recorded topic.
+            // We are focusing on topics with mistakes, so attempts calculation is simplified
             topicData[topic].attempts++; 
           });
         }
@@ -76,22 +63,24 @@ export const WeaknessReport = () => {
           });
         }
 
-        // Count total attempts per question
+        // Count total attempts per question for error rate calculation
         for (let i = 1; i <= 25; i++) {
           if (!questionData[i]) questionData[i] = { errors: 0, attempts: 0 };
+           // Only increment attempts if the test had this question number
+           // This is a simplified approach; a more robust solution would track which questions were presented in each test.
+           // For now, we assume all tests cover questions 1-25 for attempt counting.
           questionData[i].attempts++;
         }
       });
 
-      // Find weakest topics
+      // Find weakest topics (those with mistakes)
       const weakestTopics = Object.entries(topicData)
         .map(([topic, data]) => ({
           topic,
           mistakes: data.mistakes,
-          accuracy: data.attempts > 0 ? Math.round(((data.attempts - data.mistakes) / data.attempts) * 100) : 0
         }))
         .filter(t => t.mistakes > 0)
-        .sort((a, b) => a.accuracy - b.accuracy)
+        .sort((a, b) => b.mistakes - a.mistakes)
         .slice(0, 3);
 
       // Find problematic questions
@@ -109,7 +98,7 @@ export const WeaknessReport = () => {
       const recommendations: string[] = [];
       
       if (weakestTopics.length > 0) {
-        recommendations.push(`Focus on ${weakestTopics[0].topic} - your weakest area${weakestTopics[0].accuracy > 0 ? ` with ${weakestTopics[0].accuracy}% accuracy` : ''}`);
+        recommendations.push(`Focus on ${weakestTopics[0].topic} - your weakest area with ${weakestTopics[0].mistakes} mistakes recorded.`);
       }
       
       if (problematicQuestions.length > 0) {
@@ -237,7 +226,7 @@ export const WeaknessReport = () => {
                       #{index + 1} {topic.topic}
                     </span>
                     <div className="text-sm text-red-600 dark:text-red-400">
-                      {topic.accuracy}% accuracy • {topic.mistakes} mistakes
+                      {topic.mistakes} mistakes
                     </div>
                   </div>
                 ))}
