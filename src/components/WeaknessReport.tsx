@@ -8,14 +8,16 @@ interface TestScore {
   score: number;
   testType: string;
   year: number;
-  // We now use questionTopics and questionCorrectness
   label?: string;
-  questionTopics: { [questionNum: number]: string }; // Store topic for ALL 25 questions
-  questionCorrectness: { [questionNum: number]: boolean }; // Store correctness for ALL 25 questions
+  questionTopics?: { [questionNum: number]: string }; // Store topic for ALL 25 questions (new format)
+  questionCorrectness?: { [questionNum: number]: boolean }; // Store correctness for ALL 25 questions (new format)
+  // Retaining old fields for compatibility when reading
+  incorrectQuestions?: number[]; // Old format
+  topicMistakes?: { [topic: string]: number }; // Old format
 }
 
 interface WeaknessAnalysis {
-  weakestTopics: Array<{ topic: string; mistakes: number }>;
+  weakestTopics: Array<{ topic: string; mistakes: number; attempts: number }>; // Added attempts to weakest topics
   problematicQuestions: Array<{ question: number; errorRate: number; attempts: number }>;
   recommendations: string[];
   overallTrend: string;
@@ -25,6 +27,23 @@ export const WeaknessReport = () => {
   const [analysis, setAnalysis] = useState<WeaknessAnalysis | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
+
+   // Helper function to get topic, prioritizing new data, then old, then a fallback
+   const getTopicForQuestionRobust = (score: TestScore, questionNum: number): string => {
+      if (score.questionTopics?.[questionNum]) {
+          return score.questionTopics[questionNum];
+      } else if (score.topicMistakes) {
+          // Attempt to infer topic from topicMistakes (less precise)
+          // This is a simplification; a more robust approach might involve mapping question numbers to topics for older data
+          // For now, if the question is in incorrectQuestions and topicMistakes exists, we'll just use a generic fallback
+          if (score.incorrectQuestions?.includes(questionNum) && score.topicMistakes) {
+              // Cannot reliably determine specific topic from topicMistakes alone per question
+              return `Question ${questionNum} Topic (Approx.)`;
+          }
+      }
+      // Fallback for no topic data
+      return "Unknown Topic";
+   };
 
   const generateReport = () => {
     setIsGenerating(true);
@@ -46,8 +65,13 @@ export const WeaknessReport = () => {
       const topicData: { [topic: string]: { mistakes: number; attempts: number } } = {};
       const questionData: { [question: number]: { errors: number; attempts: number } } = {};
 
+      // Initialize questionData for all 25 questions
+      for(let i = 1; i <= 25; i++){
+          questionData[i] = { errors: 0, attempts: 0 };
+      }
+
       scores.forEach(score => {
-        // Use the new questionTopics and questionCorrectness fields
+        // Process scores with the new data structure
         if (score.questionTopics && score.questionCorrectness) {
             for (let i = 1; i <= 25; i++) {
                 const topic = score.questionTopics[i];
@@ -62,33 +86,39 @@ export const WeaknessReport = () => {
                 }
 
                 // Question analysis
-                 if (!questionData[questionNum]) questionData[questionNum] = { errors: 0, attempts: 0 };
                  questionData[questionNum].attempts++;
                  if (!isCorrect) {
                      questionData[questionNum].errors++;
                  }
             }
-        } else {
-            // Handle older scores that might not have the new data structure
-            // For weakness report, we can still use incorrectQuestions if available.
-            if (score.incorrectQuestions) {
-                 score.incorrectQuestions.forEach(q => {
-                    // Approximate topic for older scores if not available
-                    const topic = score.questionTopics?.[q] || `Question ${q} Topic`; // Fallback topic name
+        } else if (score.incorrectQuestions) {
+            // Process older scores with incorrectQuestions (approximate attempts)
+            for(let i = 1; i <= 25; i++) {
+                 const questionNum = i;
+                 // For older scores, we can only assume an attempt was made if it was an incorrect question listed.
+                 // This is an approximation and will not be perfectly accurate for questions answered correctly.
+                 if(score.incorrectQuestions.includes(questionNum)) {
+                     if (!questionData[questionNum]) questionData[questionNum] = { errors: 0, attempts: 0 };
+                     questionData[questionNum].errors++;
+                     questionData[questionNum].attempts++; // Count as an attempt if it was incorrect
+
+                     // Approximate topic for older scores if not available
+                    const topic = score.topicMistakes && score.topicMistakes[getTopicForQuestionRobust(score, questionNum)] !== undefined 
+                                ? getTopicForQuestionRobust(score, questionNum) : `Question ${questionNum} Topic (Approx.)`;
                     if (!topicData[topic]) topicData[topic] = { mistakes: 0, attempts: 0 };
-                    topicData[topic].mistakes++;
-                    // We cannot accurately get attempts per topic for older scores, skipping attempts count here.
-                 });
+                     topicData[topic].mistakes++;
+                     // Cannot accurately count attempts per topic for older data with this structure
+                 } else {
+                      // For correctly answered questions in older scores, we don't have topic info per question
+                      // and cannot accurately count attempts per topic.
+                      // We can, however, count this as an attempt for the question number.
+                       if (!questionData[questionNum]) questionData[questionNum] = { errors: 0, attempts: 0 };
+                       questionData[questionNum].attempts++; // Count as an attempt if the test included this question number
+                 }
             }
-             // For problematic questions from older scores, we can still use incorrectQuestions
-             if (score.incorrectQuestions) {
-                 score.incorrectQuestions.forEach(q => {
-                     if (!questionData[q]) questionData[q] = { errors: 0, attempts: 0 };
-                     questionData[q].errors++;
-                      // We cannot accurately get attempts per question for older scores, skipping attempts count here.
-                 });
-             }
             console.warn(`Processing score from ${score.date} with old data structure for weakness report.`);
+        } else {
+             console.warn(`Skipping score from ${score.date} for weakness report due to missing data.`);
         }
       });
 
@@ -97,32 +127,40 @@ export const WeaknessReport = () => {
         .map(([topic, data]) => ({
           topic,
           mistakes: data.mistakes,
-          // Cannot calculate accuracy accurately with mixed new/old data, focus on mistakes count
+          attempts: data.attempts, // Include attempts for better context
         }))
-        .filter(t => t.mistakes > 0)
-        .sort((a, b) => b.mistakes - a.mistakes)
+        .filter(t => t.mistakes > 0) // Only show topics with mistakes
+        .sort((a, b) => {
+            // Sort primarily by mistakes, then by attempts if mistakes are equal
+            if (b.mistakes !== a.mistakes) return b.mistakes - a.mistakes;
+            return b.attempts - a.attempts;
+        })
         .slice(0, 3);
 
-      // Find problematic questions (from all data, attempts might be approximated for older scores)
+      // Find problematic questions (from all data)
       const problematicQuestions = Object.entries(questionData)
         .map(([question, data]) => ({
           question: parseInt(question),
           errorRate: data.attempts > 0 ? Math.round((data.errors / data.attempts) * 100) : (data.errors > 0 ? 100 : 0), // Handle 0 attempts
-          attempts: data.attempts > 0 ? data.attempts : (data.errors > 0 ? data.errors : 0), // Approximate attempts if only errors are recorded
+          attempts: data.attempts,
         }))
         .filter(q => q.attempts >= 1 && q.errorRate > 30) // Consider questions with at least 1 attempt and > 30% error rate
-        .sort((a, b) => b.errorRate - a.errorRate)
+        .sort((a, b) => {
+            // Sort primarily by error rate, then by attempts if error rates are equal
+            if (b.errorRate !== a.errorRate) return b.errorRate - a.errorRate;
+            return b.attempts - a.attempts;
+        })
         .slice(0, 5);
 
       // Generate recommendations
       const recommendations: string[] = [];
       
       if (weakestTopics.length > 0) {
-        recommendations.push(`Focus on ${weakestTopics[0].topic} - your weakest area with ${weakestTopics[0].mistakes} mistakes recorded.`);
+        recommendations.push(`Focus on ${weakestTopics[0].topic} - your weakest area with ${weakestTopics[0].mistakes} mistakes recorded across ${weakestTopics[0].attempts} attempts.`);
       }
       
       if (problematicQuestions.length > 0) {
-        recommendations.push(`Practice question types similar to Q${problematicQuestions[0].question}${problematicQuestions[0].errorRate > 0 ? ` (${problematicQuestions[0].errorRate}% error rate)` : ''}`);
+        recommendations.push(`Practice question types similar to Q${problematicQuestions[0].question}${problematicQuestions[0].errorRate > 0 ? ` (${problematicQuestions[0].errorRate}% error rate over ${problematicQuestions[0].attempts} attempts)` : ''}`);
       }
 
       // Calculate recent vs older scores for trend (using overall score, not topic specific)
@@ -246,7 +284,7 @@ export const WeaknessReport = () => {
                       #{index + 1} {topic.topic}
                     </span>
                     <div className="text-sm text-red-600 dark:text-red-400">
-                      {topic.mistakes} mistakes
+                      {topic.mistakes} mistakes ({topic.attempts} attempts)
                     </div>
                   </div>
                 ))}
@@ -266,7 +304,7 @@ export const WeaknessReport = () => {
                   <div key={q.question} className="text-sm bg-white dark:bg-gray-800 p-2 rounded border">
                     <span className="font-medium">Question {q.question}</span>
                     <span className="ml-2 text-amber-600 dark:text-amber-400">
-                      {q.errorRate}% error rate
+                      {q.errorRate}% error rate ({q.attempts} attempts)
                     </span>
                   </div>
                 ))}
