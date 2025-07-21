@@ -1,4 +1,4 @@
-import { ArrowLeft, BarChart3 } from "lucide-react";
+import { ArrowLeft, BarChart3, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { GamificationPanel } from "@/components/GamificationPanel";
@@ -12,6 +12,19 @@ import { WeaknessReport } from "@/components/WeaknessReport";
 
 const Analytics = () => {
   const navigate = useNavigate();
+
+  // Function to clear all local storage data
+  const handleResetData = () => {
+    if (window.confirm("Are you sure you want to reset all your progress data? This action cannot be undone.")) {
+      localStorage.clear();
+      // Dispatch a custom event to notify other parts of the app that data has been updated
+      window.dispatchEvent(new CustomEvent('dataUpdate'));
+      console.log("All data reset.");
+      // Optionally navigate or refresh the page to reflect the empty state
+      // navigate('/'); // Example: navigate back to home after reset
+    }
+  };
+
 
   return (
     <div className="min-h-screen bg-background text-foreground p-4 sm:p-6">
@@ -39,6 +52,16 @@ const Analytics = () => {
                 </p>
               </div>
             </div>
+             {/* Reset Data Button */}
+             <Button
+              variant="destructive"
+              size="sm"
+              onClick={handleResetData}
+              className="hover-scale"
+            >
+              <AlertCircle className="w-4 h-4 mr-2" />
+              Reset All Data
+            </Button>
           </div>
         </header>
 

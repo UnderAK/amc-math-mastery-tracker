@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react";
 import { Trophy, Target, TrendingUp, BookOpen, Award, Moon, Sun, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { TestEntryForm } from "@/components/TestEntryForm";
 import { SummaryPanel } from "@/components/SummaryPanel";
 import { LeaderboardOverlay } from "@/components/LeaderboardOverlay";
 import { LevelUpModal } from "@/components/LevelUpModal";
 import { UserProfile } from "@/components/UserProfile";
 import { DailyBonus } from "@/components/DailyBonus";
 import { useToast } from "@/hooks/use-toast";
+import { Link } from "react-router-dom"; // Import Link for navigation
 
 const Index = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -94,28 +94,49 @@ const Index = () => {
                 <Trophy className="w-4 h-4 mr-2" />
                 Leaderboard
               </Button>
+
+               {/* Link to Analytics Page */}
+               <Link to="/analytics">
+                 <Button variant="secondary" size="sm" className="hover-scale">
+                   📊 Analytics
+                 </Button>
+               </Link>
+
+                {/* Link to Test Entry Page */}
+               <Link to="/test-entry">
+                 <Button variant="secondary" size="sm" className="hover-scale">
+                    ✍️ Enter Test
+                 </Button>
+               </Link>
+
             </div>
           </div>
         </header>
 
-        {/* Summary Panel */}
-        <SummaryPanel />
-
-        {/* Main Content */}
+        {/* Homepage Content */}
         <main className="space-y-6">
-          {/* Test Entry Form - Full Width */}
-          <div>
-            <TestEntryForm />
+          <div className="glass p-6 rounded-2xl shadow-xl text-center">
+            <h2 className="text-2xl font-semibold text-primary mb-4">Welcome to the AMC Tracker!</h2>
+            <p className="text-muted-foreground mb-6">
+              Use this tool to track your progress on AMC 8, AMC 10, and AMC 12 tests.
+              Enter your test scores, analyze your performance by topic, earn badges, and see how you rank on the leaderboard!
+            </p>
+            <Link to="/test-entry">
+              <Button size="lg" className="gradient-primary hover-bounce">
+                Get Started: Enter a Test Score
+              </Button>
+            </Link>
           </div>
+
         </main>
 
-        {/* Reset Data Button */}
-        <div className="flex justify-center mt-10">
+        {/* Reset Data Button - Moved to Analytics Page */}
+        {/* <div className="flex justify-center mt-10">
             <Button variant="destructive" onClick={handleResetData}>
                 <AlertCircle className="w-4 h-4 mr-2" />
                 Reset All Data
             </Button>
-        </div>
+        </div> */}
 
       </div>
 
