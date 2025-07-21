@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { TopicInputPopup } from "./TopicInputPopup";
+import { TopicInputPopup } from "./TopicInputPopup";
 
 interface TestScore {
   date: string;
@@ -14,6 +15,8 @@ interface TestScore {
   year: number;
   input: string;
   key: string;
+  incorrectQuestions?: number[];
+  topicMistakes?: { [topic: string]: number };
   incorrectQuestions?: number[];
   topicMistakes?: { [topic: string]: number };
   label?: string;
@@ -39,7 +42,17 @@ export const TestEntryForm = () => {
   const [incorrectQuestionsData, setIncorrectQuestionsData] = useState<Array<{questionNum: number, userAnswer: string, correctAnswer: string}>>([]);
   const [isTopicPopupOpen, setIsTopicPopupOpen] = useState(false);
   const [topicsForIncorrect, setTopicsForIncorrect] = useState<{ [key: number]: string }>({});
+  const [isTopicPopupOpen, setIsTopicPopupOpen] = useState(false);
+  const [topicsForIncorrect, setTopicsForIncorrect] = useState<{ [key: number]: string }>({});
   const { toast } = useToast();
+
+  const topicOptions = [
+    "Algebra",
+    "Geometry",
+    "Number Theory",
+    "Combinatorics",
+    "Other"
+  ];
 
   const topicOptions = [
     "Algebra",
@@ -113,6 +126,8 @@ export const TestEntryForm = () => {
     const currentXp = parseInt(localStorage.getItem("xp") || "0");
     let xpEarned = 10 + correct;
 
+    let xpEarned = 10 + correct;
+
     const today = new Date().toISOString().split("T")[0];
     const lastDate = localStorage.getItem("lastPracticeDate");
     let streak = parseInt(localStorage.getItem("streak") || "0");
@@ -126,6 +141,8 @@ export const TestEntryForm = () => {
       localStorage.setItem("lastPracticeDate", today);
       localStorage.setItem("streak", streak.toString());
       
+      if (streak >= 7) streakBonus = Math.floor(streak / 7) * 5;
+      if (streak >= 30) streakBonus += 20;
       if (streak >= 7) streakBonus = Math.floor(streak / 7) * 5;
       if (streak >= 30) streakBonus += 20;
     }
@@ -151,6 +168,7 @@ export const TestEntryForm = () => {
     });
 
     const newLevel = Math.floor(newXp / 250) + 1;
+    const newLevel = Math.floor(newXp / 250) + 1;
     const currentLevel = Math.floor(currentXp / 250) + 1;
     if (newLevel > currentLevel) {
       setTimeout(() => {
@@ -173,11 +191,13 @@ export const TestEntryForm = () => {
     setTopicsForIncorrect(prevTopics => ({
       ...prevTopics,
       [questionNum]: topic.trim(),
+      [questionNum]: topic.trim(),
     }));
   };
 
   const handleCloseTopicPopup = () => {
     setIsTopicPopupOpen(false);
+
 
     const scores: TestScore[] = JSON.parse(localStorage.getItem("scores") || "[]");
     if (scores.length > 0) {
@@ -194,6 +214,7 @@ export const TestEntryForm = () => {
         }
       });
       latestScore.topicMistakes = topicMistakes;
+      scores[latestScoreIndex] = latestScore;
       scores[latestScoreIndex] = latestScore;
       localStorage.setItem("scores", JSON.stringify(scores));
       

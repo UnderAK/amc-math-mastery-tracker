@@ -42,12 +42,16 @@ export const WeaknessReport = () => {
 
       // Analyze topic weaknesses using stored topicMistakes
       const topicData: { [topic: string]: { mistakes: number; attempts: number } } = {};
+      // Analyze topic weaknesses using stored topicMistakes
+      const topicData: { [topic: string]: { mistakes: number; attempts: number } } = {};
       const questionData: { [question: number]: { errors: number; attempts: number } } = {};
 
       scores.forEach(score => {
         // Topic analysis using saved topicMistakes
+        // Topic analysis using saved topicMistakes
         if (score.topicMistakes) {
           Object.entries(score.topicMistakes).forEach(([topic, mistakes]) => {
+            if (!topicData[topic]) topicData[topic] = { mistakes: 0, attempts: 0 };
             if (!topicData[topic]) topicData[topic] = { mistakes: 0, attempts: 0 };
             topicData[topic].mistakes += mistakes;
             // We are focusing on topics with mistakes, so attempts calculation is simplified
@@ -88,6 +92,7 @@ export const WeaknessReport = () => {
         .map(([question, data]) => ({
           question: parseInt(question),
           errorRate: data.attempts > 0 ? Math.round((data.errors / data.attempts) * 100) : 0,
+          errorRate: data.attempts > 0 ? Math.round((data.errors / data.attempts) * 100) : 0,
           attempts: data.attempts
         }))
         .filter(q => q.attempts >= 3 && q.errorRate > 30)
@@ -103,12 +108,15 @@ export const WeaknessReport = () => {
       
       if (problematicQuestions.length > 0) {
         recommendations.push(`Practice question types similar to Q${problematicQuestions[0].question}${problematicQuestions[0].errorRate > 0 ? ` (${problematicQuestions[0].errorRate}% error rate)` : ''}`);
+        recommendations.push(`Practice question types similar to Q${problematicQuestions[0].question}${problematicQuestions[0].errorRate > 0 ? ` (${problematicQuestions[0].errorRate}% error rate)` : ''}`);
       }
 
       // Calculate recent vs older scores for trend
       const recentScores = scores.slice(-5);
       const olderScores = scores.slice(0, Math.max(0, scores.length - 5)); // Ensure olderScores is not empty
+      const olderScores = scores.slice(0, Math.max(0, scores.length - 5)); // Ensure olderScores is not empty
       const recentAvg = recentScores.reduce((sum, s) => sum + s.score, 0) / recentScores.length;
+      const olderAvg = olderScores.length > 0 ? olderScores.reduce((sum, s) => sum + s.score, 0) / olderScores.length : recentAvg; // Handle case with less than 5 scores
       const olderAvg = olderScores.length > 0 ? olderScores.reduce((sum, s) => sum + s.score, 0) / olderScores.length : recentAvg; // Handle case with less than 5 scores
       
       let overallTrend = "stable";
@@ -155,6 +163,23 @@ export const WeaknessReport = () => {
       default: return "text-blue-600 bg-blue-50 dark:bg-blue-900/20";
     }
   };
+
+  // Re-generate report when data updates (after test grading or topic input)
+  useEffect(() => {
+    generateReport();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Empty dependency array means this runs once on mount
+
+  useEffect(() => {
+    const handleDataUpdate = () => {
+      generateReport();
+    };
+    window.addEventListener('dataUpdate', handleDataUpdate);
+    return () => {
+      window.removeEventListener('dataUpdate', handleDataUpdate);
+    };
+  }, [generateReport]); // Re-run effect if generateReport changes
+
 
   // Re-generate report when data updates (after test grading or topic input)
   useEffect(() => {
@@ -282,3 +307,4 @@ export const WeaknessReport = () => {
     </section>
   );
 };
+
