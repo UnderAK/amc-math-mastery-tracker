@@ -27,6 +27,7 @@ export const TopicBreakdown = () => {
   const [topicStats, setTopicStats] = useState<TopicStats[]>([]);
   const [filterType, setFilterType] = useState("all");
 
+  // Function to determine topic based on question number (can be refined)
   const getTopicForQuestion = (questionNum: number): string => {
     if (questionNum <= 5) return "Basic Arithmetic";
     if (questionNum <= 10) return "Algebra";
@@ -43,11 +44,19 @@ export const TopicBreakdown = () => {
         : scores.filter(s => s.testType === filterType);
 
       const topicData: { [topic: string]: { correct: number; total: number; mistakes: number } } = {};
+      
+      // Initialize topic data structure with 0s
+      const allTopics = ["Basic Arithmetic", "Algebra", "Geometry", "Number Theory", "Combinatorics", "Advanced Topics", "Other"];
+      allTopics.forEach(topic => {
+        topicData[topic] = { correct: 0, total: 0, mistakes: 0 };
+      });
 
       filteredScores.forEach(score => {
-        // Count correct answers by topic
+        // Count attempts and correct answers by topic
+        // We use questionTopics if available, otherwise fallback to getTopicForQuestion
         for (let i = 1; i <= 25; i++) {
-          const topic = getTopicForQuestion(i);
+          const topic = score.questionTopics?.[i] || getTopicForQuestion(i);
+          if (!topicData[topic]) topicData[topic] = { correct: 0, total: 0, mistakes: 0 }; // Ensure topic exists
           topicData[topic].total++;
           
           if (score.input && score.key && score.input[i-1] === score.key[i-1]) {
@@ -55,27 +64,34 @@ export const TopicBreakdown = () => {
           }
         }
 
-        // Add mistake data
+        // Add mistake data from topicMistakes (overwrites correct/total if topicMistakes is more accurate)
+        // Keeping this for compatibility, but questionTopics approach is preferred.
         if (score.topicMistakes) {
           Object.entries(score.topicMistakes).forEach(([topic, mistakes]) => {
             if (topicData[topic]) {
               topicData[topic].mistakes += mistakes;
+              // If using topicMistakes, accuracy calculation should ideally rely on this
+              // However, without a 'total attempted' for topicMistakes entries, we stick to the questionTopics total
             }
           });
         }
-        // We can no longer accurately calculate 'correct' per topic without storing topic for all questions
-        // For now, we will focus on displaying mistake data per topic.
       });
 
-      const stats: TopicStats[] = Object.entries(topicData).map(([topic, data]) => ({
-        topic,
-        correct: 0, // Cannot calculate accurately with current data structure
-        total: data.total, // Approximated attempts
-        accuracy: data.total > 0 ? Math.round(((data.total - data.mistakes) / data.total) * 100) : 0, // Approximated accuracy
-        mistakes: data.mistakes
-      }));
+      // Calculate stats only if there's any data
+      const stats: TopicStats[] = Object.keys(topicData).length > 0 
+        ? Object.entries(topicData).map(([topic, data]) => ({
+            topic,
+            correct: data.correct,
+            total: data.total,
+            accuracy: data.total > 0 ? Math.round(((data.correct) / data.total) * 100) : 0, // Use correct for accuracy
+            mistakes: data.mistakes
+          }))
+        : [];
 
-      setTopicStats(stats);
+      // Filter out topics with no attempts unless they have mistakes recorded
+      const relevantStats = stats.filter(stat => stat.total > 0 || stat.mistakes > 0);
+
+      setTopicStats(relevantStats);
     };
 
     updateTopicStats();
@@ -88,14 +104,19 @@ export const TopicBreakdown = () => {
     };
   }, [filterType]);
 
-  const hasData = topicStats.some(stat => stat.total > 0);
-  const weakestTopics = topicStats
-    .filter(stat => stat.total >= 5) // At least 5 questions attempted
+  const hasData = topicStats.some(stat => stat.total > 0 || stat.mistakes > 0);
+  
+  // Filter and sort topics for display
+  const displayTopics = topicStats
+    .filter(stat => stat.total >= 1 || stat.mistakes > 0); // Show if at least one attempt or any mistakes
+
+  const weakestTopics = displayTopics
+    .filter(stat => stat.total >= 3 && stat.accuracy < 70) // Consider topics with at least 3 attempts and < 70% accuracy as weak
     .sort((a, b) => a.accuracy - b.accuracy)
     .slice(0, 2);
 
-  const strongestTopics = topicStats
-    .filter(stat => stat.total >= 5)
+  const strongestTopics = displayTopics
+    .filter(stat => stat.total >= 3 && stat.accuracy >= 80) // Consider topics with at least 3 attempts and >= 80% accuracy as strong
     .sort((a, b) => b.accuracy - a.accuracy)
     .slice(0, 2);
 
@@ -112,6 +133,8 @@ export const TopicBreakdown = () => {
       case "Geometry": return "📏";
       case "Number Theory": return "🧮";
       case "Combinatorics": return "🎯";
+      case "Basic Arithmetic": return "➕";
+      case "Advanced Topics": return "🧠";
       default: return "📚";
     }
   };
@@ -182,7 +205,7 @@ export const TopicBreakdown = () => {
 
           {/* Detailed Topic Breakdown */}
           <div className="space-y-4">
-            {topicStats.map((topic, index) => (
+            {relevantStats.map((topic, index) => (
               <div 
                 key={topic.topic} 
                 className="bg-secondary/30 rounded-lg p-4 hover:bg-secondary/40 transition-colors"
