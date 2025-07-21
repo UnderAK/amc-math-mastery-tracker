@@ -77,26 +77,32 @@ const Index = () => {
         </header>
 
         {/* Main Content Grid */}
-        <main className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Gamification Panel */}
-          <GamificationPanel />
+        <main className="space-y-6">
+          {/* Top Row - 3 Small Components */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="order-1">
+              <GamificationPanel />
+            </div>
+            <div className="order-2">
+              <StatsPanel />
+            </div>
+            <div className="order-3">
+              <BadgesPanel />
+            </div>
+          </div>
 
-          {/* Test Entry Form */}
-          <TestEntryForm />
+          {/* Test Entry Form - Full Width */}
+          <div>
+            <TestEntryForm />
+          </div>
 
-          {/* Badges Panel */}
-          <BadgesPanel />
-
-          {/* Statistics Panel */}
-          <StatsPanel />
-
-          {/* Test History */}
-          <div className="col-span-1 lg:col-span-2">
+          {/* Test History - Full Width */}
+          <div>
             <TestHistoryTable />
           </div>
 
-          {/* Score Progress Chart */}
-          <div className="col-span-1 lg:col-span-3">
+          {/* Score Progress Chart - Full Width */}
+          <div>
             <div className="glass p-6 rounded-2xl shadow-xl">
               <h2 className="text-xl font-semibold text-primary mb-4 flex items-center gap-2">
                 <TrendingUp className="w-5 h-5" />
@@ -106,13 +112,13 @@ const Index = () => {
             </div>
           </div>
 
-          {/* Question Accuracy */}
-          <div className="col-span-1 lg:col-span-3">
+          {/* Question Accuracy - Full Width */}
+          <div>
             <QuestionAccuracyTable />
           </div>
 
           {/* Reset Data Button */}
-          <div className="text-center col-span-full">
+          <div className="text-center">
             <Button
               variant="destructive"
               size="sm"
