@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { TopicInputPopup } from "./TopicInputPopup"; // Import the new component
+import { TopicInputPopup } from "./TopicInputPopup";
 
 interface TestScore {
   date: string;
@@ -14,10 +14,21 @@ interface TestScore {
   year: number;
   input: string;
   key: string;
-  incorrectQuestions?: number[]; // Track which questions were wrong
-  topicMistakes?: { [topic: string]: number }; // Track mistakes by topic
+  incorrectQuestions?: number[];
+  topicMistakes?: { [topic: string]: number };
   label?: string;
+  questionTopics?: { [questionNum: number]: string }; // Added field to store topic for all questions
 }
+
+// Function to determine topic based on question number (can be refined)
+const getTopicForQuestion = (questionNum: number): string => {
+  if (questionNum <= 5) return "Algebra";
+  if (questionNum <= 10) return "Geometry";
+  if (questionNum <= 15) return "Number Theory";
+  if (questionNum <= 20) return "Combinatorics";
+  return "Other";
+};
+
 export const TestEntryForm = () => {
   const [testType, setTestType] = useState("amc8");
   const [testYear, setTestYear] = useState(new Date().getFullYear().toString());
@@ -26,9 +37,17 @@ export const TestEntryForm = () => {
   const [label, setLabel] = useState("");
   const [result, setResult] = useState("");
   const [incorrectQuestionsData, setIncorrectQuestionsData] = useState<Array<{questionNum: number, userAnswer: string, correctAnswer: string}>>([]);
-  const [isTopicPopupOpen, setIsTopicPopupOpen] = useState(false); // State for popup visibility
-  const [topicsForIncorrect, setTopicsForIncorrect] = useState<{ [key: number]: string }>({}); // Store topics for incorrect questions
+  const [isTopicPopupOpen, setIsTopicPopupOpen] = useState(false);
+  const [topicsForIncorrect, setTopicsForIncorrect] = useState<{ [key: number]: string }>({});
   const { toast } = useToast();
+
+  const topicOptions = [
+    "Algebra",
+    "Geometry",
+    "Number Theory",
+    "Combinatorics",
+    "Other"
+  ];
 
   const sanitizeInput = (value: string) => {
     return value.toUpperCase().replace(/[^ABCDE]/g, '').slice(0, 25);
@@ -40,16 +59,6 @@ export const TestEntryForm = () => {
 
   const handleAnswerKeyChange = (value: string) => {
     setAnswerKey(sanitizeInput(value));
-  };
-
-  // Topic mapping for AMC questions (typical distribution) - This will be less relevant now
-  const getTopicForQuestion = (questionNum: number, testType: string): string => {
-    // Simplified topic mapping based on typical AMC structure
-    if (questionNum <= 5) return "Basic Arithmetic";
-    if (questionNum <= 10) return "Algebra";
-    if (questionNum <= 15) return "Geometry";
-    if (questionNum <= 20) return "Number Theory";
-    return "Advanced Topics";
   };
 
   const gradeTest = () => {
@@ -65,13 +74,16 @@ export const TestEntryForm = () => {
 
     let correct = 0;
     const incorrectQData: Array<{questionNum: number, userAnswer: string, correctAnswer: string}> = [];
-    // We will calculate topicMistakes after the user inputs topics
+    const questionTopics: { [questionNum: number]: string } = {};
     
     for (let i = 0; i < 25; i++) {
+      const questionNum = i + 1;
+      const topic = getTopicForQuestion(questionNum);
+      questionTopics[questionNum] = topic;
+
       if (userAnswers[i] === answerKey[i]) {
         correct++;
       } else {
-        const questionNum = i + 1;
         incorrectQData.push({questionNum, userAnswer: userAnswers[i], correctAnswer: answerKey[i]});
       }
     }
@@ -82,7 +94,6 @@ export const TestEntryForm = () => {
     const percent = Math.round((correct / 25) * 100);
     const date = new Date().toISOString().split("T")[0];
 
-    // Save score (initially without topicMistakes)
     const scores: TestScore[] = JSON.parse(localStorage.getItem("scores") || "[]");
     const newScore: TestScore = {
       date,
@@ -92,16 +103,16 @@ export const TestEntryForm = () => {
       input: userAnswers,
       key: answerKey,
       incorrectQuestions: incorrectQData.map(q => q.questionNum),
-      label: label.trim() || undefined
+      topicMistakes: {}, // Initialize as empty, will be filled after popup
+      label: label.trim() || undefined,
+      questionTopics: questionTopics, // Store topic for all questions
     };
     scores.push(newScore);
     localStorage.setItem("scores", JSON.stringify(scores));
 
-    // Update XP and streak
     const currentXp = parseInt(localStorage.getItem("xp") || "0");
-    let xpEarned = 10 + correct; // Base 10 XP + 1 per correct answer
-    
-    // Update streak and bonus calculations
+    let xpEarned = 10 + correct;
+
     const today = new Date().toISOString().split("T")[0];
     const lastDate = localStorage.getItem("lastPracticeDate");
     let streak = parseInt(localStorage.getItem("streak") || "0");
@@ -115,12 +126,10 @@ export const TestEntryForm = () => {
       localStorage.setItem("lastPracticeDate", today);
       localStorage.setItem("streak", streak.toString());
       
-      // Streak bonuses
-      if (streak >= 7) streakBonus = Math.floor(streak / 7) * 5; // 5 XP per week streak
-      if (streak >= 30) streakBonus += 20; // Monthly streak bonus
+      if (streak >= 7) streakBonus = Math.floor(streak / 7) * 5;
+      if (streak >= 30) streakBonus += 20;
     }
 
-    // Performance bonuses
     let performanceBonus = 0;
     if (percent >= 90) performanceBonus = 15;
     else if (percent >= 80) performanceBonus = 10;
@@ -141,8 +150,7 @@ export const TestEntryForm = () => {
       description: `Score: ${correct}/25 (${percent}%) | +${xpEarned} XP`,
     });
 
-    // Check for level up
-    const newLevel = Math.floor(newXp / 250) + 1; // Changed from 100 to 250 XP per level
+    const newLevel = Math.floor(newXp / 250) + 1;
     const currentLevel = Math.floor(currentXp / 250) + 1;
     if (newLevel > currentLevel) {
       setTimeout(() => {
@@ -150,16 +158,13 @@ export const TestEntryForm = () => {
       }, 1000);
     }
 
-    // Clear form
     setUserAnswers("");
     setAnswerKey("");
     setLabel("");
     
-    // Open Topic Input Popup if there are incorrect questions
     if (incorrectQData.length > 0) {
       setIsTopicPopupOpen(true);
     } else {
-      // Trigger data refresh if no incorrect questions
       window.dispatchEvent(new CustomEvent('dataUpdate'));
     }
   };
@@ -167,13 +172,13 @@ export const TestEntryForm = () => {
   const handleSaveTopic = (questionNum: number, topic: string) => {
     setTopicsForIncorrect(prevTopics => ({
       ...prevTopics,
-      [questionNum]: topic,
+      [questionNum]: topic.trim(),
     }));
   };
 
   const handleCloseTopicPopup = () => {
     setIsTopicPopupOpen(false);
-    // Now that the popup is closed, calculate topicMistakes and update the latest score entry
+
     const scores: TestScore[] = JSON.parse(localStorage.getItem("scores") || "[]");
     if (scores.length > 0) {
       const latestScoreIndex = scores.length - 1;
@@ -184,17 +189,17 @@ export const TestEntryForm = () => {
         const topic = topicsForIncorrect[qNum];
         if (topic) {
           topicMistakes[topic] = (topicMistakes[topic] || 0) + 1;
+        } else {
+           topicMistakes['Other'] = (topicMistakes['Other'] || 0) + 1;
         }
       });
       latestScore.topicMistakes = topicMistakes;
-      scores[latestScoreIndex] = latestScore; // Update the score in the array
+      scores[latestScoreIndex] = latestScore;
       localStorage.setItem("scores", JSON.stringify(scores));
       
-      // Trigger data refresh after updating with topics
       window.dispatchEvent(new CustomEvent('dataUpdate'));
     }
     
-    // Clear the temporary topics state
     setTopicsForIncorrect({});
   };
 
@@ -293,6 +298,7 @@ export const TestEntryForm = () => {
         onClose={handleCloseTopicPopup}
         incorrectQuestions={incorrectQuestionsData}
         onSaveTopic={handleSaveTopic}
+        topicOptions={topicOptions}
       />
 
     </section>

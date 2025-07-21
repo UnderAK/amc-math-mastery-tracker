@@ -10,7 +10,9 @@ interface TestScore {
   year: number;
   input?: string;
   key?: string;
+  incorrectQuestions?: number[];
   topicMistakes?: { [topic: string]: number };
+  questionTopics?: { [questionNum: number]: string }; // Added field to store topic for all questions
 }
 
 interface TopicStats {
@@ -25,14 +27,6 @@ export const TopicBreakdown = () => {
   const [topicStats, setTopicStats] = useState<TopicStats[]>([]);
   const [filterType, setFilterType] = useState("all");
 
-  const getTopicForQuestion = (questionNum: number): string => {
-    if (questionNum <= 5) return "Basic Arithmetic";
-    if (questionNum <= 10) return "Algebra";
-    if (questionNum <= 15) return "Geometry";
-    if (questionNum <= 20) return "Number Theory";
-    return "Advanced Topics";
-  };
-
   useEffect(() => {
     const updateTopicStats = () => {
       const scores: TestScore[] = JSON.parse(localStorage.getItem("scores") || "[]");
@@ -40,32 +34,34 @@ export const TopicBreakdown = () => {
         ? scores 
         : scores.filter(s => s.testType === filterType);
 
-      const topicData: { [topic: string]: { correct: number; total: number; mistakes: number } } = {
-        "Basic Arithmetic": { correct: 0, total: 0, mistakes: 0 },
-        "Algebra": { correct: 0, total: 0, mistakes: 0 },
-        "Geometry": { correct: 0, total: 0, mistakes: 0 },
-        "Number Theory": { correct: 0, total: 0, mistakes: 0 },
-        "Advanced Topics": { correct: 0, total: 0, mistakes: 0 }
-      };
+      const topicData: { [topic: string]: { correct: number; total: number; mistakes: number } } = {};
 
       filteredScores.forEach(score => {
-        // Count correct answers by topic
-        for (let i = 1; i <= 25; i++) {
-          const topic = getTopicForQuestion(i);
-          topicData[topic].total++;
-          
-          if (score.input && score.key && score.input[i-1] === score.key[i-1]) {
-            topicData[topic].correct++;
-          }
-        }
+        if (score.questionTopics && score.input && score.key) {
+          for (let i = 1; i <= 25; i++) {
+            const topic = score.questionTopics[i];
+            if (topic) {
+              if (!topicData[topic]) topicData[topic] = { correct: 0, total: 0, mistakes: 0 };
+              topicData[topic].total++;
 
-        // Add mistake data
-        if (score.topicMistakes) {
-          Object.entries(score.topicMistakes).forEach(([topic, mistakes]) => {
-            if (topicData[topic]) {
-              topicData[topic].mistakes += mistakes;
+              // Check if the question was answered correctly
+              const userAnswer = score.input[i - 1];
+              const correctAnswer = score.key[i - 1];
+
+              if (userAnswer === correctAnswer) {
+                topicData[topic].correct++;
+              } else {
+                topicData[topic].mistakes++;
+              }
             }
-          });
+          }
+        } else if (score.topicMistakes) {
+           // Fallback for older scores that only have topicMistakes
+           Object.entries(score.topicMistakes).forEach(([topic, mistakes]) => {
+            if (!topicData[topic]) topicData[topic] = { correct: 0, total: 0, mistakes: 0 };
+            topicData[topic].mistakes += mistakes;
+             // Cannot accurately determine total or correct for older data, so we'll just show mistakes
+           });
         }
       });
 
@@ -91,15 +87,14 @@ export const TopicBreakdown = () => {
   }, [filterType]);
 
   const hasData = topicStats.some(stat => stat.total > 0);
-  const weakestTopics = topicStats
-    .filter(stat => stat.total >= 5) // At least 5 questions attempted
-    .sort((a, b) => a.accuracy - b.accuracy)
-    .slice(0, 2);
+  
+  // Sort topics by accuracy for display, only including topics with recorded attempts
+  const sortedTopicStats = topicStats
+    .filter(stat => stat.total > 0)
+    .sort((a, b) => a.accuracy - b.accuracy);
 
-  const strongestTopics = topicStats
-    .filter(stat => stat.total >= 5)
-    .sort((a, b) => b.accuracy - a.accuracy)
-    .slice(0, 2);
+  const weakestTopics = sortedTopicStats.slice(0, 2);
+  const strongestTopics = sortedTopicStats.slice(-2).reverse();
 
   const getAccuracyColor = (accuracy: number) => {
     if (accuracy >= 90) return "text-green-600 bg-green-50 dark:bg-green-900/20";
@@ -110,11 +105,10 @@ export const TopicBreakdown = () => {
 
   const getTopicIcon = (topic: string) => {
     switch (topic) {
-      case "Basic Arithmetic": return "🔢";
       case "Algebra": return "📐";
       case "Geometry": return "📏";
       case "Number Theory": return "🧮";
-      case "Advanced Topics": return "🎯";
+      case "Combinatorics": return "🎯";
       default: return "📚";
     }
   };
@@ -185,7 +179,8 @@ export const TopicBreakdown = () => {
 
           {/* Detailed Topic Breakdown */}
           <div className="space-y-4">
-            {topicStats.map((topic, index) => (
+            {/* Display all topics with recorded attempts, sorted by accuracy */}
+            {sortedTopicStats.map((topic) => (
               <div 
                 key={topic.topic} 
                 className="bg-secondary/30 rounded-lg p-4 hover:bg-secondary/40 transition-colors"
@@ -196,8 +191,7 @@ export const TopicBreakdown = () => {
                     <div>
                       <h3 className="font-medium text-foreground">{topic.topic}</h3>
                       <p className="text-sm text-muted-foreground">
-                        {topic.correct}/{topic.total} correct
-                        {topic.mistakes > 0 && ` • ${topic.mistakes} mistakes`}
+                        {topic.correct} correct out of {topic.total}
                       </p>
                     </div>
                   </div>
@@ -212,7 +206,7 @@ export const TopicBreakdown = () => {
                 <div className="space-y-2">
                   <Progress value={topic.accuracy} className="h-2" />
                   
-                  {topic.accuracy < 70 && topic.total >= 3 && (
+                  {topic.accuracy < 70 && topic.total > 0 && (
                     <div className="flex items-center gap-2 text-sm text-amber-600 dark:text-amber-400">
                       <AlertTriangle className="w-4 h-4" />
                       <span>Recommended for focused practice</span>
