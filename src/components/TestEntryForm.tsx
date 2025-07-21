@@ -14,6 +14,7 @@ interface TestScore {
   input: string;
   key: string;
   incorrectQuestions?: number[]; // Track which questions were wrong
+  topicMistakes?: { [topic: string]: number }; // Track mistakes by topic
   label?: string;
 }
 
@@ -38,6 +39,16 @@ export const TestEntryForm = () => {
     setAnswerKey(sanitizeInput(value));
   };
 
+  // Topic mapping for AMC questions (typical distribution)
+  const getTopicForQuestion = (questionNum: number, testType: string): string => {
+    // Simplified topic mapping based on typical AMC structure
+    if (questionNum <= 5) return "Basic Arithmetic";
+    if (questionNum <= 10) return "Algebra";
+    if (questionNum <= 15) return "Geometry";
+    if (questionNum <= 20) return "Number Theory";
+    return "Advanced Topics";
+  };
+
   const gradeTest = () => {
     if (userAnswers.length !== 25 || answerKey.length !== 25) {
       setResult("❌ You must enter exactly 25 characters in both fields (A–E only).");
@@ -51,12 +62,17 @@ export const TestEntryForm = () => {
 
     let correct = 0;
     const incorrectQuestions: number[] = [];
+    const topicMistakes: { [topic: string]: number } = {};
     
     for (let i = 0; i < 25; i++) {
       if (userAnswers[i] === answerKey[i]) {
         correct++;
       } else {
         incorrectQuestions.push(i + 1); // Store 1-indexed question numbers
+        
+        // Track topic mistakes
+        const topic = getTopicForQuestion(i + 1, testType);
+        topicMistakes[topic] = (topicMistakes[topic] || 0) + 1;
       }
     }
 
@@ -74,6 +90,7 @@ export const TestEntryForm = () => {
       input: userAnswers,
       key: answerKey,
       incorrectQuestions,
+      topicMistakes,
       label: label.trim() || undefined
     };
     scores.push(newScore);
@@ -81,13 +98,13 @@ export const TestEntryForm = () => {
 
     // Update XP and streak
     const currentXp = parseInt(localStorage.getItem("xp") || "0");
-    const newXp = currentXp + 10 + correct; // Base 10 XP + 1 per correct answer
-    localStorage.setItem("xp", newXp.toString());
-
-    // Update streak
+    let xpEarned = 10 + correct; // Base 10 XP + 1 per correct answer
+    
+    // Update streak and bonus calculations
     const today = new Date().toISOString().split("T")[0];
     const lastDate = localStorage.getItem("lastPracticeDate");
     let streak = parseInt(localStorage.getItem("streak") || "0");
+    let streakBonus = 0;
 
     if (lastDate !== today) {
       const yesterday = new Date();
@@ -96,13 +113,31 @@ export const TestEntryForm = () => {
       streak = lastDate === yStr ? streak + 1 : 1;
       localStorage.setItem("lastPracticeDate", today);
       localStorage.setItem("streak", streak.toString());
+      
+      // Streak bonuses
+      if (streak >= 7) streakBonus = Math.floor(streak / 7) * 5; // 5 XP per week streak
+      if (streak >= 30) streakBonus += 20; // Monthly streak bonus
     }
 
-    setResult(`✅ You scored ${correct} out of 25. ✔️ Correct: ${correct} | ❌ Incorrect: ${incorrect} | 📈 ${percent}%`);
+    // Performance bonuses
+    let performanceBonus = 0;
+    if (percent >= 90) performanceBonus = 15;
+    else if (percent >= 80) performanceBonus = 10;
+    else if (percent >= 70) performanceBonus = 5;
+
+    xpEarned += streakBonus + performanceBonus;
+    const newXp = currentXp + xpEarned;
+    localStorage.setItem("xp", newXp.toString());
+
+    let resultText = `✅ You scored ${correct} out of 25. ✔️ Correct: ${correct} | ❌ Incorrect: ${incorrect} | 📈 ${percent}%`;
+    if (streakBonus > 0) resultText += ` | 🔥 Streak Bonus: +${streakBonus} XP`;
+    if (performanceBonus > 0) resultText += ` | ⭐ Performance Bonus: +${performanceBonus} XP`;
+    
+    setResult(resultText);
     
     toast({
       title: "Test Graded! 🎉",
-      description: `Score: ${correct}/25 (${percent}%) | +${10 + correct} XP`,
+      description: `Score: ${correct}/25 (${percent}%) | +${xpEarned} XP`,
     });
 
     // Check for level up

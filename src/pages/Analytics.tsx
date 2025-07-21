@@ -7,6 +7,8 @@ import { BadgesPanel } from "@/components/BadgesPanel";
 import { ScoreChart } from "@/components/ScoreChart";
 import { QuestionAccuracyTable } from "@/components/QuestionAccuracyTable";
 import { TestHistoryTable } from "@/components/TestHistoryTable";
+import { TopicBreakdown } from "@/components/TopicBreakdown";
+import { WeaknessReport } from "@/components/WeaknessReport";
 
 const Analytics = () => {
   const navigate = useNavigate();
@@ -55,6 +57,16 @@ const Analytics = () => {
           {/* Badges Row */}
           <div>
             <BadgesPanel />
+          </div>
+
+          {/* Topic Performance and Weakness Analysis */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div>
+              <TopicBreakdown />
+            </div>
+            <div>
+              <WeaknessReport />
+            </div>
           </div>
 
           {/* Test History */}

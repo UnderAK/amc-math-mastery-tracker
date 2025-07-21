@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import { Flame, Star, Target, Zap } from "lucide-react";
+import { Flame, Star, Target, Zap, HelpCircle } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 
 interface TestScore {
   date: string;
@@ -57,11 +58,20 @@ export const GamificationPanel = () => {
   const correctPercent = problemStats.total > 0 ? Math.round((problemStats.correct / problemStats.total) * 100) : 0;
 
   return (
-    <section className="glass p-6 rounded-2xl shadow-xl">
-      <h2 className="text-xl font-semibold text-primary mb-4 flex items-center gap-2">
-        <Zap className="w-5 h-5" />
-        Gamification Panel
-      </h2>
+    <TooltipProvider>
+      <section className="glass p-6 rounded-2xl shadow-xl">
+        <h2 className="text-xl font-semibold text-primary mb-4 flex items-center gap-2">
+          <Zap className="w-5 h-5" />
+          Gamification Panel
+          <Tooltip>
+            <TooltipTrigger>
+              <HelpCircle className="w-4 h-4 text-muted-foreground ml-1" />
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Track your XP, level progress, and daily streaks</p>
+            </TooltipContent>
+          </Tooltip>
+        </h2>
       
       {/* Stats Row */}
       <div className="grid grid-cols-2 gap-4 mb-6">
@@ -69,9 +79,19 @@ export const GamificationPanel = () => {
           <div className="flex items-center justify-center gap-2 text-lg">
             <Flame className="w-5 h-5 text-orange-500" />
             <strong>Streak:</strong>
+            <Tooltip>
+              <TooltipTrigger>
+                <HelpCircle className="w-3 h-3 text-muted-foreground" />
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Daily test completion streak. Earn bonus XP for 7+ day streaks!</p>
+              </TooltipContent>
+            </Tooltip>
           </div>
           <span className="text-2xl font-bold text-orange-500">{streak}</span>
-          <div className="text-sm text-muted-foreground">days</div>
+          <div className="text-sm text-muted-foreground">
+            days {streak >= 7 && <span className="text-orange-600">🔥</span>}
+          </div>
         </div>
         
         <div className="text-center">
@@ -203,6 +223,7 @@ export const GamificationPanel = () => {
           </div>
         )}
       </div>
-    </section>
+      </section>
+    </TooltipProvider>
   );
 };
