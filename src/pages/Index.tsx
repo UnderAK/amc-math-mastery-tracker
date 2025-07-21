@@ -44,51 +44,58 @@ const Index = () => {
     <div className="min-h-screen bg-background text-foreground p-4 sm:p-6">
       <div className="max-w-6xl mx-auto space-y-10">
         {/* Header */}
-        <header className="glass p-6 sm:p-8 rounded-3xl text-center shadow-xl">
-          <h1 className="text-4xl font-bold gradient-primary bg-clip-text text-transparent tracking-tight">
-            📚 AMC8/10/12 Tracker
-          </h1>
-          <p className="text-sm text-muted-foreground mt-2">
-            Track your progress, earn badges, and level up your math skills!
-          </p>
-
-          <div className="mt-4 flex justify-center gap-3 flex-wrap">
+        <header className="glass p-6 sm:p-8 rounded-3xl shadow-xl relative">
+          {/* User Profile - Top Right */}
+          <div className="absolute top-4 right-4">
             <UserProfile />
-            
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={toggleDarkMode}
-              className="hover-scale"
-            >
-              {isDarkMode ? <Sun className="w-4 h-4 mr-2" /> : <Moon className="w-4 h-4 mr-2" />}
-              Toggle Theme
-            </Button>
-            
-            <Button
-              onClick={() => setIsLeaderboardOpen(true)}
-              className="gradient-primary hover-bounce"
-              size="sm"
-            >
-              <Trophy className="w-4 h-4 mr-2" />
-              Leaderboard
-            </Button>
+          </div>
+
+          <div className="text-center">
+            <h1 className="text-4xl font-bold gradient-primary bg-clip-text text-transparent tracking-tight">
+              📚 AMC8/10/12 Tracker
+            </h1>
+            <p className="text-sm text-muted-foreground mt-2">
+              Track your progress, earn badges, and level up your math skills!
+            </p>
+
+            <div className="mt-4 flex justify-center gap-3 flex-wrap">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={toggleDarkMode}
+                className="hover-scale"
+              >
+                {isDarkMode ? <Sun className="w-4 h-4 mr-2" /> : <Moon className="w-4 h-4 mr-2" />}
+                Toggle Theme
+              </Button>
+              
+              <Button
+                onClick={() => setIsLeaderboardOpen(true)}
+                className="gradient-primary hover-bounce"
+                size="sm"
+              >
+                <Trophy className="w-4 h-4 mr-2" />
+                Leaderboard
+              </Button>
+            </div>
           </div>
         </header>
 
         {/* Main Content Grid */}
         <main className="space-y-6">
-          {/* Top Row - 3 Equal Size Components */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Top Row - 2 Equal Size Components */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="h-full">
               <GamificationPanel />
             </div>
             <div className="h-full">
               <StatsPanel />
             </div>
-            <div className="h-full">
-              <BadgesPanel />
-            </div>
+          </div>
+
+          {/* Badges Row */}
+          <div>
+            <BadgesPanel />
           </div>
 
           {/* Test Entry Form - Main Action */}
