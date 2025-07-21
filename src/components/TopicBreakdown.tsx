@@ -30,6 +30,7 @@ interface TopicStats {
 export const TopicBreakdown = () => {
   const [topicStats, setTopicStats] = useState<TopicStats[]>([]);
   const [filterType, setFilterType] = useState("all");
+  const [relevantStats, setRelevantStats] = useState<TopicStats[]>([]); // Declare relevantStats here
 
   // Function to determine topic based on question number (can be refined) - Used as a fallback or for older data approximation
   const getDefaultTopicForQuestion = (questionNum: number): string => {
@@ -110,9 +111,10 @@ export const TopicBreakdown = () => {
       }));
 
       // Filter out topics with no attempts and no mistakes
-      const relevantStats = stats.filter(stat => stat.total > 0 || stat.mistakes > 0);
+      const relevantStatsData = stats.filter(stat => stat.total > 0 || stat.mistakes > 0);
 
-      setTopicStats(relevantStats);
+      setTopicStats(relevantStatsData); // Update topicStats state
+      setRelevantStats(relevantStatsData); // Update relevantStats state
     };
 
     updateTopicStats();
