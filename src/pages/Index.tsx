@@ -77,30 +77,21 @@ const Index = () => {
         </header>
 
         {/* Main Content Grid */}
-        <main className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <main className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Gamification Panel */}
-          <div className="lg:col-span-2">
-            <GamificationPanel />
-          </div>
-
-          {/* Daily Bonus */}
-          <DailyBonus />
+          <GamificationPanel />
 
           {/* Test Entry Form */}
-          <div className="lg:col-span-2">
-            <TestEntryForm />
-          </div>
+          <TestEntryForm />
+
+          {/* Badges Panel */}
+          <BadgesPanel />
 
           {/* Statistics Panel */}
           <StatsPanel />
 
-          {/* Badges Panel */}
-          <div className="lg:col-span-2">
-            <BadgesPanel />
-          </div>
-
           {/* Test History */}
-          <div className="col-span-1 lg:col-span-3">
+          <div className="col-span-1 lg:col-span-2">
             <TestHistoryTable />
           </div>
 
@@ -140,7 +131,8 @@ const Index = () => {
       </div>
 
       {/* Overlays */}
-      <LeaderboardOverlay 
+      <DailyBonus />
+      <LeaderboardOverlay
         isOpen={isLeaderboardOpen} 
         onClose={() => setIsLeaderboardOpen(false)} 
       />

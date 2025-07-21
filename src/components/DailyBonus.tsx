@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import { Gift, Flame, Calendar, Star } from "lucide-react";
+import { Gift, Flame, Calendar, Star, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 
 interface DailyBonusData {
@@ -15,6 +16,7 @@ export const DailyBonus = () => {
     streak: 0,
     totalBonusClaimed: 0
   });
+  const [isOpen, setIsOpen] = useState(false);
   const [canClaim, setCanClaim] = useState(false);
   const [timeUntilNext, setTimeUntilNext] = useState("");
   const { toast } = useToast();
@@ -33,6 +35,7 @@ export const DailyBonus = () => {
       const today = new Date().toISOString().split("T")[0];
       const canClaimToday = data.lastClaimed !== today;
       setCanClaim(canClaimToday);
+      setIsOpen(canClaimToday); // Show popup when can claim
 
       if (!canClaimToday) {
         // Calculate time until next claim
@@ -87,6 +90,7 @@ export const DailyBonus = () => {
     setBonusData(updatedBonusData);
     localStorage.setItem("dailyBonus", JSON.stringify(updatedBonusData));
     setCanClaim(false);
+    setIsOpen(false); // Hide popup after claiming
 
     // Check for level up
     const newLevel = Math.floor(newXP / 100) + 1;
@@ -123,48 +127,37 @@ export const DailyBonus = () => {
   };
 
   return (
-    <div className="glass p-4 rounded-xl">
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="font-semibold flex items-center gap-2">
-          <Gift className="w-4 h-4 text-accent" />
-          Daily Bonus
-        </h3>
-        {bonusData.streak > 0 && (
-          <div className={`flex items-center gap-1 text-sm font-medium ${getStreakColor(bonusData.streak)}`}>
-            <Flame className="w-4 h-4" />
-            {bonusData.streak}
-          </div>
-        )}
-      </div>
-
-      {canClaim ? (
-        <Button 
-          onClick={claimDailyBonus}
-          className="w-full gradient-primary hover-bounce gap-2"
-          size="sm"
-        >
-          <Star className="w-4 h-4" />
-          Claim Bonus ({20 + Math.min(bonusData.streak * 5, 50)} XP)
-        </Button>
-      ) : (
-        <div className="text-center space-y-2">
-          <div className="text-2xl">{getStreakEmoji(bonusData.streak)}</div>
-          <div className="text-sm text-muted-foreground">
-            Next bonus in {timeUntilNext}
-          </div>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogContent className="max-w-sm">
+        <div className="text-center space-y-4">
+          <div className="text-4xl">{getStreakEmoji(bonusData.streak)}</div>
+          <h2 className="text-xl font-bold flex items-center justify-center gap-2">
+            <Gift className="w-5 h-5 text-accent" />
+            Daily Bonus Ready!
+          </h2>
+          
           {bonusData.streak > 0 && (
+            <div className={`flex items-center justify-center gap-2 text-lg font-medium ${getStreakColor(bonusData.streak)}`}>
+              <Flame className="w-5 h-5" />
+              {bonusData.streak} day streak!
+            </div>
+          )}
+
+          <Button 
+            onClick={claimDailyBonus}
+            className="w-full gradient-primary hover-bounce gap-2"
+          >
+            <Star className="w-4 h-4" />
+            Claim {20 + Math.min(bonusData.streak * 5, 50)} XP
+          </Button>
+
+          {bonusData.totalBonusClaimed > 0 && (
             <div className="text-xs text-muted-foreground">
-              {bonusData.streak} day streak
+              Total bonus XP: {bonusData.totalBonusClaimed}
             </div>
           )}
         </div>
-      )}
-
-      {bonusData.totalBonusClaimed > 0 && (
-        <div className="mt-3 pt-3 border-t border-border/50 text-xs text-muted-foreground text-center">
-          Total bonus XP: {bonusData.totalBonusClaimed}
-        </div>
-      )}
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 };
