@@ -15,8 +15,7 @@ export const GamificationPanel = () => {
   const [level, setLevel] = useState(1);
   const [problemStats, setProblemStats] = useState({ correct: 0, total: 0 });
 
-  useEffect(() => {
-    // Load saved data
+  const loadData = () => {
     const savedXp = parseInt(localStorage.getItem("xp") || "0");
     const savedStreak = parseInt(localStorage.getItem("streak") || "0");
     const scores: TestScore[] = JSON.parse(localStorage.getItem("scores") || "[]");
@@ -35,6 +34,21 @@ export const GamificationPanel = () => {
     });
 
     setProblemStats({ correct: totalCorrect, total: totalQuestions });
+  };
+
+  useEffect(() => {
+    loadData();
+
+    // Listen for data updates
+    const handleDataUpdate = () => {
+      loadData();
+    };
+
+    window.addEventListener('dataUpdate', handleDataUpdate);
+
+    return () => {
+      window.removeEventListener('dataUpdate', handleDataUpdate);
+    };
   }, []);
 
   const dailyGoal = 100;
