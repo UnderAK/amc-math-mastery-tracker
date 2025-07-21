@@ -10,9 +10,13 @@ interface TestScore {
   year: number;
   input?: string;
   key?: string;
-  incorrectQuestions?: number[];
-  topicMistakes?: { [topic: string]: number };
-  questionTopics?: { [questionNum: number]: string }; // Added field to store topic for all questions
+  // We now use questionTopics and questionCorrectness
+  label?: string;
+  questionTopics?: { [questionNum: number]: string }; // Store topic for ALL 25 questions (new format)
+  questionCorrectness?: { [questionNum: number]: boolean }; // Store correctness for ALL 25 questions (new format)
+  // Retaining old fields for compatibility when reading
+  incorrectQuestions?: number[]; // Old format
+  topicMistakes?: { [topic: string]: number }; // Old format
 }
 
 interface TopicStats {
@@ -27,8 +31,8 @@ export const TopicBreakdown = () => {
   const [topicStats, setTopicStats] = useState<TopicStats[]>([]);
   const [filterType, setFilterType] = useState("all");
 
-  // Function to determine topic based on question number (can be refined)
-  const getTopicForQuestion = (questionNum: number): string => {
+  // Function to determine topic based on question number (can be refined) - Used as a fallback or for older data approximation
+  const getDefaultTopicForQuestion = (questionNum: number): string => {
     if (questionNum <= 5) return "Basic Arithmetic";
     if (questionNum <= 10) return "Algebra";
     if (questionNum <= 15) return "Geometry";
@@ -45,50 +49,67 @@ export const TopicBreakdown = () => {
 
       const topicData: { [topic: string]: { correct: number; total: number; mistakes: number } } = {};
       
-      // Initialize topic data structure with 0s
-      const allTopics = ["Basic Arithmetic", "Algebra", "Geometry", "Number Theory", "Combinatorics", "Advanced Topics", "Other"];
-      allTopics.forEach(topic => {
+       // Define all possible topics to ensure they are initialized
+      const possibleTopics = ["Basic Arithmetic", "Algebra", "Geometry", "Number Theory", "Combinatorics", "Advanced Topics", "Other", "Skipped/Other"];
+      possibleTopics.forEach(topic => {
         topicData[topic] = { correct: 0, total: 0, mistakes: 0 };
       });
 
       filteredScores.forEach(score => {
-        // Count attempts and correct answers by topic
-        // We use questionTopics if available, otherwise fallback to getTopicForQuestion
-        for (let i = 1; i <= 25; i++) {
-          const topic = score.questionTopics?.[i] || getTopicForQuestion(i);
-          if (!topicData[topic]) topicData[topic] = { correct: 0, total: 0, mistakes: 0 }; // Ensure topic exists
-          topicData[topic].total++;
-          
-          if (score.input && score.key && score.input[i-1] === score.key[i-1]) {
-            topicData[topic].correct++;
-          }
-        }
+        // Prioritize new data structure
+        if (score.questionTopics && score.questionCorrectness) {
+            for (let i = 1; i <= 25; i++) {
+                const topic = score.questionTopics[i];
+                const isCorrect = score.questionCorrectness[i];
 
-        // Add mistake data from topicMistakes (overwrites correct/total if topicMistakes is more accurate)
-        // Keeping this for compatibility, but questionTopics approach is preferred.
-        if (score.topicMistakes) {
-          Object.entries(score.topicMistakes).forEach(([topic, mistakes]) => {
-            if (topicData[topic]) {
-              topicData[topic].mistakes += mistakes;
-              // If using topicMistakes, accuracy calculation should ideally rely on this
-              // However, without a 'total attempted' for topicMistakes entries, we stick to the questionTopics total
+                // Ensure topic exists in initialized data or add it
+                if (!topicData[topic]) {
+                     topicData[topic] = { correct: 0, total: 0, mistakes: 0 };
+                     console.warn(`Dynamically adding topic: ${topic}`);
+                }
+                
+                topicData[topic].total++;
+                if (isCorrect) {
+                    topicData[topic].correct++;
+                } else {
+                    topicData[topic].mistakes++;
+                }
             }
-          });
+        } else if (score.incorrectQuestions) {
+            // Handle older scores with incorrectQuestions (approximate topic and attempts)
+            // This approach is less accurate for total attempts per topic as it only counts incorrect questions.
+            score.incorrectQuestions.forEach(qNum => {
+                 // Attempt to get a topic for the incorrect question (might be a rough approximation)
+                 const topic = score.topicMistakes?.[getDefaultTopicForQuestion(qNum)] !== undefined 
+                                ? getDefaultTopicForQuestion(qNum) : `Question ${qNum} Topic (Approx.)`; // Fallback
+                
+                // Ensure topic exists in initialized data or add it
+                if (!topicData[topic]) {
+                     topicData[topic] = { correct: 0, total: 0, mistakes: 0 };
+                     console.warn(`Dynamically adding topic (from old data): ${topic}`);
+                }
+
+                topicData[topic].mistakes++;
+                 // We cannot accurately determine total attempts per topic for older data
+                 // Skipping attempt count for older data to avoid misleading totals
+            });
+             console.warn(`Processing score from ${score.date} with old data structure for topic breakdown (approximate data).`);
+        } else {
+             console.warn(`Skipping score from ${score.date} for topic breakdown due to missing data.`);
         }
       });
 
-      // Calculate stats only if there's any data
-      const stats: TopicStats[] = Object.keys(topicData).length > 0 
-        ? Object.entries(topicData).map(([topic, data]) => ({
+      // Calculate stats
+      const stats: TopicStats[] = Object.entries(topicData).map(([topic, data]) => ({
             topic,
             correct: data.correct,
             total: data.total,
-            accuracy: data.total > 0 ? Math.round(((data.correct) / data.total) * 100) : 0, // Use correct for accuracy
+            // Calculate accuracy only if total attempts > 0, otherwise 0%
+            accuracy: data.total > 0 ? Math.round(((data.correct) / data.total) * 100) : 0,
             mistakes: data.mistakes
-          }))
-        : [];
+      }));
 
-      // Filter out topics with no attempts unless they have mistakes recorded
+      // Filter out topics with no attempts and no mistakes
       const relevantStats = stats.filter(stat => stat.total > 0 || stat.mistakes > 0);
 
       setTopicStats(relevantStats);
@@ -107,16 +128,19 @@ export const TopicBreakdown = () => {
   const hasData = topicStats.some(stat => stat.total > 0 || stat.mistakes > 0);
   
   // Filter and sort topics for display
+  // Display topics that have at least one attempt OR at least one mistake
   const displayTopics = topicStats
-    .filter(stat => stat.total >= 1 || stat.mistakes > 0); // Show if at least one attempt or any mistakes
+    .filter(stat => stat.total > 0 || stat.mistakes > 0);
 
+  // Weakest topics: Filter for topics with mistakes and sort by mistake count (descending)
   const weakestTopics = displayTopics
-    .filter(stat => stat.total >= 3 && stat.accuracy < 70) // Consider topics with at least 3 attempts and < 70% accuracy as weak
-    .sort((a, b) => a.accuracy - b.accuracy)
+    .filter(stat => stat.mistakes > 0)
+    .sort((a, b) => b.mistakes - a.mistakes)
     .slice(0, 2);
 
-  const strongestTopics = displayTopics
-    .filter(stat => stat.total >= 3 && stat.accuracy >= 80) // Consider topics with at least 3 attempts and >= 80% accuracy as strong
+  // Strongest topics: Filter for topics with at least 3 attempts and sort by accuracy (descending)
+   const strongestTopics = displayTopics
+    .filter(stat => stat.total >= 3) // Require at least 3 attempts for a topic to be considered a strength
     .sort((a, b) => b.accuracy - a.accuracy)
     .slice(0, 2);
 
@@ -176,7 +200,8 @@ export const TopicBreakdown = () => {
                       <span className="text-sm font-medium flex items-center gap-2">
                         {getTopicIcon(topic.topic)} {topic.topic}
                       </span>
-                      <span className="text-sm text-red-600 dark:text-red-400">{topic.accuracy}%</span>
+                      {/* Display mistakes count for weakest topics */}
+                      <span className="text-sm text-red-600 dark:text-red-400">{topic.mistakes} mistakes</span>
                     </div>
                   ))}
                 </div>
@@ -195,6 +220,7 @@ export const TopicBreakdown = () => {
                       <span className="text-sm font-medium flex items-center gap-2">
                         {getTopicIcon(topic.topic)} {topic.topic}
                       </span>
+                      {/* Display accuracy for strongest topics */}
                       <span className="text-sm text-green-600 dark:text-green-400">{topic.accuracy}%</span>
                     </div>
                   ))}
@@ -205,7 +231,7 @@ export const TopicBreakdown = () => {
 
           {/* Detailed Topic Breakdown */}
           <div className="space-y-4">
-            {topicStats.map((topic, index) => (
+            {relevantStats.map((topic, index) => (
               <div 
                 key={topic.topic} 
                 className="bg-secondary/30 rounded-lg p-4 hover:bg-secondary/40 transition-colors"
@@ -215,7 +241,6 @@ export const TopicBreakdown = () => {
                     <span className="text-xl">{getTopicIcon(topic.topic)}</span>
                     <div>
                       <h3 className="font-medium text-foreground">{topic.topic}</h3>
-                      {/* We can only show mistakes, not total correct, with current data structure */}
                       <p className="text-sm text-muted-foreground">
                         {topic.correct}/{topic.total} correct
                         {topic.mistakes > 0 && ` • ${topic.mistakes} mistakes`}
@@ -224,16 +249,27 @@ export const TopicBreakdown = () => {
                   </div>
                   
                   <div className="text-right">
-                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${getAccuracyColor(topic.accuracy)}`}>
-                      {topic.accuracy}%
-                    </span>
+                    {/* Display accuracy if total attempts > 0, otherwise indicate no data */}
+                    {topic.total > 0 ? (
+                       <span className={`px-3 py-1 rounded-full text-sm font-medium ${getAccuracyColor(topic.accuracy)}`}>
+                         {topic.accuracy}%
+                       </span>
+                    ) : (
+                        <span className="px-3 py-1 rounded-full text-sm font-medium text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-800">
+                          No Data
+                        </span>
+                    )}
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Progress value={topic.accuracy} className="h-2" />
+                  {/* Show progress bar only if there are attempts */}
+                  {topic.total > 0 && (
+                     <Progress value={topic.accuracy} className="h-2" />
+                  )}
                   
-                  {topic.accuracy < 70 && topic.total >= 3 && (
+                  {/* Show recommendation based on accuracy and attempts */}
+                  {topic.total >= 3 && topic.accuracy < 70 && (
                     <div className="flex items-center gap-2 text-sm text-amber-600 dark:text-amber-400">
                       <AlertTriangle className="w-4 h-4" />
                       <span>Recommended for focused practice</span>
@@ -249,7 +285,7 @@ export const TopicBreakdown = () => {
           <div className="text-4xl mb-3">📊</div>
           <p className="text-muted-foreground">No topic data yet</p>
           <p className="text-sm text-muted-foreground mt-1">
-            Complete some tests and enter topics for incorrect questions to see your performance by topic
+            Complete some tests and enter topics for all questions to see your performance by topic.
           </p>
         </div>
       )}
