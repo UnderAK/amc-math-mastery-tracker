@@ -9,7 +9,6 @@ interface TestScore {
   year: number;
   input?: string;
   key?: string;
-  maxQuestions?: number;
 }
 
 interface QuestionStat {
@@ -29,13 +28,7 @@ export const QuestionAccuracyTable = () => {
         ? scores 
         : scores.filter(s => s.testType === filterType);
 
-      // Find the maximum number of questions across all filtered tests
-      const maxQuestionsForType = filteredScores.reduce((max, score) => {
-        const questions = score.maxQuestions || (score.testType === "mathcounts-sprint" ? 30 : score.testType === "mathcounts-target" ? 8 : score.testType === "mathcounts-team" ? 10 : 25);
-        return Math.max(max, questions);
-      }, 25);
-
-      const stats: QuestionStat[] = Array(maxQuestionsForType).fill(null).map(() => ({ 
+      const stats: QuestionStat[] = Array(25).fill(null).map(() => ({ 
         correct: 0, 
         total: 0, 
         accuracy: 0 
@@ -44,10 +37,9 @@ export const QuestionAccuracyTable = () => {
       filteredScores.forEach(score => {
         const input = score.input || "";
         const key = score.key || "";
-        const maxQuestions = score.maxQuestions || (score.testType === "mathcounts-sprint" ? 30 : score.testType === "mathcounts-target" ? 8 : score.testType === "mathcounts-team" ? 10 : 25);
         
-        for (let i = 0; i < maxQuestions; i++) {
-          if (input[i] && key[i] && i < stats.length) {
+        for (let i = 0; i < 25; i++) {
+          if (input[i] && key[i]) {
             stats[i].total++;
             if (input[i] === key[i]) {
               stats[i].correct++;
@@ -114,9 +106,6 @@ export const QuestionAccuracyTable = () => {
             <SelectItem value="amc8">AMC 8</SelectItem>
             <SelectItem value="amc10">AMC 10</SelectItem>
             <SelectItem value="amc12">AMC 12</SelectItem>
-            <SelectItem value="mathcounts-sprint">MATHCOUNTS Sprint</SelectItem>
-            <SelectItem value="mathcounts-target">MATHCOUNTS Target</SelectItem>
-            <SelectItem value="mathcounts-team">MATHCOUNTS Team</SelectItem>
           </SelectContent>
         </Select>
       </div>

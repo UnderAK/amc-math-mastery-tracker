@@ -13,9 +13,8 @@ interface TestScore {
   year: number;
   input: string;
   key: string;
-  incorrectQuestions?: number[];
+  incorrectQuestions?: number[]; // Track which questions were wrong
   label?: string;
-  maxQuestions?: number; // Track max questions for the test type
 }
 
 export const TestEntryForm = () => {
@@ -27,45 +26,24 @@ export const TestEntryForm = () => {
   const [result, setResult] = useState("");
   const { toast } = useToast();
 
-  // Get question count based on test type
-  const getQuestionCount = (type: string) => {
-    switch (type) {
-      case "mathcounts-sprint": return 30;
-      case "mathcounts-target": return 8;
-      case "mathcounts-team": return 10;
-      default: return 25; // AMC tests
-    }
-  };
-
-  const currentQuestionCount = getQuestionCount(testType);
-
-  const sanitizeInput = (value: string, maxLength: number) => {
-    if (testType.startsWith("mathcounts")) {
-      // For Mathcounts, allow numbers and letters
-      return value.toUpperCase().replace(/[^ABCDE0-9]/g, "").slice(0, maxLength);
-    } else {
-      // For AMC, only A-E
-      return value.toUpperCase().replace(/[^ABCDE]/g, "").slice(0, maxLength);
-    }
+  const sanitizeInput = (value: string) => {
+    return value.toUpperCase().replace(/[^ABCDE]/g, '').slice(0, 25);
   };
 
   const handleUserAnswersChange = (value: string) => {
-    setUserAnswers(sanitizeInput(value, currentQuestionCount));
+    setUserAnswers(sanitizeInput(value));
   };
 
   const handleAnswerKeyChange = (value: string) => {
-    setAnswerKey(sanitizeInput(value, currentQuestionCount));
+    setAnswerKey(sanitizeInput(value));
   };
 
   const gradeTest = () => {
-    const expectedLength = currentQuestionCount;
-    
-    if (userAnswers.length !== expectedLength || answerKey.length !== expectedLength) {
-      const inputType = testType.startsWith("mathcounts") ? "answers" : "letters (A-E)";
-      setResult(`❌ You must enter exactly ${expectedLength} ${inputType} in both fields.`);
+    if (userAnswers.length !== 25 || answerKey.length !== 25) {
+      setResult("❌ You must enter exactly 25 characters in both fields (A–E only).");
       toast({
         title: "Invalid Input",
-        description: `Both answer fields must contain exactly ${expectedLength} ${inputType}`,
+        description: "Both answer fields must contain exactly 25 letters (A-E)",
         variant: "destructive",
       });
       return;
@@ -74,16 +52,16 @@ export const TestEntryForm = () => {
     let correct = 0;
     const incorrectQuestions: number[] = [];
     
-    for (let i = 0; i < expectedLength; i++) {
+    for (let i = 0; i < 25; i++) {
       if (userAnswers[i] === answerKey[i]) {
         correct++;
       } else {
-        incorrectQuestions.push(i + 1);
+        incorrectQuestions.push(i + 1); // Store 1-indexed question numbers
       }
     }
 
-    const incorrect = expectedLength - correct;
-    const percent = Math.round((correct / expectedLength) * 100);
+    const incorrect = 25 - correct;
+    const percent = Math.round((correct / 25) * 100);
     const date = new Date().toISOString().split("T")[0];
 
     // Save score
@@ -96,8 +74,7 @@ export const TestEntryForm = () => {
       input: userAnswers,
       key: answerKey,
       incorrectQuestions,
-      label: label.trim() || undefined,
-      maxQuestions: expectedLength
+      label: label.trim() || undefined
     };
     scores.push(newScore);
     localStorage.setItem("scores", JSON.stringify(scores));
@@ -121,11 +98,11 @@ export const TestEntryForm = () => {
       localStorage.setItem("streak", streak.toString());
     }
 
-    setResult(`✅ You scored ${correct} out of ${expectedLength}. ✔️ Correct: ${correct} | ❌ Incorrect: ${incorrect} | 📈 ${percent}%`);
+    setResult(`✅ You scored ${correct} out of 25. ✔️ Correct: ${correct} | ❌ Incorrect: ${incorrect} | 📈 ${percent}%`);
     
     toast({
       title: "Test Graded! 🎉",
-      description: `Score: ${correct}/${expectedLength} (${percent}%) | +${10 + correct} XP`,
+      description: `Score: ${correct}/25 (${percent}%) | +${10 + correct} XP`,
     });
 
     // Check for level up
@@ -164,9 +141,6 @@ export const TestEntryForm = () => {
             <SelectItem value="amc8">AMC 8</SelectItem>
             <SelectItem value="amc10">AMC 10</SelectItem>
             <SelectItem value="amc12">AMC 12</SelectItem>
-            <SelectItem value="mathcounts-sprint">MATHCOUNTS Sprint</SelectItem>
-            <SelectItem value="mathcounts-target">MATHCOUNTS Target</SelectItem>
-            <SelectItem value="mathcounts-team">MATHCOUNTS Team</SelectItem>
           </SelectContent>
         </Select>
 
@@ -194,14 +168,12 @@ export const TestEntryForm = () => {
           <Textarea
             value={userAnswers}
             onChange={(e) => handleUserAnswersChange(e.target.value)}
-            placeholder={testType.startsWith("mathcounts") 
-              ? `Enter Your Answers (${currentQuestionCount} answers)` 
-              : `Enter Your Answers (${currentQuestionCount} letters A–E only)`}
+            placeholder="Enter Your Answers (25 letters A–E only)"
             className="font-mono"
             rows={2}
           />
           <div className="text-xs text-muted-foreground mt-1">
-            {userAnswers.length}/{currentQuestionCount} characters
+            {userAnswers.length}/25 characters
           </div>
         </div>
 
@@ -211,14 +183,12 @@ export const TestEntryForm = () => {
           <Textarea
             value={answerKey}
             onChange={(e) => handleAnswerKeyChange(e.target.value)}
-            placeholder={testType.startsWith("mathcounts") 
-              ? `Enter Official Answer Key (${currentQuestionCount} answers)` 
-              : `Enter Official Answer Key (${currentQuestionCount} letters A–E only)`}
+            placeholder="Enter Official Answer Key (25 letters A–E only)"
             className="font-mono"
             rows={2}
           />
           <div className="text-xs text-muted-foreground mt-1">
-            {answerKey.length}/{currentQuestionCount} characters
+            {answerKey.length}/25 characters
           </div>
         </div>
 
@@ -227,7 +197,7 @@ export const TestEntryForm = () => {
           <Button
             onClick={gradeTest}
             className="gradient-primary hover-bounce"
-            disabled={userAnswers.length !== currentQuestionCount || answerKey.length !== currentQuestionCount}
+            disabled={userAnswers.length !== 25 || answerKey.length !== 25}
           >
             <CheckCircle className="w-4 h-4 mr-2" />
             Grade Test
