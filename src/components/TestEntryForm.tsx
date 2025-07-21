@@ -1,12 +1,11 @@
 import { useState } from "react";
-import { BookOpen, CheckCircle, XCircle } from "lucide-react"; // Import XCircle for incorrect questions
+import { BookOpen, Sparkles, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { BubbleSheetInput } from "./BubbleSheetInput";
-import { TopicInputPopup } from "./TopicInputPopup";
+import { TopicInputPopup } from "./TopicInputPopup"; // We will modify or replace this
 
 interface TestScore {
   date: string;
@@ -15,12 +14,13 @@ interface TestScore {
   year: number;
   input: string;
   key: string;
+  // Removed incorrectQuestions and topicMistakes as they will be replaced by questionTopics
   label?: string;
-  questionTopics: { [questionNum: number]: string };
-  questionCorrectness: { [questionNum: number]: boolean };
-  incorrectQuestions?: number[];
+  questionTopics: { [questionNum: number]: string }; // Store topic for ALL 25 questions
+  questionCorrectness: { [questionNum: number]: boolean }; // Store correctness for ALL 25 questions
 }
 
+// Function to determine topic based on question number (can be refined or removed later)
 const getTopicForQuestion = (questionNum: number): string => {
   if (questionNum <= 5) return "Algebra";
   if (questionNum <= 10) return "Geometry";
@@ -32,15 +32,14 @@ const getTopicForQuestion = (questionNum: number): string => {
 export const TestEntryForm = () => {
   const [testType, setTestType] = useState("amc8");
   const [testYear, setTestYear] = useState(new Date().getFullYear().toString());
-  const [userAnswers, setUserAnswers] = useState<("A" | "B" | "C" | "D" | "E" | "")[]>(Array(25).fill(""));
+  const [userAnswers, setUserAnswers] = useState("");
   const [answerKey, setAnswerKey] = useState("");
   const [label, setLabel] = useState("");
   const [result, setResult] = useState("");
+  // We will now store topics for ALL questions
+  const [allQuestionTopics, setAllQuestionTopics] = useState<{ [key: number]: string }>({});
+  const [isTopicInputForAllOpen, setIsTopicInputForAllOpen] = useState(false);
   
-  const [incorrectQuestionsData, setIncorrectQuestionsData] = useState<Array<{questionNum: number, userAnswer: string, correctAnswer: string}>>([]);
-  const [isTopicPopupOpen, setIsTopicPopupOpen] = useState(false);
-  const [topicsFromPopup, setTopicsFromPopup] = useState<{ [key: number]: string }>({});
-
   const { toast } = useToast();
 
   const topicOptions = [
@@ -51,81 +50,76 @@ export const TestEntryForm = () => {
     "Other"
   ];
 
-  const formatAnswersForStorage = (answers: ("A" | "B" | "C" | "D" | "E" | "")[]): string => {
-    return answers.join("");
-  };
-
-  const sanitizeAnswerKey = (value: string) => {
+  const sanitizeInput = (value: string) => {
     return value.toUpperCase().replace(/[^ABCDE]/g, '').slice(0, 25);
   };
 
+  const handleUserAnswersChange = (value: string) => {
+    setUserAnswers(sanitizeInput(value));
+  };
+
   const handleAnswerKeyChange = (value: string) => {
-    setAnswerKey(sanitizeAnswerKey(value));
+    setAnswerKey(sanitizeInput(value));
   };
 
   const gradeTest = () => {
-    const userAnswerString = formatAnswersForStorage(userAnswers);
-    const answerKeyString = answerKey;
-
-    if (answerKeyString.length !== 25) {
-      setResult("❌ Official Answer Key must contain exactly 25 letters (A–E only).");
+    if (userAnswers.length !== 25 || answerKey.length !== 25) {
+      setResult("❌ You must enter exactly 25 characters in both fields (A–E only).");
       toast({
         title: "Invalid Input",
-        description: "Official Answer Key must contain exactly 25 letters (A-E)",
+        description: "Both answer fields must contain exactly 25 letters (A-E)",
         variant: "destructive",
       });
       return;
     }
 
+    // Initialize allQuestionTopics with default topics
+    const initialTopics: { [key: number]: string } = {};
+    for (let i = 1; i <= 25; i++) {
+      initialTopics[i] = getTopicForQuestion(i); // Use default topic initially
+    }
+    setAllQuestionTopics(initialTopics);
+    setIsTopicInputForAllOpen(true); // Open the popup to get topics for all questions
+
+    // The rest of the grading and saving will happen after the topic popup is closed
+  };
+
+  const handleSaveAllTopics = (topics: { [key: number]: string }) => {
+    setAllQuestionTopics(topics);
+    setIsTopicInputForAllOpen(false);
+
+    // Now that we have topics for all questions, finalize grading and save the score
     let correct = 0;
     const questionCorrectness: { [questionNum: number]: boolean } = {};
-    const incorrectQData: Array<{questionNum: number, userAnswer: string, correctAnswer: string}> = [];
-    const questionTopics: { [questionNum: number]: string } = {};
 
     for (let i = 0; i < 25; i++) {
       const questionNum = i + 1;
-      const userAnswer = userAnswers[i];
-      const correctAnswer = answerKeyString[i];
-
-      const isCorrect = userAnswer !== "" && userAnswer === correctAnswer;
+      const isCorrect = userAnswers[i] === answerKey[i];
       questionCorrectness[questionNum] = isCorrect;
-
-      // Assign default topic initially
-      questionTopics[questionNum] = getTopicForQuestion(questionNum);
-
-      if (!isCorrect) {
-        incorrectQData.push({questionNum, userAnswer, correctAnswer});
-      } else {
+      if (isCorrect) {
         correct++;
       }
     }
-
-    setIncorrectQuestionsData(incorrectQData);
 
     const incorrect = 25 - correct;
     const percent = Math.round((correct / 25) * 100);
     const date = new Date().toISOString().split("T")[0];
 
-    // Prepare the score object with initial data
+    const scores: TestScore[] = JSON.parse(localStorage.getItem("scores") || "[]");
     const newScore: TestScore = {
       date,
       score: correct,
       testType,
       year: parseInt(testYear),
-      input: userAnswerString,
-      key: answerKeyString,
+      input: userAnswers,
+      key: answerKey,
       label: label.trim() || undefined,
-      questionTopics: questionTopics, // This will be updated after the popup if needed
-      questionCorrectness: questionCorrectness,
-      incorrectQuestions: incorrectQData.map(q => q.questionNum), // Store incorrect question numbers
+      questionTopics: allQuestionTopics, // Store topics for all questions
+      questionCorrectness: questionCorrectness, // Store correctness for all questions
     };
-    
-    // Save score initially (will be updated with specific topics after popup)
-    const scores: TestScore[] = JSON.parse(localStorage.getItem("scores") || "[]");
     scores.push(newScore);
     localStorage.setItem("scores", JSON.stringify(scores));
 
-    // Update XP and streak (using the correct count from grading)
     const currentXp = parseInt(localStorage.getItem("xp") || "0");
     let xpEarned = 10 + correct;
 
@@ -174,68 +168,50 @@ export const TestEntryForm = () => {
       }, 1000);
     }
 
-    // Clear form initially
-    setUserAnswers(Array(25).fill(""));
+    setUserAnswers("");
     setAnswerKey("");
     setLabel("");
+    setAllQuestionTopics({}); // Clear topics for the next test
+    window.dispatchEvent(new CustomEvent('dataUpdate'));
+  };
+
+  // This handler is no longer needed in this form, as we get topics for all questions
+  // const handleSaveTopic = (questionNum: number, topic: string) => {
+  //   setTopicsForIncorrect(prevTopics => ({
+  //     ...prevTopics,
+  //     [questionNum]: topic.trim(),
+  //   }));
+  // };
+
+  // This handler is no longer needed in this form
+  // const handleCloseTopicPopup = () => {
+  //   setIsTopicPopupOpen(false);
+
+
+  //   const scores: TestScore[] = JSON.parse(localStorage.getItem("scores") || "[]");
+  //   if (scores.length > 0) {
+  //     const latestScoreIndex = scores.length - 1;
+  //     const latestScore = scores[latestScoreIndex];
+      
+  //     const topicMistakes: { [topic: string]: number } = {};
+  //     latestScore.incorrectQuestions?.forEach(qNum => {
+  //       const topic = topicsForIncorrect[qNum];
+  //       if (topic) {
+  //         topicMistakes[topic] = (topicMistakes[topic] || 0) + 1;
+  //       } else {
+  //          topicMistakes['Other'] = (topicMistakes['Other'] || 0) + 1;
+  //       }
+  //     });
+  //     latestScore.topicMistakes = topicMistakes;
+  //     scores[latestScoreIndex] = latestScore;
+  //     localStorage.setItem("scores", JSON.stringify(scores));
+      
+  //     window.dispatchEvent(new CustomEvent('dataUpdate'));
+  //   }
     
-    // If there are incorrect questions, open the topic popup
-    if (incorrectQData.length > 0) {
-      // Initialize topicsFromPopup with the default topics for incorrect questions
-      const initialTopicsForIncorrect: { [key: number]: string } = {};
-      incorrectQData.forEach(q => {
-        initialTopicsForIncorrect[q.questionNum] = getTopicForQuestion(q.questionNum);
-      });
-      setTopicsFromPopup(initialTopicsForIncorrect);
-      setIsTopicPopupOpen(true);
-    } else {
-      // If no incorrect questions, just trigger data update
-      window.dispatchEvent(new CustomEvent('dataUpdate'));
-    }
-  };
+  //   setTopicsForIncorrect({});
+  // };
 
-  // Handler for when topics are saved in the popup
-  const handleTopicsSavedInPopup = (topics: { [key: number]: string }) => {
-      setIsTopicPopupOpen(false);
-      // Update the latest score in localStorage with the topics from the popup
-      const scores: TestScore[] = JSON.parse(localStorage.getItem("scores") || "[]");
-      if (scores.length > 0) {
-          const latestScoreIndex = scores.length - 1;
-          const latestScore = scores[latestScoreIndex];
-          
-          // Update the topics for the incorrect questions with the saved topics from the popup
-          latestScore.incorrectQuestions?.forEach(qNum => {
-              if (topics[qNum]) {
-                  latestScore.questionTopics[qNum] = topics[qNum];
-              } else {
-                   // If topic was not selected in popup, default to 'Other'
-                   latestScore.questionTopics[qNum] = 'Other';
-              }
-          });
-
-          // Recalculate topicMistakes based on the updated questionTopics for incorrect questions
-          const topicMistakes: { [topic: string]: number } = {};
-           latestScore.incorrectQuestions?.forEach(qNum => {
-               const topic = latestScore.questionTopics[qNum];
-               if(topic) {
-                   topicMistakes[topic] = (topicMistakes[topic] || 0) + 1;
-               }
-           });
-           latestScore.topicMistakes = topicMistakes;
-
-          scores[latestScoreIndex] = latestScore;
-          localStorage.setItem("scores", JSON.stringify(scores));
-          
-          // Trigger data update to refresh analytics
-          window.dispatchEvent(new CustomEvent('dataUpdate'));
-      }
-      // Clear temporary topics state
-      setTopicsFromPopup({});
-  };
-
-
-  // Check if only answer key has 25 characters to enable the Grade Test button
-  const isGradeButtonEnabled = answerKey.length === 25;
 
   return (
     <section className="glass p-6 rounded-2xl shadow-xl">
@@ -275,16 +251,25 @@ export const TestEntryForm = () => {
           placeholder="Label (optional) - e.g., Practice Test, Competition, Review"
         />
 
-        {/* User Answers Bubble Sheet */}
+        {/* User Answers */}
         <div>
           <label className="text-sm font-medium mb-2 block">Your Answers</label>
-          <BubbleSheetInput answers={userAnswers} setAnswers={setUserAnswers} />
+          <Textarea
+            value={userAnswers}
+            onChange={(e) => handleUserAnswersChange(e.target.value)}
+            placeholder="Enter Your Answers (25 letters A–E only)"
+            className="font-mono"
+            rows={2}
+          />
+          <div className="text-xs text-muted-foreground mt-1">
+            {userAnswers.length}/25 characters
+          </div>
         </div>
 
-        {/* Answer Key Textarea */}
+        {/* Answer Key */}
         <div>
           <label className="text-sm font-medium mb-2 block">Official Answer Key</label>
-           <Textarea
+          <Textarea
             value={answerKey}
             onChange={(e) => handleAnswerKeyChange(e.target.value)}
             placeholder="Enter Official Answer Key (25 letters A–E only)"
@@ -301,7 +286,7 @@ export const TestEntryForm = () => {
           <Button
             onClick={gradeTest}
             className="gradient-primary hover-bounce"
-            disabled={!isGradeButtonEnabled}
+            disabled={userAnswers.length !== 25 || answerKey.length !== 25}
           >
             <CheckCircle className="w-4 h-4 mr-2" />
             Grade Test
@@ -314,34 +299,18 @@ export const TestEntryForm = () => {
             <p className="text-sm font-medium text-accent">{result}</p>
           </div>
         )}
-
-        {/* Display Incorrect Questions */}
-        {incorrectQuestionsData.length > 0 && (
-            <div className="mt-4">
-                <h3 className="text-lg font-semibold text-red-600 flex items-center gap-2 mb-2">
-                    <XCircle className="w-5 h-5" />
-                    Incorrect Questions
-                </h3>
-                <ul className="list-disc list-inside text-sm text-muted-foreground">
-                    {incorrectQuestionsData.map(q => (
-                        <li key={q.questionNum}>
-                            Question {q.questionNum}: Your Answer - {q.userAnswer || 'Unanswered'}, Correct Answer - {q.correctAnswer}
-                        </li>
-                    ))}
-                </ul>
-            </div>
-        )}
-
       </div>
 
-      {/* Topic Input Popup */}
+      {/* Topic Input Popup (Modify or Replace) */}
+      {/* We will pass all 25 questions to the popup */}
       <TopicInputPopup
-        isOpen={isTopicPopupOpen}
-        onClose={handleTopicsSavedInPopup}
-        incorrectQuestions={incorrectQuestionsData} // Pass the list of incorrect questions
+        isOpen={isTopicInputForAllOpen}
+        onClose={() => setIsTopicInputForAllOpen(false)}
+        // Pass all questions (1-25) and their initial topics
+        questionsToTopic={Object.keys(allQuestionTopics).map(qNum => parseInt(qNum))}
+        initialTopics={allQuestionTopics}
+        onSaveTopics={handleSaveAllTopics}
         topicOptions={topicOptions}
-        initialTopics={topicsFromPopup} // Pass initial topics (default or from previous save)
-        onSaveTopics={handleTopicsSavedInPopup} // Pass the handler for when popup is closed
       />
 
     </section>
