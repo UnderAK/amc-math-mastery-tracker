@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { TopicInputPopup } from "./TopicInputPopup"; // Import the new component
 
 interface TestScore {
   date: string;
@@ -17,7 +18,6 @@ interface TestScore {
   topicMistakes?: { [topic: string]: number }; // Track mistakes by topic
   label?: string;
 }
-
 export const TestEntryForm = () => {
   const [testType, setTestType] = useState("amc8");
   const [testYear, setTestYear] = useState(new Date().getFullYear().toString());
@@ -25,6 +25,9 @@ export const TestEntryForm = () => {
   const [answerKey, setAnswerKey] = useState("");
   const [label, setLabel] = useState("");
   const [result, setResult] = useState("");
+  const [incorrectQuestionsData, setIncorrectQuestionsData] = useState<Array<{questionNum: number, userAnswer: string, correctAnswer: string}>>([]);
+  const [isTopicPopupOpen, setIsTopicPopupOpen] = useState(false); // State for popup visibility
+  const [topicsForIncorrect, setTopicsForIncorrect] = useState<{ [key: number]: string }>({}); // Store topics for incorrect questions
   const { toast } = useToast();
 
   const sanitizeInput = (value: string) => {
@@ -39,7 +42,7 @@ export const TestEntryForm = () => {
     setAnswerKey(sanitizeInput(value));
   };
 
-  // Topic mapping for AMC questions (typical distribution)
+  // Topic mapping for AMC questions (typical distribution) - This will be less relevant now
   const getTopicForQuestion = (questionNum: number, testType: string): string => {
     // Simplified topic mapping based on typical AMC structure
     if (questionNum <= 5) return "Basic Arithmetic";
@@ -61,26 +64,25 @@ export const TestEntryForm = () => {
     }
 
     let correct = 0;
-    const incorrectQuestions: number[] = [];
-    const topicMistakes: { [topic: string]: number } = {};
+    const incorrectQData: Array<{questionNum: number, userAnswer: string, correctAnswer: string}> = [];
+    // We will calculate topicMistakes after the user inputs topics
     
     for (let i = 0; i < 25; i++) {
       if (userAnswers[i] === answerKey[i]) {
         correct++;
       } else {
-        incorrectQuestions.push(i + 1); // Store 1-indexed question numbers
-        
-        // Track topic mistakes
-        const topic = getTopicForQuestion(i + 1, testType);
-        topicMistakes[topic] = (topicMistakes[topic] || 0) + 1;
+        const questionNum = i + 1;
+        incorrectQData.push({questionNum, userAnswer: userAnswers[i], correctAnswer: answerKey[i]});
       }
     }
+
+    setIncorrectQuestionsData(incorrectQData);
 
     const incorrect = 25 - correct;
     const percent = Math.round((correct / 25) * 100);
     const date = new Date().toISOString().split("T")[0];
 
-    // Save score
+    // Save score (initially without topicMistakes)
     const scores: TestScore[] = JSON.parse(localStorage.getItem("scores") || "[]");
     const newScore: TestScore = {
       date,
@@ -89,8 +91,7 @@ export const TestEntryForm = () => {
       year: parseInt(testYear),
       input: userAnswers,
       key: answerKey,
-      incorrectQuestions,
-      topicMistakes,
+      incorrectQuestions: incorrectQData.map(q => q.questionNum),
       label: label.trim() || undefined
     };
     scores.push(newScore);
@@ -154,8 +155,47 @@ export const TestEntryForm = () => {
     setAnswerKey("");
     setLabel("");
     
-    // Trigger data refresh
-    window.dispatchEvent(new CustomEvent('dataUpdate'));
+    // Open Topic Input Popup if there are incorrect questions
+    if (incorrectQData.length > 0) {
+      setIsTopicPopupOpen(true);
+    } else {
+      // Trigger data refresh if no incorrect questions
+      window.dispatchEvent(new CustomEvent('dataUpdate'));
+    }
+  };
+
+  const handleSaveTopic = (questionNum: number, topic: string) => {
+    setTopicsForIncorrect(prevTopics => ({
+      ...prevTopics,
+      [questionNum]: topic,
+    }));
+  };
+
+  const handleCloseTopicPopup = () => {
+    setIsTopicPopupOpen(false);
+    // Now that the popup is closed, calculate topicMistakes and update the latest score entry
+    const scores: TestScore[] = JSON.parse(localStorage.getItem("scores") || "[]");
+    if (scores.length > 0) {
+      const latestScoreIndex = scores.length - 1;
+      const latestScore = scores[latestScoreIndex];
+      
+      const topicMistakes: { [topic: string]: number } = {};
+      latestScore.incorrectQuestions?.forEach(qNum => {
+        const topic = topicsForIncorrect[qNum];
+        if (topic) {
+          topicMistakes[topic] = (topicMistakes[topic] || 0) + 1;
+        }
+      });
+      latestScore.topicMistakes = topicMistakes;
+      scores[latestScoreIndex] = latestScore; // Update the score in the array
+      localStorage.setItem("scores", JSON.stringify(scores));
+      
+      // Trigger data refresh after updating with topics
+      window.dispatchEvent(new CustomEvent('dataUpdate'));
+    }
+    
+    // Clear the temporary topics state
+    setTopicsForIncorrect({});
   };
 
 
@@ -246,6 +286,15 @@ export const TestEntryForm = () => {
           </div>
         )}
       </div>
+
+      {/* Topic Input Popup */}
+      <TopicInputPopup
+        isOpen={isTopicPopupOpen}
+        onClose={handleCloseTopicPopup}
+        incorrectQuestions={incorrectQuestionsData}
+        onSaveTopic={handleSaveTopic}
+      />
+
     </section>
   );
 };
