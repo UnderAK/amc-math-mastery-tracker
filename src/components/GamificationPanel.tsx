@@ -103,22 +103,85 @@ export const GamificationPanel = () => {
         </h3>
         
         {problemStats.total > 0 ? (
-          <div className="space-y-3">
+          <div className="space-y-4">
             <div className="flex justify-between text-sm">
-              <span>Correct: {problemStats.correct}</span>
-              <span>Incorrect: {problemStats.total - problemStats.correct}</span>
+              <span className="text-green-600">✓ Correct: {problemStats.correct}</span>
+              <span className="text-red-500">✗ Incorrect: {problemStats.total - problemStats.correct}</span>
             </div>
             
-            <div className="w-full bg-secondary rounded-full h-4 overflow-hidden">
+            {/* Dual Progress Bar */}
+            <div className="relative w-full bg-secondary rounded-full h-4 overflow-hidden">
               <div 
-                className="h-full gradient-success transition-all duration-700 ease-out"
+                className="absolute left-0 h-full gradient-success transition-all duration-700 ease-out"
                 style={{ width: `${correctPercent}%` }}
+              />
+              <div 
+                className="absolute right-0 h-full bg-gradient-to-r from-red-400 to-red-500 transition-all duration-700 ease-out"
+                style={{ width: `${100 - correctPercent}%` }}
               />
             </div>
             
             <div className="text-center">
               <span className="text-lg font-bold text-accent">{correctPercent}%</span>
               <span className="text-sm text-muted-foreground ml-2">accuracy</span>
+            </div>
+
+            {/* Gamification Elements */}
+            <div className="space-y-3 pt-4 border-t border-border/50">
+              {/* Accuracy Status */}
+              <div className="text-center">
+                {correctPercent >= 90 && (
+                  <div className="animate-pulse">
+                    <div className="text-2xl mb-1">🏆</div>
+                    <div className="text-sm font-medium text-amber-600">Master Level!</div>
+                  </div>
+                )}
+                {correctPercent >= 80 && correctPercent < 90 && (
+                  <div>
+                    <div className="text-2xl mb-1">🌟</div>
+                    <div className="text-sm font-medium text-blue-600">Expert Level</div>
+                  </div>
+                )}
+                {correctPercent >= 70 && correctPercent < 80 && (
+                  <div>
+                    <div className="text-2xl mb-1">📈</div>
+                    <div className="text-sm font-medium text-green-600">Strong Performance</div>
+                  </div>
+                )}
+                {correctPercent >= 60 && correctPercent < 70 && (
+                  <div>
+                    <div className="text-2xl mb-1">💪</div>
+                    <div className="text-sm font-medium text-yellow-600">Good Progress</div>
+                  </div>
+                )}
+                {correctPercent < 60 && (
+                  <div>
+                    <div className="text-2xl mb-1">🎯</div>
+                    <div className="text-sm font-medium text-muted-foreground">Keep Practicing!</div>
+                  </div>
+                )}
+              </div>
+
+              {/* Mini Achievement Bar */}
+              <div className="bg-muted/30 rounded-lg p-3">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-medium">Next Milestone</span>
+                  <span className="text-xs text-muted-foreground">
+                    {correctPercent < 60 ? "60%" : 
+                     correctPercent < 70 ? "70%" : 
+                     correctPercent < 80 ? "80%" : 
+                     correctPercent < 90 ? "90%" : "100%"}
+                  </span>
+                </div>
+                <div className="w-full bg-secondary/50 rounded-full h-2">
+                  <div 
+                    className="h-full gradient-primary rounded-full transition-all duration-500"
+                    style={{ 
+                      width: `${Math.min(100, (correctPercent % 10) * 10)}%` 
+                    }}
+                  />
+                </div>
+              </div>
             </div>
           </div>
         ) : (
