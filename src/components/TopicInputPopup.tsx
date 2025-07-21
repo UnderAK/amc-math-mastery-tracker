@@ -14,10 +14,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 interface TopicInputPopupProps {
   isOpen: boolean;
   onClose: () => void;
-  questionsToTopic: number[]; // Array of question numbers (1-25)
-  initialTopics: { [questionNum: number]: string };
+  questionsToTopic: number[] | undefined; // Allow undefined
+  initialTopics: { [questionNum: number]: string } | undefined; // Allow undefined
   onSaveTopics: (topics: { [questionNum: number]: string }) => void;
   topicOptions: string[];
+  incorrectQuestions?: Array<{ questionNum: number; userAnswer: string; correctAnswer: string }>; // Add incorrectQuestions prop back
+
 }
 
 export const TopicInputPopup: React.FC<TopicInputPopupProps> = ({
@@ -27,22 +29,33 @@ export const TopicInputPopup: React.FC<TopicInputPopupProps> = ({
   initialTopics,
   onSaveTopics,
   topicOptions,
+  incorrectQuestions // Receive incorrectQuestions
 }) => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [topics, setTopics] = useState<{ [questionNum: number]: string }>({});
+  // Use initialTopics to set the initial state, handle undefined case
+  const [topics, setTopics] = useState<{ [questionNum: number]: string }>(initialTopics || {});
 
-  // Initialize topics state when the popup opens or initialTopics change
-  useEffect(() => {
-    if (isOpen) {
-      setTopics(initialTopics);
-    } else {
+  // Add a robust check at the very beginning
+  if (!isOpen || !questionsToTopic || !Array.isArray(questionsToTopic) || questionsToTopic.length === 0) {
+      return null;
+  }
+
+  // Reset state when the popup opens or initialTopics change
+   useEffect(() => {
+    if (isOpen && questionsToTopic && Array.isArray(questionsToTopic) && questionsToTopic.length > 0) {
+       // Initialize topics state with initialTopics when popup opens and questions are available
+      setTopics(initialTopics || {});
+      setCurrentQuestionIndex(0);
+    } else if (!isOpen) {
       // Reset when closed
       setTopics({});
       setCurrentQuestionIndex(0);
     }
-  }, [isOpen, initialTopics]);
+  }, [isOpen, questionsToTopic, initialTopics]);
 
-  const totalQuestions = questionsToTopic.length; // Should be 25
+
+
+  const totalQuestions = questionsToTopic.length;
   const currentQuestionNumber = questionsToTopic[currentQuestionIndex];
 
   const handleTopicChange = (topic: string) => {
@@ -72,22 +85,34 @@ export const TopicInputPopup: React.FC<TopicInputPopupProps> = ({
   };
 
   const handleSkip = () => {
-    handleTopicChange("Skipped/Other"); // Mark as skipped
+    handleTopicChange("Other"); // Default skipped to 'Other'
     moveToNextQuestion();
   };
 
   const handleSkipAll = () => {
     const updatedTopics = { ...topics };
-    // Set all remaining questions to 'Skipped/Other'
-    for (let i = currentQuestionIndex; i < totalQuestions; i++) {
-      updatedTopics[questionsToTopic[i]] = "Skipped/Other";
+    // Set all remaining incorrect questions to 'Other'
+    if (incorrectQuestions && Array.isArray(incorrectQuestions)) {
+        for (let i = currentQuestionIndex; i < totalQuestions; i++) {
+          const qNum = questionsToTopic[i];
+           // Find the corresponding incorrect question data
+           const incorrectQData = incorrectQuestions.find(q => q.questionNum === qNum);
+           if(incorrectQData) {
+              updatedTopics[qNum] = "Other";
+           }
+        }
+         setTopics(updatedTopics);
+
+          // Use a timeout to allow state to update before saving and closing
+        setTimeout(() => {
+            onSaveTopics(updatedTopics);
+            onClose();
+        }, 0);
+    } else {
+        // If incorrectQuestions is not available, just close
+         onClose();
     }
-    setTopics(updatedTopics);
-    // Use a timeout to allow state to update before saving and closing
-    setTimeout(() => {
-        onSaveTopics(updatedTopics);
-        onClose();
-    }, 0);
+
   };
 
   const handleSaveAllAndClose = () => {
@@ -103,27 +128,30 @@ export const TopicInputPopup: React.FC<TopicInputPopupProps> = ({
     }, 0);
   };
 
-  // If questionsToTopic is empty (shouldn't happen if called correctly from TestEntryForm), return null
-  if (questionsToTopic.length === 0 && isOpen) {
-      console.warn("TopicInputPopup opened with no questions.");
-      return null;
-  }
-
   // Determine the topic currently selected for the current question
   const currentSelectedTopic = topics[currentQuestionNumber] || "";
+
+  // Find the incorrect question data for the current question to display details
+  const currentIncorrectQuestionData = incorrectQuestions?.find(q => q.questionNum === currentQuestionNumber);
+
 
   return (
     <AlertDialog open={isOpen} onOpenChange={onClose}>
       <AlertDialogContent className="max-w-md">
         <AlertDialogHeader>
-          <AlertDialogTitle>Enter Topic for Each Question</AlertDialogTitle>
+          <AlertDialogTitle>Enter Topic for Incorrect Questions</AlertDialogTitle>
           <AlertDialogDescription>
-            Select the topic for question {currentQuestionNumber}.
+            Review your incorrect answers and select the topic for each question.
           </AlertDialogDescription>
         </AlertDialogHeader>
 
         <div className="space-y-4">
-          <p className="text-sm font-medium">Question {currentQuestionIndex + 1} of {totalQuestions}</p>
+          <p className="text-sm font-medium">
+            Question {currentQuestionIndex + 1} of {totalQuestions}
+            {currentIncorrectQuestionData && (
+                <span> - Your Answer: {currentIncorrectQuestionData.userAnswer || 'Unanswered'}, Correct Answer: {currentIncorrectQuestionData.correctAnswer}</span>
+            )}
+          </p>
           <Select value={currentSelectedTopic} onValueChange={handleTopicChange}>
             <SelectTrigger>
               <SelectValue placeholder="Select Topic" />

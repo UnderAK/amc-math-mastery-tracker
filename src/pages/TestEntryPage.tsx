@@ -2,7 +2,7 @@ import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { TestEntryForm } from "@/components/TestEntryForm";
-import { TestHistoryTable } from "@/components/TestHistoryTable"; // Import TestHistoryTable
+import { TestHistoryTable } from "@/components/TestHistoryTable";
 
 const TestEntryPage = () => {
   const navigate = useNavigate();
