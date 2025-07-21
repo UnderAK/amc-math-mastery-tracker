@@ -8,8 +8,10 @@ interface TestScore {
   score: number;
   testType: string;
   year: number;
-  topicMistakes?: { [topic: string]: number };
-  incorrectQuestions?: number[];
+  // We now use questionTopics and questionCorrectness
+  label?: string;
+  questionTopics: { [questionNum: number]: string }; // Store topic for ALL 25 questions
+  questionCorrectness: { [questionNum: number]: boolean }; // Store correctness for ALL 25 questions
 }
 
 interface WeaknessAnalysis {
@@ -37,60 +39,78 @@ export const WeaknessReport = () => {
           variant: "destructive",
         });
         setIsGenerating(false);
+        setAnalysis(null); // Clear previous analysis if no data
         return;
       }
 
-      // Analyze topic weaknesses using stored topicMistakes
       const topicData: { [topic: string]: { mistakes: number; attempts: number } } = {};
       const questionData: { [question: number]: { errors: number; attempts: number } } = {};
 
       scores.forEach(score => {
-        // Topic analysis using saved topicMistakes
-        if (score.topicMistakes) {
-          Object.entries(score.topicMistakes).forEach(([topic, mistakes]) => {
-            if (!topicData[topic]) topicData[topic] = { mistakes: 0, attempts: 0 };
-            topicData[topic].mistakes += mistakes;
-            // We are focusing on topics with mistakes, so attempts calculation is simplified
-            topicData[topic].attempts++; 
-          });
-        }
+        // Use the new questionTopics and questionCorrectness fields
+        if (score.questionTopics && score.questionCorrectness) {
+            for (let i = 1; i <= 25; i++) {
+                const topic = score.questionTopics[i];
+                const isCorrect = score.questionCorrectness[i];
+                const questionNum = i;
 
-        // Question analysis
-        if (score.incorrectQuestions) {
-          score.incorrectQuestions.forEach(q => {
-            if (!questionData[q]) questionData[q] = { errors: 0, attempts: 0 };
-            questionData[q].errors++;
-          });
-        }
+                // Topic analysis
+                if (!topicData[topic]) topicData[topic] = { mistakes: 0, attempts: 0 };
+                topicData[topic].attempts++;
+                if (!isCorrect) {
+                    topicData[topic].mistakes++;
+                }
 
-        // Count total attempts per question for error rate calculation
-        for (let i = 1; i <= 25; i++) {
-          if (!questionData[i]) questionData[i] = { errors: 0, attempts: 0 };
-           // Only increment attempts if the test had this question number
-           // This is a simplified approach; a more robust solution would track which questions were presented in each test.
-           // For now, we assume all tests cover questions 1-25 for attempt counting.
-          questionData[i].attempts++;
+                // Question analysis
+                 if (!questionData[questionNum]) questionData[questionNum] = { errors: 0, attempts: 0 };
+                 questionData[questionNum].attempts++;
+                 if (!isCorrect) {
+                     questionData[questionNum].errors++;
+                 }
+            }
+        } else {
+            // Handle older scores that might not have the new data structure
+            // For weakness report, we can still use incorrectQuestions if available.
+            if (score.incorrectQuestions) {
+                 score.incorrectQuestions.forEach(q => {
+                    // Approximate topic for older scores if not available
+                    const topic = score.questionTopics?.[q] || `Question ${q} Topic`; // Fallback topic name
+                    if (!topicData[topic]) topicData[topic] = { mistakes: 0, attempts: 0 };
+                    topicData[topic].mistakes++;
+                    // We cannot accurately get attempts per topic for older scores, skipping attempts count here.
+                 });
+            }
+             // For problematic questions from older scores, we can still use incorrectQuestions
+             if (score.incorrectQuestions) {
+                 score.incorrectQuestions.forEach(q => {
+                     if (!questionData[q]) questionData[q] = { errors: 0, attempts: 0 };
+                     questionData[q].errors++;
+                      // We cannot accurately get attempts per question for older scores, skipping attempts count here.
+                 });
+             }
+            console.warn(`Processing score from ${score.date} with old data structure for weakness report.`);
         }
       });
 
-      // Find weakest topics (those with mistakes)
+      // Find weakest topics (those with mistakes). Include topics from older data.
       const weakestTopics = Object.entries(topicData)
         .map(([topic, data]) => ({
           topic,
           mistakes: data.mistakes,
+          // Cannot calculate accuracy accurately with mixed new/old data, focus on mistakes count
         }))
         .filter(t => t.mistakes > 0)
         .sort((a, b) => b.mistakes - a.mistakes)
         .slice(0, 3);
 
-      // Find problematic questions
+      // Find problematic questions (from all data, attempts might be approximated for older scores)
       const problematicQuestions = Object.entries(questionData)
         .map(([question, data]) => ({
           question: parseInt(question),
-          errorRate: data.attempts > 0 ? Math.round((data.errors / data.attempts) * 100) : 0,
-          attempts: data.attempts
+          errorRate: data.attempts > 0 ? Math.round((data.errors / data.attempts) * 100) : (data.errors > 0 ? 100 : 0), // Handle 0 attempts
+          attempts: data.attempts > 0 ? data.attempts : (data.errors > 0 ? data.errors : 0), // Approximate attempts if only errors are recorded
         }))
-        .filter(q => q.attempts >= 3 && q.errorRate > 30)
+        .filter(q => q.attempts >= 1 && q.errorRate > 30) // Consider questions with at least 1 attempt and > 30% error rate
         .sort((a, b) => b.errorRate - a.errorRate)
         .slice(0, 5);
 
@@ -105,10 +125,10 @@ export const WeaknessReport = () => {
         recommendations.push(`Practice question types similar to Q${problematicQuestions[0].question}${problematicQuestions[0].errorRate > 0 ? ` (${problematicQuestions[0].errorRate}% error rate)` : ''}`);
       }
 
-      // Calculate recent vs older scores for trend
+      // Calculate recent vs older scores for trend (using overall score, not topic specific)
       const recentScores = scores.slice(-5);
       const olderScores = scores.slice(0, Math.max(0, scores.length - 5)); // Ensure olderScores is not empty
-      const recentAvg = recentScores.reduce((sum, s) => sum + s.score, 0) / recentScores.length;
+      const recentAvg = recentScores.reduce((sum, s) => sum + s.score, 0) / (recentScores.length || 1); // Handle division by zero
       const olderAvg = olderScores.length > 0 ? olderScores.reduce((sum, s) => sum + s.score, 0) / olderScores.length : recentAvg; // Handle case with less than 5 scores
       
       let overallTrend = "stable";
