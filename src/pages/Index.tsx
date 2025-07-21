@@ -78,30 +78,30 @@ const Index = () => {
 
         {/* Main Content Grid */}
         <main className="space-y-6">
-          {/* Top Row - 3 Small Components */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="order-1">
+          {/* Top Row - 3 Equal Size Components */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="h-full">
               <GamificationPanel />
             </div>
-            <div className="order-2">
+            <div className="h-full">
               <StatsPanel />
             </div>
-            <div className="order-3">
+            <div className="h-full">
               <BadgesPanel />
             </div>
           </div>
 
-          {/* Test Entry Form - Full Width */}
+          {/* Test Entry Form - Main Action */}
           <div>
             <TestEntryForm />
           </div>
 
-          {/* Test History - Full Width */}
+          {/* Test History - Recent Activity */}
           <div>
             <TestHistoryTable />
           </div>
 
-          {/* Score Progress Chart - Full Width */}
+          {/* Score Progress Chart - Analytics */}
           <div>
             <div className="glass p-6 rounded-2xl shadow-xl">
               <h2 className="text-xl font-semibold text-primary mb-4 flex items-center gap-2">
@@ -112,7 +112,7 @@ const Index = () => {
             </div>
           </div>
 
-          {/* Question Accuracy - Full Width */}
+          {/* Question Accuracy - Detailed Analytics */}
           <div>
             <QuestionAccuracyTable />
           </div>

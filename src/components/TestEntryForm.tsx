@@ -197,17 +197,7 @@ export const TestEntryForm = () => {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex items-center justify-between gap-3">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={autoExtractAnswers}
-            className="hover-scale"
-          >
-            <Sparkles className="w-4 h-4 mr-2" />
-            Auto-Extract from AoPS
-          </Button>
-          
+        <div className="flex justify-end">
           <Button
             onClick={gradeTest}
             className="gradient-primary hover-bounce"
