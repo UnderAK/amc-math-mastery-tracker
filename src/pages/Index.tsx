@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Trophy, Target, TrendingUp, BookOpen, Award, Moon, Sun } from "lucide-react";
+import { Trophy, Target, TrendingUp, BookOpen, Award, Moon, Sun, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TestEntryForm } from "@/components/TestEntryForm";
 import { SummaryPanel } from "@/components/SummaryPanel";
@@ -33,6 +33,28 @@ const Index = () => {
       title: newMode ? "🌙 Dark mode enabled" : "☀️ Light mode enabled",
       description: "Theme preference saved",
     });
+  };
+
+  const handleResetData = () => {
+      const confirmed = confirm("Are you sure you want to reset all your data? This action cannot be undone.");
+      if (confirmed) {
+          localStorage.removeItem('scores');
+          localStorage.removeItem('xp');
+          localStorage.removeItem('level'); // Assuming level is also stored
+          localStorage.removeItem('streak');
+          localStorage.removeItem('lastPracticeDate');
+          localStorage.removeItem('dailyBonusClaimed'); // Assuming daily bonus state is stored
+
+          // Dispatch a custom event to notify other components to update
+          window.dispatchEvent(new CustomEvent('dataUpdate'));
+          window.dispatchEvent(new CustomEvent('levelUp')); // Also trigger level update
+
+          toast({
+              title: "Data Reset",
+              description: "All your data has been cleared.",
+              variant: "default"
+          });
+      }
   };
 
   return (
@@ -86,6 +108,15 @@ const Index = () => {
             <TestEntryForm />
           </div>
         </main>
+
+        {/* Reset Data Button */}
+        <div className="flex justify-center mt-10">
+            <Button variant="destructive" onClick={handleResetData}>
+                <AlertCircle className="w-4 h-4 mr-2" />
+                Reset All Data
+            </Button>
+        </div>
+
       </div>
 
       {/* Overlays */}
