@@ -22,7 +22,7 @@ export const GamificationPanel = () => {
 
     setXp(savedXp);
     setStreak(savedStreak);
-    setLevel(Math.floor(savedXp / 100) + 1);
+    setLevel(Math.floor(savedXp / 250) + 1); // Changed from 100 to 250 XP per level
 
     // Calculate problem statistics
     let totalCorrect = 0;
@@ -51,9 +51,9 @@ export const GamificationPanel = () => {
     };
   }, []);
 
-  const xpForNextLevel = (level) * 100;
-  const progressToNextLevel = xp - ((level - 1) * 100);
-  const progressPercent = Math.min(100, Math.round((progressToNextLevel / 100) * 100));
+  const xpForNextLevel = (level) * 250; // Changed from 100 to 250 XP per level
+  const progressToNextLevel = xp - ((level - 1) * 250);
+  const progressPercent = Math.min(100, Math.round((progressToNextLevel / 250) * 100));
   const correctPercent = problemStats.total > 0 ? Math.round((problemStats.correct / problemStats.total) * 100) : 0;
 
   return (
@@ -93,7 +93,7 @@ export const GamificationPanel = () => {
         <Progress value={progressPercent} className="h-3" />
         <div className="text-xs text-muted-foreground mt-1 text-right">
           <Target className="w-3 h-3 inline mr-1" />
-          Next Level: {xpForNextLevel} XP ({100 - progressToNextLevel} XP to go)
+          Next Level: {xpForNextLevel} XP ({250 - progressToNextLevel} XP to go)
         </div>
       </div>
 

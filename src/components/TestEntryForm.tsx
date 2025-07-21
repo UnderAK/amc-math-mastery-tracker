@@ -106,8 +106,8 @@ export const TestEntryForm = () => {
     });
 
     // Check for level up
-    const newLevel = Math.floor(newXp / 100) + 1;
-    const currentLevel = Math.floor(currentXp / 100) + 1;
+    const newLevel = Math.floor(newXp / 250) + 1; // Changed from 100 to 250 XP per level
+    const currentLevel = Math.floor(currentXp / 250) + 1;
     if (newLevel > currentLevel) {
       setTimeout(() => {
         window.dispatchEvent(new CustomEvent('levelUp', { detail: { newLevel } }));

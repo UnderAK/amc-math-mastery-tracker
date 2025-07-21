@@ -2,12 +2,7 @@ import { useState, useEffect } from "react";
 import { Trophy, Target, TrendingUp, BookOpen, Award, Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TestEntryForm } from "@/components/TestEntryForm";
-import { GamificationPanel } from "@/components/GamificationPanel";
-import { StatsPanel } from "@/components/StatsPanel";
-import { BadgesPanel } from "@/components/BadgesPanel";
-import { TestHistoryTable } from "@/components/TestHistoryTable";
-import { ScoreChart } from "@/components/ScoreChart";
-import { QuestionAccuracyTable } from "@/components/QuestionAccuracyTable";
+import { SummaryPanel } from "@/components/SummaryPanel";
 import { LeaderboardOverlay } from "@/components/LeaderboardOverlay";
 import { LevelUpModal } from "@/components/LevelUpModal";
 import { UserProfile } from "@/components/UserProfile";
@@ -81,64 +76,14 @@ const Index = () => {
           </div>
         </header>
 
-        {/* Main Content Grid */}
+        {/* Summary Panel */}
+        <SummaryPanel />
+
+        {/* Main Content */}
         <main className="space-y-6">
-          {/* Top Row - Gamification and Test Entry */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="h-full">
-              <GamificationPanel />
-            </div>
-            <div className="h-full">
-              <TestEntryForm />
-            </div>
-          </div>
-
-          {/* Second Row - Statistics and Badges */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="h-full">
-              <StatsPanel />
-            </div>
-            <div className="h-full">
-              <BadgesPanel />
-            </div>
-          </div>
-
-          {/* Test History - Recent Activity */}
+          {/* Test Entry Form - Full Width */}
           <div>
-            <TestHistoryTable />
-          </div>
-
-          {/* Score Progress Chart - Analytics */}
-          <div>
-            <div className="glass p-6 rounded-2xl shadow-xl">
-              <h2 className="text-xl font-semibold text-primary mb-4 flex items-center gap-2">
-                <TrendingUp className="w-5 h-5" />
-                Score Progress
-              </h2>
-              <ScoreChart />
-            </div>
-          </div>
-
-          {/* Question Accuracy - Detailed Analytics */}
-          <div>
-            <QuestionAccuracyTable />
-          </div>
-
-          {/* Reset Data Button */}
-          <div className="text-center">
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={() => {
-                if (confirm("Are you sure you want to reset all saved data?")) {
-                  localStorage.clear();
-                  window.location.reload();
-                }
-              }}
-              className="hover-scale"
-            >
-              🔄 Reset All Data
-            </Button>
+            <TestEntryForm />
           </div>
         </main>
       </div>
