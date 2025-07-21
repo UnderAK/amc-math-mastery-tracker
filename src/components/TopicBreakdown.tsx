@@ -205,7 +205,7 @@ export const TopicBreakdown = () => {
 
           {/* Detailed Topic Breakdown */}
           <div className="space-y-4">
-            {relevantStats.map((topic, index) => (
+            {topicStats.map((topic, index) => (
               <div 
                 key={topic.topic} 
                 className="bg-secondary/30 rounded-lg p-4 hover:bg-secondary/40 transition-colors"
