@@ -1,0 +1,150 @@
+import { useState, useEffect } from "react";
+import { BookOpen, Filter, Calendar } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+interface TestScore {
+  date: string;
+  score: number;
+  testType: string;
+  year: number;
+  input?: string;
+  key?: string;
+}
+
+export const TestHistoryTable = () => {
+  const [scores, setScores] = useState<TestScore[]>([]);
+  const [filterType, setFilterType] = useState("all");
+
+  useEffect(() => {
+    const updateScores = () => {
+      const savedScores: TestScore[] = JSON.parse(localStorage.getItem("scores") || "[]");
+      setScores(savedScores);
+    };
+
+    updateScores();
+
+    // Listen for data updates
+    const handleDataUpdate = () => updateScores();
+    window.addEventListener('dataUpdate', handleDataUpdate);
+
+    return () => {
+      window.removeEventListener('dataUpdate', handleDataUpdate);
+    };
+  }, []);
+
+  const filteredScores = filterType === "all" 
+    ? scores 
+    : scores.filter(s => s.testType === filterType);
+
+  if (scores.length === 0) {
+    return (
+      <section className="glass p-6 rounded-2xl shadow-xl">
+        <h2 className="text-xl font-semibold text-primary mb-4 flex items-center gap-2">
+          <BookOpen className="w-5 h-5" />
+          Past Tests
+        </h2>
+        <div className="text-center py-12">
+          <div className="text-4xl mb-3">📭</div>
+          <p className="text-muted-foreground">No tests yet — start solving!</p>
+          <p className="text-sm text-muted-foreground mt-1">Your test history will appear here.</p>
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <section className="glass p-6 rounded-2xl shadow-xl">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-xl font-semibold text-primary flex items-center gap-2">
+          <BookOpen className="w-5 h-5" />
+          Past Tests
+        </h2>
+        
+        <div className="flex items-center gap-2">
+          <Filter className="w-4 h-4 text-muted-foreground" />
+          <Select value={filterType} onValueChange={setFilterType}>
+            <SelectTrigger className="w-32">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All</SelectItem>
+              <SelectItem value="amc8">AMC 8</SelectItem>
+              <SelectItem value="amc10">AMC 10</SelectItem>
+              <SelectItem value="amc12">AMC 12</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      <div className="max-h-64 overflow-y-auto rounded-lg border">
+        <table className="w-full text-sm">
+          <thead className="bg-secondary/50 sticky top-0">
+            <tr>
+              <th className="px-4 py-3 text-left font-medium">
+                <div className="flex items-center gap-2">
+                  <Calendar className="w-4 h-4" />
+                  Date
+                </div>
+              </th>
+              <th className="px-4 py-3 text-left font-medium">Score</th>
+              <th className="px-4 py-3 text-left font-medium">Percent</th>
+              <th className="px-4 py-3 text-left font-medium">Test Type</th>
+              <th className="px-4 py-3 text-left font-medium">Year</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-border">
+            {filteredScores.map((test, index) => {
+              const percent = Math.round((test.score / 25) * 100);
+              const getScoreColor = (score: number) => {
+                if (score >= 23) return "text-green-600 font-semibold";
+                if (score >= 20) return "text-blue-600 font-medium";
+                if (score >= 15) return "text-yellow-600";
+                return "text-red-600";
+              };
+
+              return (
+                <tr 
+                  key={index} 
+                  className="hover:bg-secondary/30 transition-colors fade-in-up"
+                  style={{ animationDelay: `${index * 0.05}s` }}
+                >
+                  <td className="px-4 py-3">{test.date}</td>
+                  <td className={`px-4 py-3 ${getScoreColor(test.score)}`}>
+                    {test.score} / 25
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-2">
+                      <span className={getScoreColor(test.score)}>{percent}%</span>
+                      <div className="w-16 h-2 bg-secondary rounded-full overflow-hidden">
+                        <div 
+                          className={`h-full transition-all duration-500 ${
+                            percent >= 90 ? 'bg-green-500' :
+                            percent >= 75 ? 'bg-blue-500' :
+                            percent >= 60 ? 'bg-yellow-500' : 'bg-red-500'
+                          }`}
+                          style={{ width: `${percent}%` }}
+                        />
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary">
+                      {test.testType.toUpperCase()}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-muted-foreground">{test.year}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      {filteredScores.length === 0 && filterType !== "all" && (
+        <div className="text-center py-8 text-muted-foreground">
+          <p>No {filterType.toUpperCase()} tests found</p>
+        </div>
+      )}
+    </section>
+  );
+};
