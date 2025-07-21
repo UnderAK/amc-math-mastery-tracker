@@ -10,6 +10,8 @@ import { ScoreChart } from "@/components/ScoreChart";
 import { QuestionAccuracyTable } from "@/components/QuestionAccuracyTable";
 import { LeaderboardOverlay } from "@/components/LeaderboardOverlay";
 import { LevelUpModal } from "@/components/LevelUpModal";
+import { UserProfile } from "@/components/UserProfile";
+import { DailyBonus } from "@/components/DailyBonus";
 import { useToast } from "@/hooks/use-toast";
 
 const Index = () => {
@@ -19,8 +21,8 @@ const Index = () => {
 
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme");
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    const shouldBeDark = savedTheme === "dark" || (!savedTheme && prefersDark);
+    // Default to light mode - only use dark mode if explicitly set
+    const shouldBeDark = savedTheme === "dark";
     
     setIsDarkMode(shouldBeDark);
     document.documentElement.classList.toggle("dark", shouldBeDark);
@@ -50,7 +52,9 @@ const Index = () => {
             Track your progress, earn badges, and level up your math skills!
           </p>
 
-          <div className="mt-4 flex justify-center gap-3">
+          <div className="mt-4 flex justify-center gap-3 flex-wrap">
+            <UserProfile />
+            
             <Button
               variant="secondary"
               size="sm"
@@ -73,26 +77,35 @@ const Index = () => {
         </header>
 
         {/* Main Content Grid */}
-        <main className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <main className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Gamification Panel */}
-          <GamificationPanel />
+          <div className="lg:col-span-2">
+            <GamificationPanel />
+          </div>
+
+          {/* Daily Bonus */}
+          <DailyBonus />
 
           {/* Test Entry Form */}
-          <TestEntryForm />
+          <div className="lg:col-span-2">
+            <TestEntryForm />
+          </div>
 
           {/* Statistics Panel */}
           <StatsPanel />
 
           {/* Badges Panel */}
-          <BadgesPanel />
+          <div className="lg:col-span-2">
+            <BadgesPanel />
+          </div>
 
           {/* Test History */}
-          <div className="col-span-1 lg:col-span-2">
+          <div className="col-span-1 lg:col-span-3">
             <TestHistoryTable />
           </div>
 
           {/* Score Progress Chart */}
-          <div className="col-span-1 lg:col-span-2">
+          <div className="col-span-1 lg:col-span-3">
             <div className="glass p-6 rounded-2xl shadow-xl">
               <h2 className="text-xl font-semibold text-primary mb-4 flex items-center gap-2">
                 <TrendingUp className="w-5 h-5" />
@@ -103,7 +116,7 @@ const Index = () => {
           </div>
 
           {/* Question Accuracy */}
-          <div className="col-span-1 lg:col-span-2">
+          <div className="col-span-1 lg:col-span-3">
             <QuestionAccuracyTable />
           </div>
 

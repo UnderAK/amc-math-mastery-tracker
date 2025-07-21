@@ -23,12 +23,40 @@ export const BadgesPanel = () => {
       const scores: TestScore[] = JSON.parse(localStorage.getItem("scores") || "[]");
       const streak = parseInt(localStorage.getItem("streak") || "0");
       const xp = parseInt(localStorage.getItem("xp") || "0");
+      const dailyBonus = JSON.parse(localStorage.getItem("dailyBonus") || '{"streak": 0, "totalBonusClaimed": 0}');
       
       const latestScore = scores.length > 0 ? scores[scores.length - 1].score : 0;
       const bestScore = scores.length > 0 ? Math.max(...scores.map(s => s.score)) : 0;
       const totalTests = scores.length;
 
       const allBadges: Badge[] = [
+        // Beginner badges
+        {
+          emoji: "🌟",
+          title: "First Steps",
+          description: "Take your first test",
+          earned: scores.length > 0
+        },
+        {
+          emoji: "🎯",
+          title: "Sharp Shooter",
+          description: "Score 15+ on any test",
+          earned: bestScore >= 15
+        },
+        {
+          emoji: "🧠",
+          title: "High Achiever",
+          description: "Score 20+ on any test",
+          earned: bestScore >= 20
+        },
+        {
+          emoji: "💯",
+          title: "Perfect Score",
+          description: "Score 25/25 on any test",
+          earned: bestScore === 25
+        },
+
+        // Streak badges
         {
           emoji: "🥉",
           title: "3-Day Streak",
@@ -53,18 +81,8 @@ export const BadgesPanel = () => {
           description: "Legendary dedication!",
           earned: streak >= 100
         },
-        {
-          emoji: "💯",
-          title: "Perfect Score",
-          description: "Score 25/25 on any test",
-          earned: bestScore === 25
-        },
-        {
-          emoji: "🧠",
-          title: "High Achiever",
-          description: "Score 20+ on any test",
-          earned: bestScore >= 20
-        },
+
+        // Volume badges
         {
           emoji: "📚",
           title: "Dedicated Student",
@@ -84,6 +102,20 @@ export const BadgesPanel = () => {
           earned: totalTests >= 25
         },
         {
+          emoji: "🎓",
+          title: "Graduate",
+          description: "Complete 50 tests",
+          earned: totalTests >= 50
+        },
+        {
+          emoji: "🏛️",
+          title: "Professor",
+          description: "Complete 100 tests",
+          earned: totalTests >= 100
+        },
+
+        // XP badges
+        {
           emoji: "⚡",
           title: "Power User",
           description: "Reach 500 XP",
@@ -100,6 +132,84 @@ export const BadgesPanel = () => {
           title: "Math Champion",
           description: "Reach Level 25",
           earned: Math.floor(xp / 100) + 1 >= 25
+        },
+        {
+          emoji: "👑",
+          title: "Math Royalty",
+          description: "Reach Level 50",
+          earned: Math.floor(xp / 100) + 1 >= 50
+        },
+
+        // Daily bonus badges
+        {
+          emoji: "🎁",
+          title: "Daily Collector",
+          description: "Claim daily bonus 7 times",
+          earned: dailyBonus.streak >= 7
+        },
+        {
+          emoji: "💰",
+          title: "Bonus Hunter",
+          description: "Claim 1000 bonus XP total",
+          earned: dailyBonus.totalBonusClaimed >= 1000
+        },
+
+        // Special achievement badges
+        {
+          emoji: "🎪",
+          title: "Well-Rounded",
+          description: "Take tests from all three AMC levels",
+          earned: (() => {
+            const types = new Set(scores.map(s => s.testType));
+            return types.has("amc8") && types.has("amc10") && types.has("amc12");
+          })()
+        },
+        {
+          emoji: "💎",
+          title: "Diamond Mind",
+          description: "Score 23+ on 5 tests",
+          earned: scores.filter(s => s.score >= 23).length >= 5
+        },
+        {
+          emoji: "⚗️",
+          title: "Perfectionist",
+          description: "Get 3 perfect scores",
+          earned: scores.filter(s => s.score === 25).length >= 3
+        },
+        {
+          emoji: "🎨",
+          title: "Diverse Tester",
+          description: "Take tests from 3 different years",
+          earned: (() => {
+            const years = new Set(scores.map(s => s.year));
+            return years.size >= 3;
+          })()
+        },
+        {
+          emoji: "🌈",
+          title: "Weekend Warrior",
+          description: "Take a test on weekend",
+          earned: scores.some(s => {
+            const date = new Date(s.date);
+            const day = date.getDay();
+            return day === 0 || day === 6;
+          })
+        },
+        {
+          emoji: "🧙‍♂️",
+          title: "Quick Learner",
+          description: "Score 20+ within first 3 tests",
+          earned: scores.slice(0, 3).some(s => s.score >= 20)
+        },
+        {
+          emoji: "🎯",
+          title: "Precision Master",
+          description: "80%+ average over 10+ tests",
+          earned: (() => {
+            if (scores.length < 10) return false;
+            const average = scores.reduce((sum, s) => sum + s.score, 0) / scores.length;
+            return (average / 25) >= 0.8;
+          })()
         }
       ];
 

@@ -13,6 +13,7 @@ interface TestScore {
   year: number;
   input: string;
   key: string;
+  incorrectQuestions?: number[]; // Track which questions were wrong
 }
 
 export const TestEntryForm = () => {
@@ -47,8 +48,14 @@ export const TestEntryForm = () => {
     }
 
     let correct = 0;
+    const incorrectQuestions: number[] = [];
+    
     for (let i = 0; i < 25; i++) {
-      if (userAnswers[i] === answerKey[i]) correct++;
+      if (userAnswers[i] === answerKey[i]) {
+        correct++;
+      } else {
+        incorrectQuestions.push(i + 1); // Store 1-indexed question numbers
+      }
     }
 
     const incorrect = 25 - correct;
@@ -63,7 +70,8 @@ export const TestEntryForm = () => {
       testType,
       year: parseInt(testYear),
       input: userAnswers,
-      key: answerKey
+      key: answerKey,
+      incorrectQuestions
     };
     scores.push(newScore);
     localStorage.setItem("scores", JSON.stringify(scores));
