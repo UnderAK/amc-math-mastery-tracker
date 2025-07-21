@@ -12,6 +12,7 @@ interface TestScore {
   key?: string;
   incorrectQuestions?: number[];
   label?: string;
+  maxQuestions?: number;
 }
 
 export const TestHistoryTable = () => {
@@ -79,6 +80,9 @@ export const TestHistoryTable = () => {
               <SelectItem value="amc8">AMC 8</SelectItem>
               <SelectItem value="amc10">AMC 10</SelectItem>
               <SelectItem value="amc12">AMC 12</SelectItem>
+              <SelectItem value="mathcounts-sprint">MATHCOUNTS Sprint</SelectItem>
+              <SelectItem value="mathcounts-target">MATHCOUNTS Target</SelectItem>
+              <SelectItem value="mathcounts-team">MATHCOUNTS Team</SelectItem>
             </SelectContent>
           </Select>
           
@@ -118,15 +122,17 @@ export const TestHistoryTable = () => {
             </thead>
             <tbody className="divide-y divide-border">
               {filteredScores.map((test, index) => {
-                const percent = Math.round((test.score / 25) * 100);
-                const getScoreColor = (score: number) => {
-                  if (score >= 23) return "text-green-600 font-semibold";
-                  if (score >= 20) return "text-blue-600 font-medium";
-                  if (score >= 15) return "text-yellow-600";
+                const maxQuestions = test.maxQuestions || (test.testType === "mathcounts-sprint" ? 30 : test.testType === "mathcounts-target" ? 8 : test.testType === "mathcounts-team" ? 10 : 25);
+                const percent = Math.round((test.score / maxQuestions) * 100);
+                const getScoreColor = (score: number, total: number) => {
+                  const percentage = (score / total) * 100;
+                  if (percentage >= 92) return "text-green-600 font-semibold";
+                  if (percentage >= 80) return "text-blue-600 font-medium";
+                  if (percentage >= 60) return "text-yellow-600";
                   return "text-red-600";
                 };
 
-                const incorrectCount = test.incorrectQuestions?.length || (25 - test.score);
+                const incorrectCount = test.incorrectQuestions?.length || (maxQuestions - test.score);
                 const incorrectQuestions = test.incorrectQuestions || [];
 
                 return (
@@ -136,12 +142,12 @@ export const TestHistoryTable = () => {
                     style={{ animationDelay: `${index * 0.05}s` }}
                   >
                     <td className="px-4 py-3">{test.date}</td>
-                    <td className={`px-4 py-3 ${getScoreColor(test.score)}`}>
-                      {test.score} / 25
+                    <td className={`px-4 py-3 ${getScoreColor(test.score, maxQuestions)}`}>
+                      {test.score} / {maxQuestions}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
-                        <span className={getScoreColor(test.score)}>{percent}%</span>
+                        <span className={getScoreColor(test.score, maxQuestions)}>{percent}%</span>
                         <div className="w-16 h-2 bg-secondary rounded-full overflow-hidden">
                           <div 
                             className={`h-full transition-all duration-500 ${
@@ -156,7 +162,7 @@ export const TestHistoryTable = () => {
                     </td>
                     <td className="px-4 py-3">
                       <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary">
-                        {test.testType.toUpperCase()}
+                        {test.testType.includes("mathcounts") ? test.testType.replace("mathcounts-", "MC ").toUpperCase() : test.testType.toUpperCase()}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-muted-foreground">{test.year}</td>

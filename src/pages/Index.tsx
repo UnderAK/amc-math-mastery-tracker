@@ -47,10 +47,10 @@ const Index = () => {
 
           <div className="text-center">
             <h1 className="text-4xl font-bold gradient-primary bg-clip-text text-transparent tracking-tight">
-              📚 AMC8/10/12 Tracker
+              📚 AMC & MATHCOUNTS Tracker
             </h1>
             <p className="text-sm text-muted-foreground mt-2">
-              Track your progress, earn badges, and level up your math skills!
+              Track your AMC and MATHCOUNTS progress, earn badges, and level up your math skills!
             </p>
 
             <div className="mt-4 flex justify-center gap-3 flex-wrap">

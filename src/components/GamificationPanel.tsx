@@ -7,6 +7,7 @@ interface TestScore {
   score: number;
   testType: string;
   year: number;
+  maxQuestions?: number;
 }
 
 export const GamificationPanel = () => {
@@ -30,7 +31,9 @@ export const GamificationPanel = () => {
     
     scores.forEach(score => {
       totalCorrect += score.score;
-      totalQuestions += 25; // Each test has 25 questions
+      // Use maxQuestions if available, otherwise default based on test type
+      const maxQuestions = score.maxQuestions || (score.testType === "mathcounts-sprint" ? 30 : score.testType === "mathcounts-target" ? 8 : score.testType === "mathcounts-team" ? 10 : 25);
+      totalQuestions += maxQuestions;
     });
 
     setProblemStats({ correct: totalCorrect, total: totalQuestions });

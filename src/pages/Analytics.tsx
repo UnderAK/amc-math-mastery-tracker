@@ -30,10 +30,10 @@ const Analytics = () => {
               
               <div>
                 <h1 className="text-3xl font-bold gradient-primary bg-clip-text text-transparent tracking-tight">
-                  📊 Analytics Dashboard
+                  📊 AMC & MATHCOUNTS Analytics
                 </h1>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Detailed insights into your AMC performance
+                  Detailed insights into your AMC and MATHCOUNTS performance
                 </p>
               </div>
             </div>
