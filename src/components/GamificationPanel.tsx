@@ -51,8 +51,9 @@ export const GamificationPanel = () => {
     };
   }, []);
 
-  const dailyGoal = 100;
-  const progressPercent = Math.min(100, Math.round((xp % dailyGoal) / dailyGoal * 100));
+  const xpForNextLevel = (level) * 100;
+  const progressToNextLevel = xp - ((level - 1) * 100);
+  const progressPercent = Math.min(100, Math.round((progressToNextLevel / 100) * 100));
   const correctPercent = problemStats.total > 0 ? Math.round((problemStats.correct / problemStats.total) * 100) : 0;
 
   return (
@@ -83,16 +84,16 @@ export const GamificationPanel = () => {
         </div>
       </div>
 
-      {/* XP Progress Bar */}
+      {/* Level Progress Bar */}
       <div className="mb-6">
         <div className="flex justify-between items-center mb-2">
-          <span className="text-sm font-medium">Daily Progress</span>
+          <span className="text-sm font-medium">Level {level} Progress</span>
           <span className="text-sm text-muted-foreground">{progressPercent}%</span>
         </div>
         <Progress value={progressPercent} className="h-3" />
         <div className="text-xs text-muted-foreground mt-1 text-right">
           <Target className="w-3 h-3 inline mr-1" />
-          Daily Goal: {dailyGoal} XP
+          Next Level: {xpForNextLevel} XP ({100 - progressToNextLevel} XP to go)
         </div>
       </div>
 
@@ -162,12 +163,12 @@ export const GamificationPanel = () => {
                 )}
               </div>
 
-              {/* Mini Achievement Bar */}
+              {/* Accuracy Milestone Progress */}
               <div className="bg-muted/30 rounded-lg p-3">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-medium">Next Milestone</span>
+                  <span className="text-xs font-medium">Accuracy Milestone Progress</span>
                   <span className="text-xs text-muted-foreground">
-                    {correctPercent < 60 ? "60%" : 
+                    Target: {correctPercent < 60 ? "60%" : 
                      correctPercent < 70 ? "70%" : 
                      correctPercent < 80 ? "80%" : 
                      correctPercent < 90 ? "90%" : "100%"}
@@ -177,9 +178,20 @@ export const GamificationPanel = () => {
                   <div 
                     className="h-full gradient-primary rounded-full transition-all duration-500"
                     style={{ 
-                      width: `${Math.min(100, (correctPercent % 10) * 10)}%` 
+                      width: `${correctPercent < 60 ? (correctPercent / 60) * 100 : 
+                               correctPercent < 70 ? ((correctPercent - 60) / 10) * 100 : 
+                               correctPercent < 80 ? ((correctPercent - 70) / 10) * 100 : 
+                               correctPercent < 90 ? ((correctPercent - 80) / 10) * 100 : 
+                               correctPercent >= 90 ? 100 : 0}%` 
                     }}
                   />
+                </div>
+                <div className="text-xs text-muted-foreground mt-1">
+                  {correctPercent >= 100 ? "Perfect accuracy achieved!" : 
+                   `${Math.max(0, (correctPercent < 60 ? 60 : 
+                    correctPercent < 70 ? 70 : 
+                    correctPercent < 80 ? 80 : 
+                    correctPercent < 90 ? 90 : 100) - correctPercent)}% until next milestone`}
                 </div>
               </div>
             </div>

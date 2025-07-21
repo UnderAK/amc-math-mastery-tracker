@@ -70,7 +70,7 @@ export const QuestionAccuracyTable = () => {
   const hasData = questionStats.some(stat => stat.total > 0);
   const worstQuestions = questionStats
     .map((stat, index) => ({ ...stat, question: index + 1 }))
-    .filter(stat => stat.total >= 3) // Only questions attempted at least 3 times
+    .filter(stat => stat.total >= 3 && stat.accuracy < 100) // Only questions attempted at least 3 times and not perfect
     .sort((a, b) => a.accuracy - b.accuracy)
     .slice(0, 3);
 
@@ -79,6 +79,8 @@ export const QuestionAccuracyTable = () => {
     .filter(stat => stat.total >= 3)
     .sort((a, b) => b.accuracy - a.accuracy)
     .slice(0, 3);
+
+  const hasImperfectQuestions = worstQuestions.length > 0;
 
   const getAccuracyColor = (accuracy: number) => {
     if (accuracy >= 90) return "text-green-600 bg-green-50 dark:bg-green-900/20";
@@ -111,8 +113,8 @@ export const QuestionAccuracyTable = () => {
       {hasData ? (
         <div className="space-y-6">
           {/* Insights */}
-          {worstQuestions.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            {hasImperfectQuestions && (
               <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
                 <h3 className="text-sm font-semibold text-red-700 dark:text-red-300 mb-2 flex items-center gap-2">
                   <AlertTriangle className="w-4 h-4" />
@@ -126,22 +128,26 @@ export const QuestionAccuracyTable = () => {
                   ))}
                 </div>
               </div>
+            )}
 
-              <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
-                <h3 className="text-sm font-semibold text-green-700 dark:text-green-300 mb-2 flex items-center gap-2">
-                  <TrendingUp className="w-4 h-4" />
-                  Strengths
-                </h3>
-                <div className="space-y-1">
-                  {bestQuestions.map(q => (
-                    <div key={q.question} className="text-sm">
-                      <span className="font-medium">Q{q.question}:</span> {q.accuracy}% ({q.correct}/{q.total})
-                    </div>
-                  ))}
-                </div>
+            <div className={`bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 ${!hasImperfectQuestions ? 'md:col-span-2' : ''}`}>
+              <h3 className="text-sm font-semibold text-green-700 dark:text-green-300 mb-2 flex items-center gap-2">
+                <TrendingUp className="w-4 h-4" />
+                Strengths
+              </h3>
+              <div className="space-y-1">
+                {bestQuestions.length > 0 ? bestQuestions.map(q => (
+                  <div key={q.question} className="text-sm">
+                    <span className="font-medium">Q{q.question}:</span> {q.accuracy}% ({q.correct}/{q.total})
+                  </div>
+                )) : (
+                  <div className="text-sm text-green-600">
+                    🎉 Perfect performance across all questions!
+                  </div>
+                )}
               </div>
             </div>
-          )}
+          </div>
 
           {/* Main Table */}
           <div className="overflow-x-auto rounded-lg border">

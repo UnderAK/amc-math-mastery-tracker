@@ -83,24 +83,24 @@ const Index = () => {
 
         {/* Main Content Grid */}
         <main className="space-y-6">
-          {/* Top Row - 2 Equal Size Components */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Top Row - Gamification and Test Entry */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="h-full">
               <GamificationPanel />
             </div>
             <div className="h-full">
-              <StatsPanel />
+              <TestEntryForm />
             </div>
           </div>
 
-          {/* Badges Row */}
-          <div>
-            <BadgesPanel />
-          </div>
-
-          {/* Test Entry Form - Main Action */}
-          <div>
-            <TestEntryForm />
+          {/* Second Row - Statistics and Badges */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="h-full">
+              <StatsPanel />
+            </div>
+            <div className="h-full">
+              <BadgesPanel />
+            </div>
           </div>
 
           {/* Test History - Recent Activity */}

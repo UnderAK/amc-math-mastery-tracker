@@ -11,11 +11,13 @@ interface TestScore {
   input?: string;
   key?: string;
   incorrectQuestions?: number[];
+  label?: string;
 }
 
 export const TestHistoryTable = () => {
   const [scores, setScores] = useState<TestScore[]>([]);
   const [filterType, setFilterType] = useState("all");
+  const [filterLabel, setFilterLabel] = useState("all");
 
   useEffect(() => {
     const updateScores = () => {
@@ -34,9 +36,13 @@ export const TestHistoryTable = () => {
     };
   }, []);
 
-  const filteredScores = filterType === "all" 
-    ? scores 
-    : scores.filter(s => s.testType === filterType);
+  const uniqueLabels = [...new Set(scores.filter(s => s.label).map(s => s.label))];
+  
+  const filteredScores = scores.filter(s => {
+    const typeMatch = filterType === "all" || s.testType === filterType;
+    const labelMatch = filterLabel === "all" || s.label === filterLabel || (filterLabel === "unlabeled" && !s.label);
+    return typeMatch && labelMatch;
+  });
 
   if (scores.length === 0) {
     return (
@@ -69,10 +75,23 @@ export const TestHistoryTable = () => {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All</SelectItem>
+              <SelectItem value="all">All Types</SelectItem>
               <SelectItem value="amc8">AMC 8</SelectItem>
               <SelectItem value="amc10">AMC 10</SelectItem>
               <SelectItem value="amc12">AMC 12</SelectItem>
+            </SelectContent>
+          </Select>
+          
+          <Select value={filterLabel} onValueChange={setFilterLabel}>
+            <SelectTrigger className="w-36">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Labels</SelectItem>
+              <SelectItem value="unlabeled">Unlabeled</SelectItem>
+              {uniqueLabels.map(label => (
+                <SelectItem key={label} value={label || ""}>{label}</SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
@@ -93,6 +112,7 @@ export const TestHistoryTable = () => {
                 <th className="px-4 py-3 text-left font-medium">Percent</th>
                 <th className="px-4 py-3 text-left font-medium">Test Type</th>
                 <th className="px-4 py-3 text-left font-medium">Year</th>
+                <th className="px-4 py-3 text-left font-medium">Label</th>
                 <th className="px-4 py-3 text-left font-medium">Mistakes</th>
               </tr>
             </thead>
@@ -141,6 +161,15 @@ export const TestHistoryTable = () => {
                     </td>
                     <td className="px-4 py-3 text-muted-foreground">{test.year}</td>
                     <td className="px-4 py-3">
+                      {test.label ? (
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-secondary text-secondary-foreground">
+                          {test.label}
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground text-xs">—</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
                       {incorrectCount > 0 ? (
                         <Tooltip>
                           <TooltipTrigger asChild>
@@ -180,9 +209,9 @@ export const TestHistoryTable = () => {
         </div>
       </TooltipProvider>
 
-      {filteredScores.length === 0 && filterType !== "all" && (
+      {filteredScores.length === 0 && (filterType !== "all" || filterLabel !== "all") && (
         <div className="text-center py-8 text-muted-foreground">
-          <p>No {filterType.toUpperCase()} tests found</p>
+          <p>No tests found matching the selected filters</p>
         </div>
       )}
     </section>

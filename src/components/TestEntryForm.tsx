@@ -14,6 +14,7 @@ interface TestScore {
   input: string;
   key: string;
   incorrectQuestions?: number[]; // Track which questions were wrong
+  label?: string;
 }
 
 export const TestEntryForm = () => {
@@ -21,6 +22,7 @@ export const TestEntryForm = () => {
   const [testYear, setTestYear] = useState(new Date().getFullYear().toString());
   const [userAnswers, setUserAnswers] = useState("");
   const [answerKey, setAnswerKey] = useState("");
+  const [label, setLabel] = useState("");
   const [result, setResult] = useState("");
   const { toast } = useToast();
 
@@ -71,7 +73,8 @@ export const TestEntryForm = () => {
       year: parseInt(testYear),
       input: userAnswers,
       key: answerKey,
-      incorrectQuestions
+      incorrectQuestions,
+      label: label.trim() || undefined
     };
     scores.push(newScore);
     localStorage.setItem("scores", JSON.stringify(scores));
@@ -114,27 +117,12 @@ export const TestEntryForm = () => {
     // Clear form
     setUserAnswers("");
     setAnswerKey("");
+    setLabel("");
     
     // Trigger data refresh
     window.dispatchEvent(new CustomEvent('dataUpdate'));
   };
 
-  const autoExtractAnswers = () => {
-    const matches = answerKey.match(/[ABCDE]/g);
-    if (matches && matches.length >= 25) {
-      setAnswerKey(matches.slice(0, 25).join(""));
-      toast({
-        title: "✅ Answer key extracted successfully!",
-        description: "Found 25 valid answers",
-      });
-    } else {
-      toast({
-        title: "❌ Extraction failed",
-        description: "Couldn't extract 25 valid answers from input",
-        variant: "destructive",
-      });
-    }
-  };
 
   return (
     <section className="glass p-6 rounded-2xl shadow-xl">
@@ -164,6 +152,14 @@ export const TestEntryForm = () => {
           value={testYear}
           onChange={(e) => setTestYear(e.target.value)}
           placeholder="Enter Year (e.g., 2025)"
+        />
+
+        {/* Label Input */}
+        <Input
+          type="text"
+          value={label}
+          onChange={(e) => setLabel(e.target.value)}
+          placeholder="Label (optional) - e.g., Practice Test, Competition, Review"
         />
 
         {/* User Answers */}
