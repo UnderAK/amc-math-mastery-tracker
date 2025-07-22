@@ -33,42 +33,14 @@ export const TopicInputPopup: React.FC<TopicInputPopupProps> = ({
 
   // Initialize topics state when the popup opens or initialTopics change
   useEffect(() => {
-  if (isOpen) {
-    setTopics({
-      1: "Other",
-      2: "Other",
-      3: "Other",
-      4: "Other",
-      5: "Other",
-      6: "Other",
-      7: "Other",
-      8: "Other",
-      9: "Other",
-      10: "Other",
-      11: "Other",
-      12: "Other",
-      13: "Other",
-      14: "Other",
-      15: "Other",
-      16: "Other",
-      17: "Other",
-      18: "Other",
-      19: "Other",
-      20: "Other",
-      21: "Other",
-      22: "Other",
-      23: "Other",
-      24: "Other",
-      25: "Other",
-    });
-  } else {
-    setTopics({});
-    setCurrentQuestionIndex(0);
-  }
-}, [isOpen]);
-
-
-
+    if (isOpen) {
+      setTopics(initialTopics);
+    } else {
+      // Reset when closed
+      setTopics({});
+      setCurrentQuestionIndex(0);
+    }
+  }, [isOpen, initialTopics]);
 
   const totalQuestions = questionsToTopic.length; // Should be 25
   const currentQuestionNumber = questionsToTopic[currentQuestionIndex];
@@ -100,7 +72,7 @@ export const TopicInputPopup: React.FC<TopicInputPopupProps> = ({
   };
 
   const handleSkip = () => {
-    handleTopicChange("Other"); // Mark as skipped
+    handleTopicChange("Skipped/Other"); // Mark as skipped
     moveToNextQuestion();
   };
 
@@ -108,7 +80,7 @@ export const TopicInputPopup: React.FC<TopicInputPopupProps> = ({
     const updatedTopics = { ...topics };
     // Set all remaining questions to 'Skipped/Other'
     for (let i = currentQuestionIndex; i < totalQuestions; i++) {
-      updatedTopics[questionsToTopic[i]] = "Other";
+      updatedTopics[questionsToTopic[i]] = "Skipped/Other";
     }
     setTopics(updatedTopics);
     // Use a timeout to allow state to update before saving and closing
@@ -137,6 +109,8 @@ export const TopicInputPopup: React.FC<TopicInputPopupProps> = ({
       return null;
   }
 
+  // Determine the topic currently selected for the current question
+  const currentSelectedTopic = topics[currentQuestionNumber] || "";
 
   return (
     <AlertDialog open={isOpen} onOpenChange={onClose}>
