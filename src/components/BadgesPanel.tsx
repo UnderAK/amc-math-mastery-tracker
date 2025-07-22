@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Award, Trophy, Star, Flame, TrendingUp, Target, BookOpen, Medal } from "lucide-react";
+import { TestScore } from "@/types/TestScore";
 
 interface Badge {
   emoji: string;
@@ -8,12 +9,7 @@ interface Badge {
   earned: boolean;
 }
 
-interface TestScore {
-  date: string;
-  score: number;
-  testType: string;
-  year: number;
-}
+// TestScore interface is now imported from shared types
 
 export const BadgesPanel = () => {
   const [badges, setBadges] = useState<Badge[]>([]);

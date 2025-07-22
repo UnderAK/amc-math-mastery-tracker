@@ -1,12 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
-
-interface TestScore {
-  date: string;
-  score: number;
-  testType: string;
-  year: number;
-}
+import { TestScore } from "@/types/TestScore";
 
 export const ScoreChart = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);

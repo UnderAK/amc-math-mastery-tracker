@@ -4,21 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { TopicInputPopup } from "@/components/TopicInputPopup";
 import { useToast } from "@/hooks/use-toast";
-import { TopicInputPopup } from "./TopicInputPopup"; // We will modify or replace this
+import { TestScore } from "@/types/TestScore";
 
-interface TestScore {
-  date: string;
-  score: number;
-  testType: string;
-  year: number;
-  input: string;
-  key: string;
-  // Removed incorrectQuestions and topicMistakes as they will be replaced by questionTopics
-  label?: string;
-  questionTopics: { [questionNum: number]: string }; // Store topic for ALL 25 questions
-  questionCorrectness: { [questionNum: number]: boolean }; // Store correctness for ALL 25 questions
-}
+// TestScore interface is now imported from shared types
 
 
 // Function to determine default topic for question initialization - all questions default to "Other"
@@ -204,6 +194,18 @@ export const TestEntryForm = () => {
     localStorage.setItem("scores", JSON.stringify(updatedTests));
     
     console.log('DEBUG TestEntryForm: Saved to localStorage. Total scores:', updatedTests.length);
+    console.log('DEBUG TestEntryForm: New score object:', newScore);
+    console.log('DEBUG TestEntryForm: All saved tests:', updatedTests);
+    
+    // Verify the data was actually saved
+    const verifyData = localStorage.getItem("scores");
+    console.log('DEBUG TestEntryForm: Verification - localStorage "scores":', verifyData);
+    
+    if (verifyData) {
+      const parsedData = JSON.parse(verifyData);
+      console.log('DEBUG TestEntryForm: Verification - Parsed data length:', parsedData.length);
+      console.log('DEBUG TestEntryForm: Verification - Last saved test:', parsedData[parsedData.length - 1]);
+    }
     
     const currentXp = parseInt(localStorage.getItem("xp") || "0");
     let xpEarned = 10 + correct;
@@ -272,10 +274,25 @@ export const TestEntryForm = () => {
     setAnswerKey("");
     setLabel("");
     setAllQuestionTopics({}); // Clear topics for the next test
+    
+    console.log('DEBUG TestEntryForm: About to dispatch dataUpdate event');
     window.dispatchEvent(new CustomEvent('dataUpdate'));
+    console.log('DEBUG TestEntryForm: dataUpdate event dispatched');
     
     // Dispatch coin update event
+    console.log('DEBUG TestEntryForm: About to dispatch coinUpdate event');
     window.dispatchEvent(new CustomEvent('coinUpdate'));
+    console.log('DEBUG TestEntryForm: coinUpdate event dispatched');
+    
+    // Add a small delay and then verify the data is still there
+    setTimeout(() => {
+      const finalVerification = localStorage.getItem("scores");
+      console.log('DEBUG TestEntryForm: Final verification after events - localStorage "scores":', finalVerification);
+      if (finalVerification) {
+        const finalParsed = JSON.parse(finalVerification);
+        console.log('DEBUG TestEntryForm: Final verification - Data length:', finalParsed.length);
+      }
+    }, 100);
     } catch (error) {
       console.error('ERROR in handleSaveAllTopics:', error);
       setIsGrading(false);

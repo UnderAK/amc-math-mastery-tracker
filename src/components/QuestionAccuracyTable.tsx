@@ -1,15 +1,9 @@
 import { useState, useEffect } from "react";
 import { Target, TrendingUp, AlertTriangle } from "lucide-react";
+import { TestScore } from "@/types/TestScore";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-interface TestScore {
-  date: string;
-  score: number;
-  testType: string;
-  year: number;
-  input?: string;
-  key?: string;
-}
+// TestScore interface is now imported from shared types
 
 interface QuestionStat {
   correct: number;

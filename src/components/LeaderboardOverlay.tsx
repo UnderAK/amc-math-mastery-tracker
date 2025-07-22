@@ -1,15 +1,9 @@
 import { useEffect, useState } from "react";
 import { Trophy, Medal, Crown, Zap, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { TestScore } from "@/types/TestScore";
 
-interface TestScore {
-  date: string;
-  score: number;
-  testType: string;
-  year: number;
-  input?: string;
-  key?: string;
-}
+// TestScore interface is now imported from shared types
 
 interface LeaderEntry {
   name: string;

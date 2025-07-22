@@ -1,20 +1,10 @@
 import { useState, useEffect } from "react";
-import { AlertTriangle, Target, Clock, TrendingUp } from "lucide-react";
+import { AlertTriangle, TrendingDown, Target, BookOpen } from "lucide-react";
+import { TestScore } from "@/types/TestScore";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 
-interface TestScore {
-  date: string;
-  score: number;
-  testType: string;
-  year: number;
-  label?: string;
-  questionTopics?: { [questionNum: number]: string }; // Store topic for ALL 25 questions (new format)
-  questionCorrectness?: { [questionNum: number]: boolean }; // Store correctness for ALL 25 questions (new format)
-  // Retaining old fields for compatibility when reading
-  incorrectQuestions?: number[]; // Old format
-  topicMistakes?: { [topic: string]: number }; // Old format
-}
+// TestScore interface is now imported from shared types
 
 interface WeaknessAnalysis {
   weakestTopics: Array<{ topic: string; mistakes: number; attempts: number }>; // Added attempts to weakest topics

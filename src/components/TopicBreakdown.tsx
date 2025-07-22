@@ -1,23 +1,8 @@
 import { useState, useEffect } from "react";
-import { BookOpen, TrendingDown, TrendingUp, AlertTriangle } from "lucide-react";
+import { BarChart3, TrendingUp, AlertTriangle, BookOpen, Target } from "lucide-react";
+import { TestScore } from "@/types/TestScore";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
-
-interface TestScore {
-  date: string;
-  score: number;
-  testType: string;
-  year: number;
-  input?: string;
-  key?: string;
-  // We now use questionTopics and questionCorrectness
-  label?: string;
-  questionTopics?: { [questionNum: number]: string }; // Store topic for ALL 25 questions (new format)
-  questionCorrectness?: { [questionNum: number]: boolean }; // Store correctness for ALL 25 questions (new format)
-  // Retaining old fields for compatibility when reading
-  incorrectQuestions?: number[]; // Old format
-  topicMistakes?: { [topic: string]: number }; // Old format
-}
 
 interface TopicStats {
   topic: string;

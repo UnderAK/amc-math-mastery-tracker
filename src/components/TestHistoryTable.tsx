@@ -2,17 +2,9 @@ import { useState, useEffect } from "react";
 import { BookOpen, Filter, Calendar, AlertCircle } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { TestScore } from "@/types/TestScore";
 
-interface TestScore {
-  date: string;
-  score: number;
-  testType: string;
-  year: number;
-  input?: string;
-  key?: string;
-  incorrectQuestions?: number[];
-  label?: string;
-}
+// TestScore interface is now imported from shared types
 
 interface TestHistoryTableProps {
   filterType?: string;
@@ -24,17 +16,28 @@ export const TestHistoryTable = ({ filterType = "all" }: TestHistoryTableProps) 
 
   useEffect(() => {
     const updateScores = () => {
+      console.log('DEBUG TestHistoryTable: updateScores called');
       const savedScores: TestScore[] = JSON.parse(localStorage.getItem("scores") || "[]");
+      console.log('DEBUG TestHistoryTable: Retrieved scores from localStorage:', savedScores);
+      console.log('DEBUG TestHistoryTable: Number of scores:', savedScores.length);
       setScores(savedScores);
+      console.log('DEBUG TestHistoryTable: State updated with scores');
     };
 
+    console.log('DEBUG TestHistoryTable: Component mounted, calling initial updateScores');
     updateScores();
 
     // Listen for data updates
-    const handleDataUpdate = () => updateScores();
+    const handleDataUpdate = () => {
+      console.log('DEBUG TestHistoryTable: dataUpdate event received!');
+      updateScores();
+    };
+    
+    console.log('DEBUG TestHistoryTable: Adding dataUpdate event listener');
     window.addEventListener('dataUpdate', handleDataUpdate);
 
     return () => {
+      console.log('DEBUG TestHistoryTable: Removing dataUpdate event listener');
       window.removeEventListener('dataUpdate', handleDataUpdate);
     };
   }, []);

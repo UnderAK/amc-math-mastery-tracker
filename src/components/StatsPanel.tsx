@@ -1,13 +1,9 @@
 import { useState, useEffect } from "react";
 import { TrendingUp, Calendar, Target, Award, Filter, BarChart3, Zap, TrendingDown, Clock } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { TestScore } from "@/types/TestScore";
 
-interface TestScore {
-  date: string;
-  score: number;
-  testType: string;
-  year: number;
-}
+// TestScore interface is now imported from shared types
 
 interface StatsPanelProps {
   filterType?: string;
@@ -28,7 +24,10 @@ export const StatsPanel = ({ filterType = "all" }: StatsPanelProps) => {
 
   useEffect(() => {
     const updateStats = () => {
+      console.log('DEBUG StatsPanel: updateStats called');
       const allScores: TestScore[] = JSON.parse(localStorage.getItem("scores") || "[]");
+      console.log('DEBUG StatsPanel: Retrieved scores from localStorage:', allScores);
+      console.log('DEBUG StatsPanel: Number of scores:', allScores.length);
       
       // Apply filter based on internalFilter
       const filteredScores = internalFilter === "all" 
@@ -95,13 +94,20 @@ export const StatsPanel = ({ filterType = "all" }: StatsPanelProps) => {
       });
     };
 
+    console.log('DEBUG StatsPanel: Component mounted, calling initial updateStats');
     updateStats();
 
     // Listen for data updates
-    const handleDataUpdate = () => updateStats();
+    const handleDataUpdate = () => {
+      console.log('DEBUG StatsPanel: dataUpdate event received!');
+      updateStats();
+    };
+    
+    console.log('DEBUG StatsPanel: Adding dataUpdate event listener');
     window.addEventListener('dataUpdate', handleDataUpdate);
 
     return () => {
+      console.log('DEBUG StatsPanel: Removing dataUpdate event listener');
       window.removeEventListener('dataUpdate', handleDataUpdate);
     };
   }, [internalFilter]);

@@ -2,13 +2,9 @@ import { useState, useEffect } from "react";
 import { TrendingUp, Award, Target, BarChart3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { TestScore } from "@/types/TestScore";
 
-interface TestScore {
-  date: string;
-  score: number;
-  testType: string;
-  year: number;
-}
+// TestScore interface is now imported from shared types
 
 export const SummaryPanel = () => {
   const [xp, setXp] = useState(0);

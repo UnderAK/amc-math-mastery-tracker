@@ -1,14 +1,10 @@
 import { useState, useEffect } from "react";
 import { Flame, Star, Target, Zap, HelpCircle } from "lucide-react";
+import { TestScore } from "@/types/TestScore";
 import { Progress } from "@/components/ui/progress";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 
-interface TestScore {
-  date: string;
-  score: number;
-  testType: string;
-  year: number;
-}
+// TestScore interface is now imported from shared types
 
 export const GamificationPanel = () => {
   const [xp, setXp] = useState(0);
