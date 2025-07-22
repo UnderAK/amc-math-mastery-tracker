@@ -292,7 +292,25 @@ export const WeaknessReport = () => {
             </div>
           )}
 
-          {/* High-Error Questions - Hidden as requested */}
+          {/* Problematic Questions */}
+          {analysis.problematicQuestions.length > 0 && (
+            <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
+              <h3 className="font-semibold text-amber-700 dark:text-amber-300 mb-3 flex items-center gap-2">
+                <Target className="w-4 h-4" />
+                High-Error Questions
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {analysis.problematicQuestions.map(q => (
+                  <div key={q.question} className="text-sm bg-white dark:bg-gray-800 p-2 rounded border">
+                    <span className="font-medium">Question {q.question}</span>
+                    <span className="ml-2 text-amber-600 dark:text-amber-400">
+                      {q.errorRate}% error rate ({q.attempts} attempts)
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Recommendations */}
           <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">

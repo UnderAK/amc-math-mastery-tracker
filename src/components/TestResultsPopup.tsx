@@ -134,8 +134,8 @@ export const TestResultsPopup = ({ result, isOpen, onClose }: TestResultsPopupPr
                 {result.newBadges.map((badge, index) => (
                   <div
                     key={index}
-                    className="flex items-center gap-3 p-3 bg-accent/10 border border-accent/20 rounded-lg"
-                    // ...existing code...
+                    className="flex items-center gap-3 p-3 bg-accent/10 border border-accent/20 rounded-lg animate-bounce-in"
+                    style={{ animationDelay: `${index * 0.1}s` }}
                   >
                     <div className="text-2xl">{badge.emoji}</div>
                     <div>

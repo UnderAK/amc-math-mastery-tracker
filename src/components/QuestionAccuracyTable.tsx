@@ -41,8 +41,7 @@ export const QuestionAccuracyTable = () => {
         for (let i = 0; i < 25; i++) {
           if (input[i] && key[i]) {
             stats[i].total++;
-            // Check if input[i] is a space (should count as wrong)
-            if (input[i] === key[i] && input[i] !== ' ') {
+            if (input[i] === key[i]) {
               stats[i].correct++;
             }
           }
@@ -166,7 +165,7 @@ export const QuestionAccuracyTable = () => {
                   <tr 
                     key={index} 
                     className="hover:bg-secondary/20 transition-colors fade-in-up"
-                    // ...existing code...
+                    style={{ animationDelay: `${index * 0.02}s` }}
                   >
                     <td className="px-3 py-2 font-medium">
                       Q{index + 1}

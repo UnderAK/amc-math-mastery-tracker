@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { TrendingUp, Calendar, Target, Award, BarChart3, Clock, Zap, Percent } from "lucide-react";
+import { TrendingUp, Calendar, Target, Award } from "lucide-react";
 
 interface TestScore {
   date: string;
@@ -13,65 +13,33 @@ export const StatsPanel = () => {
     total: 0,
     lastDate: "—",
     average: "—",
-    best: "—",
-    worst: "—",
-    improvement: "—",
-    totalQuestions: 0,
-    accuracy: "—",
-    streak: 0
+    best: "—"
   });
 
   useEffect(() => {
     const updateStats = () => {
       const scores: TestScore[] = JSON.parse(localStorage.getItem("scores") || "[]");
-      const streak = parseInt(localStorage.getItem("streak") || "0");
       
       if (scores.length === 0) {
         setStats({
           total: 0,
           lastDate: "—",
           average: "—",
-          best: "—",
-          worst: "—",
-          improvement: "—",
-          totalQuestions: 0,
-          accuracy: "—",
-          streak: 0
+          best: "—"
         });
         return;
       }
 
       const total = scores.length;
-      const scoreValues = scores.map(s => s.score);
-      const best = Math.max(...scoreValues);
-      const worst = Math.min(...scoreValues);
+      const best = Math.max(...scores.map(s => s.score));
       const average = scores.reduce((acc, s) => acc + s.score, 0) / scores.length;
       const lastDate = scores[scores.length - 1].date;
-      const totalQuestions = scores.length * 25;
-      const totalCorrect = scores.reduce((acc, s) => acc + s.score, 0);
-      const accuracy = (totalCorrect / totalQuestions) * 100;
-
-      // Calculate improvement (recent vs older scores)
-      let improvement = "—";
-      if (scores.length >= 6) {
-        const recent = scores.slice(-3);
-        const older = scores.slice(-6, -3);
-        const recentAvg = recent.reduce((acc, s) => acc + s.score, 0) / recent.length;
-        const olderAvg = older.reduce((acc, s) => acc + s.score, 0) / older.length;
-        const diff = recentAvg - olderAvg;
-        improvement = diff > 0 ? `+${diff.toFixed(1)}` : diff.toFixed(1);
-      }
 
       setStats({
         total,
         lastDate,
         average: average.toFixed(1),
-        best: best.toString(),
-        worst: worst.toString(),
-        improvement,
-        totalQuestions,
-        accuracy: accuracy.toFixed(1) + "%",
-        streak
+        best: best.toString()
       });
     };
 
@@ -110,30 +78,6 @@ export const StatsPanel = () => {
       label: "Best Score",
       value: stats.best,
       color: "text-purple-600"
-    },
-    {
-      icon: <BarChart3 className="w-4 h-4" />,
-      label: "Worst Score",
-      value: stats.worst,
-      color: "text-red-600"
-    },
-    {
-      icon: <Clock className="w-4 h-4" />,
-      label: "Recent Improvement",
-      value: stats.improvement,
-      color: "text-cyan-600"
-    },
-    {
-      icon: <Zap className="w-4 h-4" />,
-      label: "Total Questions",
-      value: stats.totalQuestions,
-      color: "text-orange-600"
-    },
-    {
-      icon: <Percent className="w-4 h-4" />,
-      label: "Overall Accuracy",
-      value: stats.accuracy,
-      color: "text-teal-600"
     }
   ];
 

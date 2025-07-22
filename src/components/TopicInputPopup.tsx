@@ -72,15 +72,15 @@ export const TopicInputPopup: React.FC<TopicInputPopupProps> = ({
   };
 
   const handleSkip = () => {
-    handleTopicChange("Other"); // Mark as skipped, now always 'Other'
+    handleTopicChange("Skipped/Other"); // Mark as skipped
     moveToNextQuestion();
   };
 
   const handleSkipAll = () => {
     const updatedTopics = { ...topics };
-    // Set all remaining questions to 'Other'
+    // Set all remaining questions to 'Skipped/Other'
     for (let i = currentQuestionIndex; i < totalQuestions; i++) {
-      updatedTopics[questionsToTopic[i]] = "Other";
+      updatedTopics[questionsToTopic[i]] = "Skipped/Other";
     }
     setTopics(updatedTopics);
     // Use a timeout to allow state to update before saving and closing

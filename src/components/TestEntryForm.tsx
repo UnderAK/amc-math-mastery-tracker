@@ -219,7 +219,7 @@ export const TestEntryForm = () => {
   return (
     <section className="glass p-6 rounded-2xl shadow-xl hover-lift animate-slide-in-left">
       <h2 className="text-xl font-semibold text-primary mb-4 flex items-center gap-2">
-        <BookOpen className="w-5 h-5" />
+        <BookOpen className="w-5 h-5 animate-float" />
         New Test Entry
       </h2>
       
@@ -288,7 +288,7 @@ export const TestEntryForm = () => {
         <div className="flex justify-end">
           <Button
             onClick={gradeTest}
-            className="gradient-primary hover-glow"
+            className="gradient-primary hover-bounce hover-glow animate-pulse-glow"
             disabled={userAnswers.length !== 25 || answerKey.length !== 25}
           >
             <CheckCircle className="w-4 h-4 mr-2" />

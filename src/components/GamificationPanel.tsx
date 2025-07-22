@@ -10,13 +10,11 @@ interface TestScore {
   year: number;
 }
 
-
 export const GamificationPanel = () => {
   const [xp, setXp] = useState(0);
   const [streak, setStreak] = useState(0);
   const [level, setLevel] = useState(1);
   const [problemStats, setProblemStats] = useState({ correct: 0, total: 0 });
-  const [showTimeline, setShowTimeline] = useState(false);
 
   const loadData = () => {
     const savedXp = parseInt(localStorage.getItem("xp") || "0");
@@ -63,7 +61,7 @@ export const GamificationPanel = () => {
     <TooltipProvider>
       <section className="glass p-6 rounded-2xl shadow-xl hover-lift animate-slide-in-right">
         <h2 className="text-xl font-semibold text-primary mb-4 flex items-center gap-2">
-          <Zap className="w-5 h-5" />
+          <Zap className="w-5 h-5 animate-wiggle" />
           Gamification Panel
           <Tooltip>
             <TooltipTrigger>
@@ -109,22 +107,7 @@ export const GamificationPanel = () => {
       {/* Level Progress Bar */}
       <div className="mb-6">
         <div className="flex justify-between items-center mb-2">
-          <span className="text-sm font-medium flex items-center gap-1">
-            Level {level} Progress
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  className="ml-1 p-0.5 rounded-full bg-accent/10 hover:bg-accent/20 focus:outline-none border border-accent/30"
-                  aria-label="Show level rewards timeline"
-                  onClick={() => setShowTimeline(true)}
-                  type="button"
-                >
-                  <HelpCircle className="w-4 h-4 text-accent" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent>See level rewards & prizes</TooltipContent>
-            </Tooltip>
-          </span>
+          <span className="text-sm font-medium">Level {level} Progress</span>
           <span className="text-sm text-muted-foreground">{progressPercent}%</span>
         </div>
         <Progress value={progressPercent} className="h-3" />
@@ -132,60 +115,6 @@ export const GamificationPanel = () => {
           <Target className="w-3 h-3 inline mr-1" />
           Next Level: {xpForNextLevel} XP ({250 - progressToNextLevel} XP to go)
         </div>
-        {/* Timeline Modal */}
-        {showTimeline && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-            <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl p-6 max-w-lg w-full relative animate-fade-in-up">
-              <button
-                className="absolute top-2 right-2 text-xl p-1 rounded-full hover:bg-accent/20"
-                onClick={() => setShowTimeline(false)}
-                aria-label="Close rewards timeline"
-              >
-                ×
-              </button>
-              <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-                <Star className="w-6 h-6 text-yellow-400" /> Level Rewards Timeline
-              </h3>
-              <ol className="relative border-l-2 border-accent/30 pl-6 space-y-6">
-                <li>
-                  <div className="flex items-center gap-3 mb-1">
-                    <span className="text-lg font-bold">Level 1</span>
-                    <span className="bg-accent/10 text-accent px-2 py-0.5 rounded-full text-xs font-semibold">Starter</span>
-                  </div>
-                  <div className="text-sm text-muted-foreground">Welcome! Unlock basic analytics and badges.</div>
-                </li>
-                <li>
-                  <div className="flex items-center gap-3 mb-1">
-                    <span className="text-lg font-bold">Level 5</span>
-                    <span className="bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full text-xs font-semibold">🎁 Prize</span>
-                  </div>
-                  <div className="text-sm text-muted-foreground">Unlock profile customization and streak bonuses.</div>
-                </li>
-                <li>
-                  <div className="flex items-center gap-3 mb-1">
-                    <span className="text-lg font-bold">Level 10</span>
-                    <span className="bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-xs font-semibold">🎉 Major Prize</span>
-                  </div>
-                  <div className="text-sm text-muted-foreground">Access advanced analytics and secret badges.</div>
-                </li>
-                <li>
-                  <div className="flex items-center gap-3 mb-1">
-                    <span className="text-lg font-bold">Level 25</span>
-                    <span className="bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full text-xs font-semibold">🏆 Trophy</span>
-                  </div>
-                  <div className="text-sm text-muted-foreground">Unlock leaderboard and special themes.</div>
-                </li>
-                <li>
-                  <div className="flex items-center gap-3 mb-1">
-                    <span className="text-lg font-bold">Level 50</span>
-                    <span className="bg-pink-100 text-pink-700 px-2 py-0.5 rounded-full text-xs font-semibold">👑 Champion</span>
-                  </div>
-                  <div className="text-sm text-muted-foreground">Lifetime badge and exclusive features.</div>
-                </li>
-              </ol>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Problem Distribution Chart */}

@@ -125,19 +125,19 @@ export const BadgesPanel = () => {
           emoji: "🌟",
           title: "Rising Star",
           description: "Reach Level 10",
-          earned: Math.floor(xp / 250) + 1 >= 10
+          earned: Math.floor(xp / 100) + 1 >= 10
         },
         {
           emoji: "🚀",
           title: "Math Champion",
           description: "Reach Level 25",
-          earned: Math.floor(xp / 250) + 1 >= 25
+          earned: Math.floor(xp / 100) + 1 >= 25
         },
         {
           emoji: "👑",
           title: "Math Royalty",
           description: "Reach Level 50",
-          earned: Math.floor(xp / 250) + 1 >= 50
+          earned: Math.floor(xp / 100) + 1 >= 50
         },
 
         // Daily bonus badges
@@ -210,51 +210,6 @@ export const BadgesPanel = () => {
             const average = scores.reduce((sum, s) => sum + s.score, 0) / scores.length;
             return (average / 25) >= 0.8;
           })()
-        },
-
-        // Secret Level 10+ badges
-        {
-          emoji: "💠",
-          title: "Crystal Mind",
-          description: "SECRET: Reach Level 10",
-          earned: Math.floor(xp / 250) + 1 >= 10
-        },
-        {
-          emoji: "🔮",
-          title: "Oracle",
-          description: "SECRET: Score 25 three times in a row",
-          earned: (() => {
-            if (scores.length < 3) return false;
-            const lastThree = scores.slice(-3);
-            return lastThree.every(s => s.score === 25);
-          })()
-        },
-        {
-          emoji: "🌟",
-          title: "Stellar Performance",
-          description: "SECRET: 95%+ accuracy over 20+ tests",
-          earned: (() => {
-            if (scores.length < 20) return false;
-            const average = scores.reduce((sum, s) => sum + s.score, 0) / scores.length;
-            return (average / 25) >= 0.95;
-          })()
-        },
-        {
-          emoji: "🎭",
-          title: "Jack of All Trades",
-          description: "SECRET: Score 20+ on all AMC levels",
-          earned: (() => {
-            const amc8Best = Math.max(...scores.filter(s => s.testType === 'amc8').map(s => s.score), 0);
-            const amc10Best = Math.max(...scores.filter(s => s.testType === 'amc10').map(s => s.score), 0);
-            const amc12Best = Math.max(...scores.filter(s => s.testType === 'amc12').map(s => s.score), 0);
-            return amc8Best >= 20 && amc10Best >= 20 && amc12Best >= 20;
-          })()
-        },
-        {
-          emoji: "⚔️",
-          title: "Warrior Scholar",
-          description: "SECRET: 50+ day streak + Level 15",
-          earned: streak >= 50 && Math.floor(xp / 250) + 1 >= 15
         }
       ];
 
@@ -310,7 +265,7 @@ export const BadgesPanel = () => {
   return (
     <section className="glass p-6 rounded-2xl shadow-xl hover-lift animate-slide-in-left">
       <h2 className="text-xl font-semibold text-primary mb-4 flex items-center gap-2">
-        <Award className="w-5 h-5" />
+        <Award className="w-5 h-5 animate-float" />
         Badges Earned
       </h2>
       
@@ -323,8 +278,8 @@ export const BadgesPanel = () => {
               {earnedBadges.map((badge, index) => (
                 <div
                   key={badge.title}
-                  className="relative group p-3 bg-accent/10 border border-accent/20 rounded-lg text-center cursor-pointer"
-                  // ...existing code...
+                  className="relative group p-3 bg-accent/10 border border-accent/20 rounded-lg hover-scale hover-bounce text-center animate-bounce-in cursor-pointer"
+                  style={{ animationDelay: `${index * 0.1}s` }}
                 >
                   <div className="text-2xl mb-1 transform group-hover:scale-110 transition-transform duration-200">{badge.emoji}</div>
                   <div className="text-xs font-medium text-accent">{badge.title}</div>
