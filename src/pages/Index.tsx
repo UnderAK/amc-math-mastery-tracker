@@ -175,16 +175,16 @@ const Index = () => {
                 onClick={toggleDarkMode}
                 className="hover-scale hover-glow"
               >
-                {isDarkMode ? <Sun className="w-4 h-4 mr-2 animate-wiggle" /> : <Moon className="w-4 h-4 mr-2 animate-wiggle" />}
+                {isDarkMode ? <Sun className="w-4 h-4 mr-2" /> : <Moon className="w-4 h-4 mr-2" />}
                 Toggle Theme
               </Button>
               
               <Button
                 onClick={() => setIsLeaderboardOpen(true)}
-                className="gradient-primary hover-bounce animate-pulse-glow"
+                className="gradient-primary"
                 size="sm"
               >
-                <Trophy className="w-4 h-4 mr-2 animate-float" />
+                <Trophy className="w-4 h-4 mr-2" />
                 Leaderboard
               </Button>
 
@@ -197,7 +197,7 @@ const Index = () => {
 
                 {/* Link to Test Entry Page */}
                <Link to="/test-entry">
-                 <Button variant="secondary" size="sm" className="hover-scale hover-glow animate-pulse-glow">
+                 <Button variant="secondary" size="sm" className="hover-scale hover-glow">
                     ✍️ Enter Test
                  </Button>
                </Link>
@@ -239,7 +239,7 @@ const Index = () => {
             </div>
             
             <div className="glass p-6 rounded-2xl shadow-xl text-center hover-lift animate-slide-in-right" style={{ animationDelay: '0.1s' }}>
-              <div className="text-4xl mb-3 animate-float" style={{ animationDelay: '0.5s' }}>📊</div>
+              <div className="text-4xl mb-3">📊</div>
               <h3 className="text-lg font-semibold text-primary mb-2">Track Progress</h3>
               <p className="text-sm text-muted-foreground">
                 Detailed analytics show your performance by topic and over time.
@@ -247,7 +247,7 @@ const Index = () => {
             </div>
             
             <div className="glass p-6 rounded-2xl shadow-xl text-center hover-lift animate-slide-in-left" style={{ animationDelay: '0.2s' }}>
-              <div className="text-4xl mb-3 animate-float" style={{ animationDelay: '1s' }}>⚡</div>
+              <div className="text-4xl mb-3">⚡</div>
               <h3 className="text-lg font-semibold text-primary mb-2">Level Up</h3>
               <p className="text-sm text-muted-foreground">
                 Gain XP for every test and unlock new levels with special rewards.
