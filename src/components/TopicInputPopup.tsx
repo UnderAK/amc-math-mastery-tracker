@@ -34,19 +34,19 @@ export const TopicInputPopup: React.FC<TopicInputPopupProps> = ({
   // Initialize topics state when the popup opens or initialTopics change
   useEffect(() => {
   if (isOpen) {
-    const initializedTopics: { [questionNum: number]: string } = {};
+    const defaultedTopics: { [questionNum: number]: string } = {};
 
     for (const q of questionsToTopic) {
-      const topic = initialTopics[q];
-      initializedTopics[q] = topic && topic.trim() !== "" ? topic : "Other";
+      defaultedTopics[q] = "Other";
     }
 
-    setTopics(initializedTopics);
+    setTopics(defaultedTopics);
   } else {
     setTopics({});
     setCurrentQuestionIndex(0);
   }
-}, [isOpen, initialTopics, questionsToTopic]);
+}, [isOpen, questionsToTopic]);
+
 
 
   const totalQuestions = questionsToTopic.length; // Should be 25
