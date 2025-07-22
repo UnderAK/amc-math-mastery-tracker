@@ -43,4 +43,30 @@
   "handle_links": {
     "urls": ["https://amc-math-mastery-tracker.vercel.app/*"]
   }
+  "shortcuts": [
+  {
+    "name": "Enter Test",
+    "short_name": "Enter",
+    "url": "/entry",
+    "icons": [
+      {
+        "src": "/icons/192x192.png",
+        "sizes": "192x192",
+        "type": "image/png"
+      }
+    ]
+  },
+  {
+    "name": "View Scores",
+    "short_name": "Scores",
+    "url": "/scores",
+    "icons": [
+      {
+        "src": "/icons/192x192.png",
+        "sizes": "192x192",
+        "type": "image/png"
+      }
+    ]
+  }
+]
 }
