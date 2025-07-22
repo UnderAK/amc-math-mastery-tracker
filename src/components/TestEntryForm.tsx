@@ -82,6 +82,7 @@ export const TestEntryForm = () => {
   };
 
   const handleSaveAllTopics = (topics: { [key: number]: string }) => {
+    console.log('DEBUG TestEntryForm: handleSaveAllTopics called with:', topics);
     setAllQuestionTopics(topics);
     setIsTopicInputForAllOpen(false);
 
@@ -105,6 +106,9 @@ export const TestEntryForm = () => {
     const date = new Date().toISOString().split("T")[0];
 
     const scores: TestScore[] = JSON.parse(localStorage.getItem("scores") || "[]");
+    console.log('DEBUG TestEntryForm: allQuestionTopics at save time:', allQuestionTopics);
+    console.log('DEBUG TestEntryForm: topics parameter:', topics);
+    
     const newScore: TestScore = {
       date,
       score: correct,
@@ -113,11 +117,19 @@ export const TestEntryForm = () => {
       input: userAnswers,
       key: answerKey,
       label: label.trim() || undefined,
-      questionTopics: allQuestionTopics, // Store topics for all questions
+      questionTopics: topics, // Use the topics parameter directly instead of allQuestionTopics
       questionCorrectness: questionCorrectness, // Store correctness for all questions
     };
+    
+    console.log('DEBUG TestEntryForm: newScore being saved:', {
+      questionTopics: newScore.questionTopics,
+      questionCorrectness: newScore.questionCorrectness
+    });
+    
     scores.push(newScore);
     localStorage.setItem("scores", JSON.stringify(scores));
+    
+    console.log('DEBUG TestEntryForm: Saved to localStorage. Total scores:', scores.length);
 
     const currentXp = parseInt(localStorage.getItem("xp") || "0");
     let xpEarned = 10 + correct;
