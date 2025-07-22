@@ -62,7 +62,11 @@ export const TopicInputPopup: React.FC<TopicInputPopupProps> = ({
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     } else {
       // Last question, save all topics and close
-      // Fill any missing topics with "Other
+      // Fill any missing topics with "Other"
+      const filledTopics: { [questionNum: number]: string } = {};
+      questionsToTopic.forEach(q => {
+        filledTopics[q] = topics[q] || "Other";
+      });
       onSaveTopics(filledTopics);
 
       onClose();
