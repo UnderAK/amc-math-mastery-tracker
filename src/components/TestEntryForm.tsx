@@ -51,7 +51,8 @@ export const TestEntryForm = () => {
   ];
 
   const sanitizeInput = (value: string) => {
-    return value.toUpperCase().replace(/[^ABCDE]/g, '').slice(0, 25);
+    // Allow space to count as wrong answer, then remove it and replace with empty string for processing
+    return value.toUpperCase().replace(/[^ABCDE ]/g, '').slice(0, 25);
   };
 
   const handleUserAnswersChange = (value: string) => {
@@ -94,7 +95,9 @@ export const TestEntryForm = () => {
 
     for (let i = 0; i < 25; i++) {
       const questionNum = i + 1;
-      const isCorrect = userAnswers[i] === answerKey[i];
+      // Treat space as wrong answer, but any other character normally
+      const userAnswer = userAnswers[i] === ' ' ? 'WRONG' : userAnswers[i];
+      const isCorrect = userAnswer === answerKey[i];
       questionCorrectness[questionNum] = isCorrect;
       if (isCorrect) {
         correct++;
@@ -214,9 +217,9 @@ export const TestEntryForm = () => {
 
 
   return (
-    <section className="glass p-6 rounded-2xl shadow-xl">
+    <section className="glass p-6 rounded-2xl shadow-xl hover-lift animate-slide-in-left">
       <h2 className="text-xl font-semibold text-primary mb-4 flex items-center gap-2">
-        <BookOpen className="w-5 h-5" />
+        <BookOpen className="w-5 h-5 animate-float" />
         New Test Entry
       </h2>
       
@@ -285,7 +288,7 @@ export const TestEntryForm = () => {
         <div className="flex justify-end">
           <Button
             onClick={gradeTest}
-            className="gradient-primary hover-bounce"
+            className="gradient-primary hover-bounce hover-glow animate-pulse-glow"
             disabled={userAnswers.length !== 25 || answerKey.length !== 25}
           >
             <CheckCircle className="w-4 h-4 mr-2" />

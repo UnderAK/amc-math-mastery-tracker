@@ -56,12 +56,13 @@ export const LevelUpModal = () => {
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="glass max-w-sm w-full rounded-3xl shadow-2xl animate-bounce-in">
         {/* Animated Background */}
-        <div className="gradient-primary p-8 rounded-t-3xl text-center relative overflow-hidden">
-          <div className="absolute inset-0 opacity-20">
-            <div className="absolute top-2 left-4 animate-pulse">⭐</div>
-            <div className="absolute top-4 right-6 animate-pulse delay-200">✨</div>
-            <div className="absolute bottom-3 left-6 animate-pulse delay-300">🎉</div>
-            <div className="absolute bottom-2 right-4 animate-pulse delay-100">🌟</div>
+        <div className="gradient-primary p-8 rounded-t-3xl text-center relative overflow-hidden animate-pulse-glow">
+          <div className="absolute inset-0 opacity-30">
+            <div className="absolute top-2 left-4 animate-bounce">⭐</div>
+            <div className="absolute top-4 right-6 animate-bounce delay-200">✨</div>
+            <div className="absolute bottom-3 left-6 animate-bounce delay-300">🎉</div>
+            <div className="absolute bottom-2 right-4 animate-bounce delay-100">🌟</div>
+            <div className="absolute top-6 left-1/2 transform -translate-x-1/2 animate-bounce delay-500">🌠</div>
           </div>
           
           <div className="relative z-10">

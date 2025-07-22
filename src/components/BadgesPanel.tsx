@@ -263,9 +263,9 @@ export const BadgesPanel = () => {
   const unearnedBadges = badges.filter(b => !b.earned).slice(0, 6); // Show next 6 to earn
 
   return (
-    <section className="glass p-6 rounded-2xl shadow-xl">
+    <section className="glass p-6 rounded-2xl shadow-xl hover-lift animate-slide-in-left">
       <h2 className="text-xl font-semibold text-primary mb-4 flex items-center gap-2">
-        <Award className="w-5 h-5" />
+        <Award className="w-5 h-5 animate-float" />
         Badges Earned
       </h2>
       
@@ -278,10 +278,10 @@ export const BadgesPanel = () => {
               {earnedBadges.map((badge, index) => (
                 <div
                   key={badge.title}
-                  className="relative group p-3 bg-accent/10 border border-accent/20 rounded-lg hover-scale text-center animate-bounce-in"
+                  className="relative group p-3 bg-accent/10 border border-accent/20 rounded-lg hover-scale hover-bounce text-center animate-bounce-in cursor-pointer"
                   style={{ animationDelay: `${index * 0.1}s` }}
                 >
-                  <div className="text-2xl mb-1">{badge.emoji}</div>
+                  <div className="text-2xl mb-1 transform group-hover:scale-110 transition-transform duration-200">{badge.emoji}</div>
                   <div className="text-xs font-medium text-accent">{badge.title}</div>
                   
                   {/* Tooltip */}
