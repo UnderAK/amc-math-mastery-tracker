@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { AlertTriangle, TrendingDown, Target, BookOpen } from "lucide-react";
+import { AlertTriangle, TrendingDown, Target, BookOpen, Clock, TrendingUp } from "lucide-react";
 import { TestScore } from "@/types/TestScore";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
