@@ -10,11 +10,13 @@ interface TestScore {
   year: number;
 }
 
+
 export const GamificationPanel = () => {
   const [xp, setXp] = useState(0);
   const [streak, setStreak] = useState(0);
   const [level, setLevel] = useState(1);
   const [problemStats, setProblemStats] = useState({ correct: 0, total: 0 });
+  const [showTimeline, setShowTimeline] = useState(false);
 
   const loadData = () => {
     const savedXp = parseInt(localStorage.getItem("xp") || "0");
