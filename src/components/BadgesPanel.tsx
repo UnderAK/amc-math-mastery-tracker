@@ -310,7 +310,7 @@ export const BadgesPanel = () => {
   return (
     <section className="glass p-6 rounded-2xl shadow-xl hover-lift animate-slide-in-left">
       <h2 className="text-xl font-semibold text-primary mb-4 flex items-center gap-2">
-        <Award className="w-5 h-5 animate-float" />
+        <Award className="w-5 h-5" />
         Badges Earned
       </h2>
       
@@ -323,8 +323,8 @@ export const BadgesPanel = () => {
               {earnedBadges.map((badge, index) => (
                 <div
                   key={badge.title}
-                  className="relative group p-3 bg-accent/10 border border-accent/20 rounded-lg hover-scale hover-bounce text-center animate-bounce-in cursor-pointer"
-                  style={{ animationDelay: `${index * 0.1}s` }}
+                  className="relative group p-3 bg-accent/10 border border-accent/20 rounded-lg text-center cursor-pointer"
+                  // ...existing code...
                 >
                   <div className="text-2xl mb-1 transform group-hover:scale-110 transition-transform duration-200">{badge.emoji}</div>
                   <div className="text-xs font-medium text-accent">{badge.title}</div>

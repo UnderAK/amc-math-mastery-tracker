@@ -166,7 +166,7 @@ export const QuestionAccuracyTable = () => {
                   <tr 
                     key={index} 
                     className="hover:bg-secondary/20 transition-colors fade-in-up"
-                    style={{ animationDelay: `${index * 0.02}s` }}
+                    // ...existing code...
                   >
                     <td className="px-3 py-2 font-medium">
                       Q{index + 1}

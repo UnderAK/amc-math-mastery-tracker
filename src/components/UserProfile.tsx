@@ -177,10 +177,16 @@ export const UserProfile = () => {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-2 hover-scale">
-          <span className="text-lg">{profile.avatar}</span>
-          <User className="w-4 h-4" />
-          {profile.username}
+        <Button
+          variant="outline"
+          size="lg"
+          className="gap-2 hover-scale px-5 py-3 rounded-full shadow-md border-2 border-primary/40 focus-visible:ring-2 focus-visible:ring-primary/60 transition-all duration-150"
+          style={{ minWidth: 120, minHeight: 48, fontWeight: 600, fontSize: 18 }}
+          aria-label="Open user profile"
+        >
+          <span className="text-2xl mr-2">{profile.avatar}</span>
+          <User className="w-5 h-5 mr-1" />
+          <span className="truncate max-w-[80px]">{profile.username}</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-md">
@@ -192,6 +198,32 @@ export const UserProfile = () => {
         </DialogHeader>
 
         <div className="space-y-6">
+          {/* Settings Page (in popup) */}
+          <div className="border rounded-2xl p-4 mb-4 bg-muted/10">
+            <h2 className="text-lg font-bold mb-2 flex items-center gap-2">⚙️ Settings</h2>
+            <div className="space-y-2">
+              <div className="flex items-center gap-3">
+                <span className="font-medium">Theme:</span>
+                <Button size="sm" variant="outline" onClick={() => {
+                  const isDark = document.documentElement.classList.toggle('dark');
+                  localStorage.setItem('theme', isDark ? 'dark' : 'light');
+                }}>
+                  Toggle Dark/Light
+                </Button>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="font-medium">Reset All Data:</span>
+                <Button size="sm" variant="destructive" onClick={() => {
+                  if (window.confirm('Are you sure you want to reset all your data? This cannot be undone.')) {
+                    localStorage.clear();
+                    window.dispatchEvent(new CustomEvent('dataUpdate'));
+                  }
+                }}>
+                  Reset
+                </Button>
+              </div>
+            </div>
+          </div>
           {/* Avatar Display/Selection */}
           <div className="text-center">
             <div className="text-6xl mb-4">{isEditing ? tempAvatar : profile.avatar}</div>

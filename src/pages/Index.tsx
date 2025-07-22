@@ -138,16 +138,16 @@ const Index = () => {
               </p>
             </div>
             
-            <div className="glass p-6 rounded-2xl shadow-xl text-center hover-lift animate-slide-in-right" style={{ animationDelay: '0.1s' }}>
-              <div className="text-4xl mb-3 animate-float" style={{ animationDelay: '0.5s' }}>📊</div>
+            <div className="glass p-6 rounded-2xl shadow-xl text-center" style={{ animationDelay: '0.1s' }}>
+              <div className="text-4xl mb-3" style={{ animationDelay: '0.5s' }}>📊</div>
               <h3 className="text-lg font-semibold text-primary mb-2">Track Progress</h3>
               <p className="text-sm text-muted-foreground">
                 Detailed analytics show your performance by topic and over time.
               </p>
             </div>
             
-            <div className="glass p-6 rounded-2xl shadow-xl text-center hover-lift animate-slide-in-left" style={{ animationDelay: '0.2s' }}>
-              <div className="text-4xl mb-3 animate-float" style={{ animationDelay: '1s' }}>⚡</div>
+            <div className="glass p-6 rounded-2xl shadow-xl text-center" style={{ animationDelay: '0.2s' }}>
+              <div className="text-4xl mb-3" style={{ animationDelay: '1s' }}>⚡</div>
               <h3 className="text-lg font-semibold text-primary mb-2">Level Up</h3>
               <p className="text-sm text-muted-foreground">
                 Gain XP for every test and unlock new levels with special rewards.

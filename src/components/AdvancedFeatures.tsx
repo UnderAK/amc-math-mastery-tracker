@@ -26,7 +26,7 @@ export const AdvancedFeatures = ({ userLevel, userXP }: AdvancedFeaturesProps) =
   return (
     <section className="glass p-6 rounded-2xl shadow-xl animate-slide-in-left">
       <div className="flex items-center gap-3 mb-6">
-        <Crown className="w-6 h-6 text-yellow-500 animate-pulse-glow" />
+        <Crown className="w-6 h-6 text-yellow-500" />
         <h2 className="text-xl font-semibold gradient-primary bg-clip-text text-transparent">
           VIP Features
         </h2>

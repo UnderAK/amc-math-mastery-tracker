@@ -133,7 +133,7 @@ export const TestHistoryTable = () => {
                   <tr 
                     key={index} 
                     className="hover:bg-secondary/30 transition-colors fade-in-up"
-                    style={{ animationDelay: `${index * 0.05}s` }}
+                    // ...existing code...
                   >
                     <td className="px-4 py-3">{test.date}</td>
                     <td className={`px-4 py-3 ${getScoreColor(test.score)}`}>

@@ -79,7 +79,7 @@ export const LeaderboardOverlay = ({ isOpen, onClose }: LeaderboardOverlayProps)
   };
 
   const getRankBg = (position: number, isCurrentUser: boolean) => {
-    if (isCurrentUser) return "bg-primary/20 border-primary/50 animate-pulse-glow";
+    if (isCurrentUser) return "bg-primary/20 border-primary/50";
     switch (position) {
       case 1: return "bg-gradient-to-r from-yellow-500/20 to-yellow-600/20 border-yellow-500/30";
       case 2: return "bg-gradient-to-r from-gray-400/20 to-gray-500/20 border-gray-400/30";
@@ -127,7 +127,7 @@ export const LeaderboardOverlay = ({ isOpen, onClose }: LeaderboardOverlayProps)
                     ${getRankBg(position, isCurrentUser)}
                     hover:scale-[1.02] fade-in-up
                   `}
-                  style={{ animationDelay: `${index * 0.1}s` }}
+                  // ...existing code...
                 >
                   {/* Rank */}
                   <div className="flex items-center justify-center w-12 h-12">
