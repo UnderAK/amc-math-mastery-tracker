@@ -140,14 +140,16 @@ All colors MUST be HSL.
 
   /* Hover animations */
   .hover-scale {
-    transition: var(--transition-smooth);
+    transition: none !important;
+    box-shadow: none !important;
+    background: none !important;
+    transform: none !important;
   }
 
   .hover-scale:hover {
-    /* Remove all transform and background for minimal effect */
-    box-shadow: 0 1px 4px 0 rgba(0,0,0,0.04);
-    background: none;
-    transform: none;
+    box-shadow: none !important;
+    background: none !important;
+    transform: none !important;
   }
 
   .hover-bounce {
@@ -394,15 +396,14 @@ All colors MUST be HSL.
 
   /* Enhanced hover effects */
   .hover-glow:hover {
-    box-shadow: 0 0 20px hsl(var(--primary) / 0.4);
-    transition: box-shadow 0.3s ease;
+    box-shadow: none !important;
+    transition: none !important;
   }
 
   .hover-lift:hover {
-    /* Remove all transform for minimal effect */
-    box-shadow: 0 2px 8px 0 rgba(0,0,0,0.04);
-    transform: none;
-    transition: box-shadow 0.18s cubic-bezier(0.4,0,0.2,1);
+    box-shadow: none !important;
+    transform: none !important;
+    transition: none !important;
   }
 
   .hover-bounce:hover {
