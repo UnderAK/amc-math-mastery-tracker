@@ -70,13 +70,13 @@ export const QuestionAccuracyTable = ({ filterType = "all" }: QuestionAccuracyTa
   const hasData = questionStats.some(stat => stat.total > 0);
   const worstQuestions = questionStats
     .map((stat, index) => ({ ...stat, question: index + 1 }))
-    .filter(stat => stat.total >= 3 && stat.accuracy < 100) // Only questions attempted at least 3 times and not perfect
+    .filter(stat => stat.total > 0 && stat.accuracy < 100) // Show after first attempt, not just 3+
     .sort((a, b) => a.accuracy - b.accuracy)
     .slice(0, 3);
 
   const bestQuestions = questionStats
     .map((stat, index) => ({ ...stat, question: index + 1 }))
-    .filter(stat => stat.total >= 3)
+    .filter(stat => stat.total > 0)
     .sort((a, b) => b.accuracy - a.accuracy)
     .slice(0, 3);
 
