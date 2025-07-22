@@ -7,6 +7,16 @@
     <meta name="description" content="Track your AMC8/10/12 progress, earn badges, and level up your math skills!" />
     <meta name="author" content="Lovable" />
 
+    <!-- Place this inside <head> -->
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/pwabuilder-sw.js', { scope: '/' })
+      .then(() => console.log('Service Worker registered'))
+      .catch(console.error);
+  }
+</script>
+
+
     <meta property="og:title" content="79a8c1f9-e5af-4169-b380-2301ad8940d8" />
     <meta property="og:description" content="Lovable Generated Project" />
     <meta property="og:type" content="website" />
@@ -30,11 +40,7 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
-    <script>
-  if (typeof navigator.serviceWorker !== 'undefined') {
-    navigator.serviceWorker.register('pwabuilder-sw.js')
-  }
-</script>
+  
 
   </body>
 </html>
