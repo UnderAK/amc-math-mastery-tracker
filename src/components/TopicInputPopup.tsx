@@ -138,7 +138,7 @@ export const TopicInputPopup: React.FC<TopicInputPopupProps> = ({
   }
 
   // Determine the topic currently selected for the current question
-  const currentSelectedTopic = topics[currentQuestionNumber] || "Other";
+  const [topics, setTopics] = useState<{ [questionNum: number]: string }>({});
 
   return (
     <AlertDialog open={isOpen} onOpenChange={onClose}>
