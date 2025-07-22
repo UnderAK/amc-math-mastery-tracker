@@ -1,9 +1,12 @@
 import { useState, useEffect } from "react";
-import { User, Edit3, Save, X } from "lucide-react";
+import { User, Edit3, Save, X, Coins } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
+import { CoinSystem, AVATAR_SHOP, USERNAME_CHANGE_COST } from "@/utils/coinSystem";
+import { CoinBalance } from "./CoinBalance";
+import { AvatarShop } from "./AvatarShop";
 
 const AVATAR_OPTIONS = [
   "🧑‍🎓", "👨‍🎓", "👩‍🎓", "🤓", "🧠", "🦸‍♂️", "🦸‍♀️", "🥸", "😎", "🤗",
