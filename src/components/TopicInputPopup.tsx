@@ -77,17 +77,18 @@ export const TopicInputPopup: React.FC<TopicInputPopupProps> = ({
   };
 
   const handleSkipAll = () => {
-  const updatedTopics: { [questionNum: number]: string } = {};
-  // Force-set all 25 questions to 'Other'
-  questionsToTopic.forEach(qNum => {
-    updatedTopics[qNum] = "Other";
-  });
-  setTopics(updatedTopics);
-  setTimeout(() => {
-    onSaveTopics(updatedTopics);
-    onClose();
-  }, 0);
-};
+    const updatedTopics = { ...topics };
+    // Set all remaining questions to 'Skipped/Other'
+    for (let i = currentQuestionIndex; i < totalQuestions; i++) {
+      updatedTopics[questionsToTopic[i]] = "Skipped/Other";
+    }
+    setTopics(updatedTopics);
+    // Use a timeout to allow state to update before saving and closing
+    setTimeout(() => {
+        onSaveTopics(updatedTopics);
+        onClose();
+    }, 0);
+  };
 
   const handleSaveAllAndClose = () => {
     // Ensure the current question has a topic before saving all

@@ -34,7 +34,11 @@ export const TopicBreakdown = () => {
 
   // Function to determine topic based on question number (can be refined) - Used as a fallback or for older data approximation
   const getDefaultTopicForQuestion = (questionNum: number): string => {
-    return "Other";
+    if (questionNum <= 5) return "Basic Arithmetic";
+    if (questionNum <= 10) return "Algebra";
+    if (questionNum <= 15) return "Geometry";
+    if (questionNum <= 20) return "Number Theory";
+    return "Advanced Topics";
   };
 
   useEffect(() => {
