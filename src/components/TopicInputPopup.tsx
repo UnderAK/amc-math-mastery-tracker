@@ -201,37 +201,22 @@ export const TopicInputPopup: React.FC<TopicInputPopupProps> = ({
 
   return (
     <AlertDialog open={isOpen} onOpenChange={onClose}>
-      <AlertDialogContent className="max-w-md">
-        <AlertDialogHeader>
-          <AlertDialogTitle>📝 Complete Test Grading - Assign Topics</AlertDialogTitle>
-          <AlertDialogDescription>
-            To finish grading your test, please assign a topic to each question. This helps track your progress by subject area.
-            <br /><br />
-            Currently reviewing: <strong>Question {currentQuestionNumber}</strong>
+      <AlertDialogContent className="max-w-lg mx-auto">
+        <AlertDialogHeader className="text-center">
+          <AlertDialogTitle>📝 Assign Topic - Question {currentQuestionNumber}</AlertDialogTitle>
+          <AlertDialogDescription className="text-center">
+            Please assign a topic to this question to complete grading.
+            <br />
+            <span className="text-sm text-muted-foreground">
+              ({currentQuestionIndex + 1} of {totalQuestions} questions)
+            </span>
           </AlertDialogDescription>
         </AlertDialogHeader>
 
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <p className="text-sm font-medium">Question {currentQuestionIndex + 1} of {totalQuestions}</p>
-            <div className="text-xs text-muted-foreground">
-              Progress: {Math.round(((currentQuestionIndex) / totalQuestions) * 100)}%
-            </div>
-          </div>
-          
-          {/* Progress Bar */}
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div 
-              className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
-              style={{ width: `${((currentQuestionIndex) / totalQuestions) * 100}%` }}
-            ></div>
-          </div>
+        <div className="space-y-4 py-4">
           <div className="space-y-2">
-            <div className="text-xs text-muted-foreground">
-              Current selection: {currentSelectedTopic || "None"}
-            </div>
             <Select value={currentSelectedTopic} onValueChange={handleTopicChange}>
-              <SelectTrigger>
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select Topic" />
               </SelectTrigger>
               <SelectContent>
@@ -240,17 +225,30 @@ export const TopicInputPopup: React.FC<TopicInputPopupProps> = ({
                 ))}
               </SelectContent>
             </Select>
+            {currentSelectedTopic && (
+              <div className="text-xs text-center text-muted-foreground">
+                Selected: {currentSelectedTopic}
+              </div>
+            )}
           </div>
         </div>
 
-        <AlertDialogFooter>
-          <Button variant="outline" onClick={handleSkip}>Skip (Use "Other")</Button>
-          <Button variant="outline" onClick={handleSkipAll}>Skip All Remaining & Complete Grading</Button>
+        <AlertDialogFooter className="flex justify-center gap-2">
+          <Button variant="outline" onClick={handleSkip} size="sm">
+            Skip (Other)
+          </Button>
           {currentQuestionIndex < totalQuestions - 1 ? (
-            <Button onClick={handleSaveAndNext}>Save & Next Question</Button>
+            <Button onClick={handleSaveAndNext} size="sm">
+              Next Question →
+            </Button>
           ) : (
-            <Button onClick={handleSaveAllAndClose} className="bg-green-600 hover:bg-green-700">Complete Test Grading ✅</Button>
+            <Button onClick={handleSaveAllAndClose} className="bg-green-600 hover:bg-green-700" size="sm">
+              Complete ✅
+            </Button>
           )}
+          <Button variant="outline" onClick={handleSkipAll} size="sm">
+            Skip All & Finish
+          </Button>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
