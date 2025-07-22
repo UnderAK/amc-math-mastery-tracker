@@ -231,7 +231,7 @@ const Index = () => {
           {/* Feature Cards */}
           <div className="grid md:grid-cols-3 gap-6">
             <div className="glass p-6 rounded-2xl shadow-xl text-center hover-lift animate-slide-in-left">
-              <div className="text-4xl mb-3 animate-float">🏆</div>
+              <div className="text-4xl mb-3">🏆</div>
               <h3 className="text-lg font-semibold text-primary mb-2">Earn Badges</h3>
               <p className="text-sm text-muted-foreground">
                 Unlock achievements as you improve your math skills and maintain streaks.

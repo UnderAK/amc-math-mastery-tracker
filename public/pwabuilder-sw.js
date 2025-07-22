@@ -8,6 +8,8 @@ self.addEventListener("install", event => {
     caches.open(CACHE).then(cache => {
       return cache.addAll([
         "/",
+        "/analytics",
+        "/test-entry",
         "/offline.html",
         "/icons/192x192.png",
         "/icons/512x512.png",
