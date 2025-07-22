@@ -1,8 +1,20 @@
 {
+  "start_url": "/",
   "name": "AMC8/10/12 Tracker",
   "theme_color": "#000000",
   "background_color": "#000000",
   "short_name": "AMC Tracker",
   "id": "AMC Tracker",
-  "description": "This is the AMC Tracker website."
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ]
 }
