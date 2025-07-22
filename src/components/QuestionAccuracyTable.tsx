@@ -36,13 +36,13 @@ export const QuestionAccuracyTable = ({ filterType = "all" }: QuestionAccuracyTa
         const key = score.key || "";
         
         for (let i = 0; i < 25; i++) {
-          if (input[i] && key[i]) {
-            stats[i].total++;
-            if (input[i] === key[i]) {
-              stats[i].correct++;
-            }
-          }
-        }
+  if (typeof key[i] !== "undefined") {
+    stats[i].total++;
+    if (input[i] && input[i] === key[i]) {
+      stats[i].correct++;
+    }
+  }
+}
       });
 
       // Calculate accuracy percentages
