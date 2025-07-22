@@ -121,8 +121,21 @@ export const TestHistoryTable = ({ filterType = "all" }: TestHistoryTableProps) 
                   return "text-red-600";
                 };
 
-                const incorrectCount = test.incorrectQuestions?.length || (25 - test.score);
-                const incorrectQuestions = test.incorrectQuestions || [];
+                // Calculate incorrect questions from either legacy format or questionCorrectness
+                let incorrectQuestions: number[] = [];
+                
+                if (test.incorrectQuestions && test.incorrectQuestions.length > 0) {
+                  // Use legacy format if available
+                  incorrectQuestions = test.incorrectQuestions;
+                } else if (test.questionCorrectness) {
+                  // Extract incorrect questions from questionCorrectness object
+                  incorrectQuestions = Object.entries(test.questionCorrectness)
+                    .filter(([_, isCorrect]) => !isCorrect)
+                    .map(([questionNum, _]) => parseInt(questionNum))
+                    .sort((a, b) => a - b);
+                }
+                
+                const incorrectCount = incorrectQuestions.length || (25 - test.score);
 
                 return (
                   <tr 
