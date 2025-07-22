@@ -19,10 +19,7 @@ interface TestScore {
   questionTopics: { [questionNum: number]: string }; // Store topic for ALL 25 questions
   questionCorrectness: { [questionNum: number]: boolean }; // Store correctness for ALL 25 questions
 }
-const [savedTests, setSavedTests] = useState<TestScore[]>(() => {
-  const saved = localStorage.getItem("testScores");
-  return saved ? JSON.parse(saved) : [];
-});
+
 
 // Function to determine default topic for question initialization - all questions default to "Other"
 const getTopicForQuestion = (questionNum: number): string => {
@@ -31,6 +28,10 @@ const getTopicForQuestion = (questionNum: number): string => {
 };
 
 export const TestEntryForm = () => {
+  const [savedTests, setSavedTests] = useState<TestScore[]>(() => {
+    const saved = localStorage.getItem("testScores");
+    return saved ? JSON.parse(saved) : [];
+  });
   const [testType, setTestType] = useState("amc8");
   const [testYear, setTestYear] = useState(new Date().getFullYear().toString());
   const [userAnswers, setUserAnswers] = useState("");
