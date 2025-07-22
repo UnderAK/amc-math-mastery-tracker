@@ -4,14 +4,11 @@ const CACHE = "pwabuilder-offline-cache-v1";
 const offlineFallbackPage = "/offline.html";
 
 const assetsToCache = [
+  const assetsToCache = [
   "/",
   "/offline.html",
-  "/src/main.tsx",
   "/icons/192x192.png",
-  "/icons/512x512.png",
-  "/icons/favicon-32x32.png",
-  "/icons/favicon-16x16.png",
-  "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap",
+  "/icons/512x512.png"
 ];
 
 // Import Workbox from CDN
