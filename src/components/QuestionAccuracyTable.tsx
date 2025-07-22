@@ -23,7 +23,10 @@ export const QuestionAccuracyTable = ({ filterType = "all" }: QuestionAccuracyTa
       const scores: TestScore[] = JSON.parse(localStorage.getItem("scores") || "[]");
       const filteredScores = filterType === "all" 
         ? scores 
-        : scores.filter(s => s.testType === filterType);
+        : scores.filter(s => 
+            s.testType &&
+            s.testType.replace(/\s+/g, '').toLowerCase() === filterType.replace(/\s+/g, '').toLowerCase()
+          );
 
       const stats: QuestionStat[] = Array(25).fill(null).map(() => ({ 
         correct: 0, 
