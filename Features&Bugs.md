@@ -6,6 +6,9 @@ Missed Questions aren't appearing when hovering over past tests
 **Upcoming FEATURES**
 Coin system
 Daily Spin Wheel
+Introduction Pop-up for First Login
+Import/Export Feature For Profile
+Import/Export for Leaderboard Entries
 
 **CONTRIBUTERS**
 _UnderAK_
