@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { TrendingUp, Calendar, Target, Award } from "lucide-react";
+import { TrendingUp, Calendar, Target, Award, Filter } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface TestScore {
   date: string;
@@ -8,19 +9,29 @@ interface TestScore {
   year: number;
 }
 
-export const StatsPanel = () => {
+interface StatsPanelProps {
+  filterType?: string;
+}
+
+export const StatsPanel = ({ filterType = "all" }: StatsPanelProps) => {
   const [stats, setStats] = useState({
     total: 0,
     lastDate: "—",
     average: "—",
     best: "—"
   });
+  const [internalFilter, setInternalFilter] = useState("all");
 
   useEffect(() => {
     const updateStats = () => {
       const scores: TestScore[] = JSON.parse(localStorage.getItem("scores") || "[]");
       
-      if (scores.length === 0) {
+      // Apply filter based on internalFilter
+      const filteredScores = internalFilter === "all" 
+        ? scores 
+        : scores.filter(s => s.testType === internalFilter);
+      
+      if (filteredScores.length === 0) {
         setStats({
           total: 0,
           lastDate: "—",
@@ -30,10 +41,10 @@ export const StatsPanel = () => {
         return;
       }
 
-      const total = scores.length;
-      const best = Math.max(...scores.map(s => s.score));
-      const average = scores.reduce((acc, s) => acc + s.score, 0) / scores.length;
-      const lastDate = scores[scores.length - 1].date;
+      const total = filteredScores.length;
+      const best = Math.max(...filteredScores.map(s => s.score));
+      const average = filteredScores.reduce((acc, s) => acc + s.score, 0) / filteredScores.length;
+      const lastDate = filteredScores[filteredScores.length - 1].date;
 
       setStats({
         total,
@@ -52,7 +63,7 @@ export const StatsPanel = () => {
     return () => {
       window.removeEventListener('dataUpdate', handleDataUpdate);
     };
-  }, []);
+  }, [internalFilter]);
 
   const statItems = [
     {
