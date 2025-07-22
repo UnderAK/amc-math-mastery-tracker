@@ -109,7 +109,7 @@ export const TestEntryForm = () => {
     const percent = Math.round((correct / 25) * 100);
     const date = new Date().toISOString().split("T")[0];
 
-    const scores: TestScore[] = JSON.parse(localStorage.getItem("scores") || "[]");
+    const updatedTests = [...savedTests, newScore];
     console.log('DEBUG TestEntryForm: allQuestionTopics at save time:', allQuestionTopics);
     console.log('DEBUG TestEntryForm: topics parameter:', topics);
     
@@ -130,8 +130,8 @@ export const TestEntryForm = () => {
       questionCorrectness: newScore.questionCorrectness
     });
     
-    scores.push(newScore);
-    localStorage.setItem("scores", JSON.stringify(scores));
+    setSavedTests(updatedTests);
+    localStorage.setItem("testScores", JSON.stringify(updatedTests));
     
     console.log('DEBUG TestEntryForm: Saved to localStorage. Total scores:', scores.length);
 
