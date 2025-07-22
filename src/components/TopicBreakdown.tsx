@@ -34,11 +34,11 @@ export const TopicBreakdown = () => {
 
   // Function to determine topic based on question number (can be refined) - Used as a fallback or for older data approximation
   const getDefaultTopicForQuestion = (questionNum: number): string => {
-    if (questionNum <= 5) return "Basic Arithmetic";
-    if (questionNum <= 10) return "Algebra";
-    if (questionNum <= 15) return "Geometry";
-    if (questionNum <= 20) return "Number Theory";
-    return "Advanced Topics";
+    if (questionNum <= 5) return "Algebra";
+    if (questionNum <= 10) return "Geometry";
+    if (questionNum <= 15) return "Number Theory";
+    if (questionNum <= 20) return "Combinatorics";
+    return "Other";
   };
 
   useEffect(() => {
@@ -50,8 +50,8 @@ export const TopicBreakdown = () => {
 
       const topicData: { [topic: string]: { correct: number; total: number; mistakes: number } } = {};
       
-       // Define all possible topics to ensure they are initialized
-      const possibleTopics = ["Basic Arithmetic", "Algebra", "Geometry", "Number Theory", "Combinatorics", "Advanced Topics", "Other", "Skipped/Other", "Unknown"]; // Added 'Unknown'
+       // Define all possible topics to ensure they are initialized (exactly 5 topics)
+      const possibleTopics = ["Algebra", "Geometry", "Number Theory", "Combinatorics", "Other"];
       possibleTopics.forEach(topic => {
         topicData[topic] = { correct: 0, total: 0, mistakes: 0 };
       });
@@ -60,7 +60,7 @@ export const TopicBreakdown = () => {
         // Prioritize new data structure
         if (score.questionTopics && score.questionCorrectness) {
             for (let i = 1; i <= 25; i++) {
-                const topic = score.questionTopics[i] || "Unknown"; // Assign 'Unknown' if topic is missing
+                const topic = score.questionTopics[i] || "Other"; // Assign 'Other' if topic is missing
                 const isCorrect = score.questionCorrectness[i];
 
                 // Ensure topic exists in initialized data or add it
@@ -96,16 +96,16 @@ export const TopicBreakdown = () => {
             });
              console.warn(`Processing score from ${score.date} with old data structure for topic breakdown (approximate data).`);
         } else {
-             console.warn(`Skipping score from ${score.date} for topic breakdown due to missing data.`);
-              // Handle scores with completely missing topic data by assigning them to 'Unknown'
-              for (let i = 1; i <= 25; i++) {
-                  const topic = "Unknown";
-                   if (!topicData[topic]) {
-                     topicData[topic] = { correct: 0, total: 0, mistakes: 0 };
-                   }
-                   topicData[topic].total++;
-                   // We don't know correctness, so we can't increment correct or mistakes based on question number
-              }
+              console.warn(`Skipping score from ${score.date} for topic breakdown due to missing data.`);
+               // Handle scores with completely missing topic data by assigning them to 'Other'
+               for (let i = 1; i <= 25; i++) {
+                   const topic = "Other";
+                    if (!topicData[topic]) {
+                      topicData[topic] = { correct: 0, total: 0, mistakes: 0 };
+                    }
+                    topicData[topic].total++;
+                    // We don't know correctness, so we can't increment correct or mistakes based on question number
+               }
         }
       });
 

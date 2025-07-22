@@ -20,12 +20,9 @@ interface TestScore {
   questionCorrectness: { [questionNum: number]: boolean }; // Store correctness for ALL 25 questions
 }
 
-// Function to determine topic based on question number (can be refined or removed later)
+// Function to determine default topic for question initialization - all questions default to "Other"
 const getTopicForQuestion = (questionNum: number): string => {
-  if (questionNum <= 5) return "Algebra";
-  if (questionNum <= 10) return "Geometry";
-  if (questionNum <= 15) return "Number Theory";
-  if (questionNum <= 20) return "Combinatorics";
+  // All questions default to "Other" as per requirements
   return "Other";
 };
 
@@ -310,7 +307,7 @@ export const TestEntryForm = () => {
         isOpen={isTopicInputForAllOpen}
         onClose={() => setIsTopicInputForAllOpen(false)}
         // Pass all questions (1-25) and their initial topics
-        questionsToTopic={Object.keys(allQuestionTopics).map(qNum => parseInt(qNum))}
+        questionsToTopic={Array.from({length: 25}, (_, i) => i + 1)} // Always pass questions 1-25
         initialTopics={allQuestionTopics}
         onSaveTopics={handleSaveAllTopics}
         topicOptions={topicOptions}
