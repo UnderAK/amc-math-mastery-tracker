@@ -40,6 +40,7 @@ export const TestEntryForm = () => {
   const [result, setResult] = useState("");
   // We will now store topics for ALL questions
   const [allQuestionTopics, setAllQuestionTopics] = useState<{ [key: number]: string }>({});
+  const [isGrading, setIsGrading] = useState(false);
   const [isTopicInputForAllOpen, setIsTopicInputForAllOpen] = useState(false);
   
   const { toast } = useToast();
@@ -75,6 +76,15 @@ export const TestEntryForm = () => {
       });
       return;
     }
+
+    setIsGrading(true);
+    setResult("📝 Please assign topics to each question to complete grading...");
+    
+    // Show initial feedback
+    toast({
+      title: "Starting Test Grading 📝",
+      description: "Please assign topics to each question in the popup that will appear",
+    });
 
     // Initialize allQuestionTopics with default topics
     const initialTopics: { [key: number]: string } = {};
@@ -134,7 +144,7 @@ export const TestEntryForm = () => {
     setSavedTests(updatedTests);
     localStorage.setItem("testScores", JSON.stringify(updatedTests));
     
-    console.log('DEBUG TestEntryForm: Saved to localStorage. Total scores:', scores.length);
+    console.log('DEBUG TestEntryForm: Saved to localStorage. Total scores:', updatedTests.length);
     
     const currentXp = parseInt(localStorage.getItem("xp") || "0");
     let xpEarned = 10 + correct;
@@ -171,10 +181,24 @@ export const TestEntryForm = () => {
     
     setResult(resultText);
     
+    // Award coins for completing the test
+    const coinsEarned = Math.floor(Math.random() * 11) + 5; // 5-15 coins
+    const currentCoins = parseInt(localStorage.getItem("coins") || "0");
+    const newCoins = currentCoins + coinsEarned;
+    localStorage.setItem("coins", newCoins.toString());
+    
     toast({
-      title: "Test Graded! 🎉",
-      description: `Score: ${correct}/25 (${percent}%) | +${xpEarned} XP`,
+      title: "Test Graded Successfully! 🎉",
+      description: `Score: ${correct}/25 (${percent}%) | +${xpEarned} XP | +${coinsEarned} coins`,
     });
+    
+    // Show additional success feedback
+    setTimeout(() => {
+      toast({
+        title: "Test Saved! ✅",
+        description: "Your test results have been saved to your progress history",
+      });
+    }, 1500);
 
     const newLevel = Math.floor(newXp / 250) + 1;
     const currentLevel = Math.floor(currentXp / 250) + 1;
@@ -184,11 +208,15 @@ export const TestEntryForm = () => {
       }, 1000);
     }
 
+    setIsGrading(false);
     setUserAnswers("");
     setAnswerKey("");
     setLabel("");
     setAllQuestionTopics({}); // Clear topics for the next test
     window.dispatchEvent(new CustomEvent('dataUpdate'));
+    
+    // Dispatch coin update event
+    window.dispatchEvent(new CustomEvent('coinUpdate'));
   };
 
   // This handler is no longer needed in this form, as we get topics for all questions
@@ -302,10 +330,19 @@ export const TestEntryForm = () => {
           <Button
             onClick={gradeTest}
             className="gradient-primary hover-bounce hover-glow animate-pulse-glow"
-            disabled={userAnswers.length !== 25 || answerKey.length !== 25}
+            disabled={userAnswers.length !== 25 || answerKey.length !== 25 || isGrading}
           >
-            <CheckCircle className="w-4 h-4 mr-2" />
-            Grade Test
+            {isGrading ? (
+              <>
+                <div className="w-4 h-4 mr-2 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                Grading...
+              </>
+            ) : (
+              <>
+                <CheckCircle className="w-4 h-4 mr-2" />
+                Grade Test
+              </>
+            )}
           </Button>
         </div>
 

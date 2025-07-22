@@ -182,14 +182,29 @@ export const TopicInputPopup: React.FC<TopicInputPopupProps> = ({
     <AlertDialog open={isOpen} onOpenChange={onClose}>
       <AlertDialogContent className="max-w-md">
         <AlertDialogHeader>
-          <AlertDialogTitle>Enter Topic for Each Question</AlertDialogTitle>
+          <AlertDialogTitle>📝 Complete Test Grading - Assign Topics</AlertDialogTitle>
           <AlertDialogDescription>
-            Select the topic for question {currentQuestionNumber}.
+            To finish grading your test, please assign a topic to each question. This helps track your progress by subject area.
+            <br /><br />
+            Currently reviewing: <strong>Question {currentQuestionNumber}</strong>
           </AlertDialogDescription>
         </AlertDialogHeader>
 
         <div className="space-y-4">
-          <p className="text-sm font-medium">Question {currentQuestionIndex + 1} of {totalQuestions}</p>
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-medium">Question {currentQuestionIndex + 1} of {totalQuestions}</p>
+            <div className="text-xs text-muted-foreground">
+              Progress: {Math.round(((currentQuestionIndex) / totalQuestions) * 100)}%
+            </div>
+          </div>
+          
+          {/* Progress Bar */}
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <div 
+              className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
+              style={{ width: `${((currentQuestionIndex) / totalQuestions) * 100}%` }}
+            ></div>
+          </div>
           <Select value={currentSelectedTopic} onValueChange={handleTopicChange}>
             <SelectTrigger>
               <SelectValue placeholder="Select Topic" />
@@ -203,12 +218,12 @@ export const TopicInputPopup: React.FC<TopicInputPopupProps> = ({
         </div>
 
         <AlertDialogFooter>
-          <Button variant="outline" onClick={handleSkip}>Skip</Button>
-          <Button variant="outline" onClick={handleSkipAll}>Skip All</Button>
+          <Button variant="outline" onClick={handleSkip}>Skip (Use "Other")</Button>
+          <Button variant="outline" onClick={handleSkipAll}>Skip All Remaining & Complete Grading</Button>
           {currentQuestionIndex < totalQuestions - 1 ? (
-            <Button onClick={handleSaveAndNext}>Save & Next</Button>
+            <Button onClick={handleSaveAndNext}>Save & Next Question</Button>
           ) : (
-            <Button onClick={handleSaveAllAndClose}>Save All Topics & Finish</Button>
+            <Button onClick={handleSaveAllAndClose} className="bg-green-600 hover:bg-green-700">Complete Test Grading ✅</Button>
           )}
         </AlertDialogFooter>
       </AlertDialogContent>
