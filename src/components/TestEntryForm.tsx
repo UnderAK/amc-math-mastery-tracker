@@ -1,13 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { BookOpen, Sparkles, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { TopicInputPopup } from "./TopicInputPopup";
-import { CoinSystem } from "@/utils/coinSystem";
-import { CoinRewardNotification } from "./CoinRewardNotification";
+import { TopicInputPopup } from "./TopicInputPopup"; // We will modify or replace this
 
 interface TestScore {
   date: string;
@@ -38,8 +36,6 @@ export const TestEntryForm = () => {
   // We will now store topics for ALL questions
   const [allQuestionTopics, setAllQuestionTopics] = useState<{ [key: number]: string }>({});
   const [isTopicInputForAllOpen, setIsTopicInputForAllOpen] = useState(false);
-  // Coin reward notification state
-  const [coinReward, setCoinReward] = useState<{ amount: number; reason: string; show: boolean }>({ amount: 0, reason: "", show: false });
   
   const { toast } = useToast();
 
@@ -163,23 +159,6 @@ export const TestEntryForm = () => {
     xpEarned += streakBonus + performanceBonus;
     const newXp = currentXp + xpEarned;
     localStorage.setItem("xp", newXp.toString());
-
-    // Award coins for completing the test
-    const baseCoins = CoinSystem.getRandomTestReward();
-    const bonusCoins = CoinSystem.getBonusTestReward(correct, 25);
-    const totalCoins = baseCoins + bonusCoins;
-    
-    let coinReason = "Test completed";
-    if (bonusCoins > 0) {
-      if (percent >= 90) coinReason = "Excellent performance!";
-      else if (percent >= 80) coinReason = "Great job!";
-      else if (percent >= 70) coinReason = "Good work!";
-    }
-    
-    CoinSystem.awardCoins(totalCoins, coinReason);
-    
-    // Show coin reward notification
-    setCoinReward({ amount: totalCoins, reason: coinReason, show: true });
 
     let resultText = `✅ You scored ${correct} out of 25. ✔️ Correct: ${correct} | ❌ Incorrect: ${incorrect} | 📈 ${percent}%`;
     if (streakBonus > 0) resultText += ` | 🔥 Streak Bonus: +${streakBonus} XP`;
@@ -343,14 +322,6 @@ export const TestEntryForm = () => {
         initialTopics={allQuestionTopics}
         onSaveTopics={handleSaveAllTopics}
         topicOptions={topicOptions}
-      />
-
-      {/* Coin Reward Notification */}
-      <CoinRewardNotification
-        amount={coinReward.amount}
-        reason={coinReward.reason}
-        show={coinReward.show}
-        onComplete={() => setCoinReward({ amount: 0, reason: "", show: false })}
       />
 
     </section>
