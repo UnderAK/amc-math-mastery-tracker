@@ -57,6 +57,31 @@ const RecentAchievements = () => {
   );
 };
 
+// --- Random Welcome Message Component ---
+const welcomeMessages = [
+  "Welcome, mathlete! Ready to conquer some AMC problems today?",
+  "Track your AMC journey and unlock your math superpowers!",
+  "Did you know: Consistency beats cramming. A little practice every day goes a long way!",
+  "Welcome! Pro tip: Try the Konami code on this page. (👀)",
+  "Math is the only place people buy 60 watermelons and nobody wonders why. Let's get solving!",
+  "You found the secret message! (Or did you?)",
+  "Welcome back! Remember: Every wrong answer is a step closer to mastery.",
+  "Rumor has it, solving question 25 unlocks a hidden badge...",
+  "If you can read this, you're already ahead of the curve!",
+  "May the odds be ever in your favor. (Just kidding, it's all skill here!)"
+];
+const RandomWelcome = () => {
+  const [msg, setMsg] = useState("");
+  useEffect(() => {
+    setMsg(welcomeMessages[Math.floor(Math.random() * welcomeMessages.length)]);
+  }, []);
+  return (
+    <p className="text-base text-primary/80 font-medium mt-3 mb-2 animate-fade-in">
+      {msg}
+    </p>
+  );
+};
+
 // --- Simple Accordion Component ---
 const Accordion = ({ title, children }: { title: string, children: React.ReactNode }) => {
   const [open, setOpen] = useState(false);
@@ -137,6 +162,8 @@ const Index = () => {
             <h1 className="text-4xl font-bold gradient-primary bg-clip-text text-transparent tracking-tight animate-float">
               📚 AMC8/10/12 Tracker
             </h1>
+            <RandomWelcome />
+
             <p className="text-sm text-muted-foreground mt-2 animate-slide-in-right">
               Track your progress, earn badges, and level up your math skills!
             </p>
@@ -191,12 +218,13 @@ const Index = () => {
 
           {/* How It Works Section (Dropdown) */}
           <Accordion title="How It Works">
-            <ol className="text-left list-decimal list-inside text-muted-foreground space-y-1">
-              <li>Click <b>Enter Test</b> to fill in your answers for an AMC test.</li>
-              <li>Grade your test to instantly see your score and which questions you missed.</li>
-              <li>Assign topics to each question for deeper analytics.</li>
-              <li>Visit <b>Analytics</b> to see your progress by topic, question, and over time.</li>
-              <li>Earn badges and XP for milestones and streaks!</li>
+            <ol className="text-left list-decimal list-inside text-muted-foreground space-y-2">
+              <li><b>Enter a Test:</b> Click <b>Enter Test</b> to start. Choose your AMC year and type, then fill in your answers for all 25 questions. Don't worry if you skip any—just leave them blank. (Hint: You can assign topics to each question for deeper analytics!)</li>
+              <li><b>Grade Instantly:</b> Hit grade to see your score, which questions you got right or wrong, and your answer breakdown. You'll also see which topics you need to review most.</li>
+              <li><b>Track Your Progress:</b> Every test you enter is saved automatically. Head to <b>Analytics</b> to view your performance by topic, see your improvement over time, and analyze which questions trip you up most often.</li>
+              <li><b>Earn Rewards:</b> You'll earn XP for every test, and badges for achievements like streaks, high scores, and more. (Psst: Try to discover all the badges!)</li>
+              <li><b>Climb the Leaderboard:</b> See how you rank against other users and challenge yourself to reach the top. Friendly competition makes practice more fun!</li>
+              <li><b>Bonus:</b> Keep an eye out for special events and hidden features. Who knows what you might find? 🥚</li>
             </ol>
           </Accordion>
 
@@ -237,16 +265,16 @@ const Index = () => {
           <Accordion title="Frequently Asked Questions">
             <div className="text-left space-y-4">
               <Accordion title="How do I enter a test?">
-                <p className="text-muted-foreground">Click "Enter Test" above or on the sidebar, then fill in your answers and click grade.</p>
+                <p className="text-muted-foreground">To enter a test, simply click the <b>Enter Test</b> button at the top of the homepage or in the sidebar. You'll be prompted to select the AMC type (8, 10, or 12) and the year. Enter your answers for each question—leave any blank if you skipped them. When you're done, click <b>Grade</b> to instantly see your results and save your progress. You can also assign topics to each question for richer analytics. Don't worry, you can always edit your answers or topics later!</p>
               </Accordion>
               <Accordion title="Can I see my progress by topic?">
-                <p className="text-muted-foreground">Yes! The Analytics page breaks down your performance by topic and question.</p>
+                <p className="text-muted-foreground">Absolutely! The <b>Analytics</b> page is your dashboard for deep insights. Here, you can view your accuracy by topic (like Algebra, Geometry, etc.), track how your scores change over time, and even see which questions or topics are your strongest—and your trickiest. Use these insights to focus your study sessions and maximize your improvement. Try clicking on different topics or questions for more details!</p>
               </Accordion>
               <Accordion title="What are badges and XP?">
-                <p className="text-muted-foreground">Badges are earned for milestones and streaks. XP is awarded for every test and helps you level up!</p>
+                <p className="text-muted-foreground">Badges are special achievements you earn for hitting milestones, such as completing your first test, maintaining a streak, or achieving a high score. Some badges are easy to get, while others are hidden or require a bit of detective work (hint: try something unusual!). XP (Experience Points) are awarded for every test you complete. As you accumulate XP, you'll level up—each level unlocks new rewards and sometimes even surprises. Check your profile to see your badge and XP progress!</p>
               </Accordion>
               <Accordion title="How do I reset my data?">
-                <p className="text-muted-foreground">Visit the Analytics page and click "Reset All Data" at the top right.</p>
+                <p className="text-muted-foreground">If you ever want a fresh start, go to the <b>Analytics</b> page and click the <b>Reset All Data</b> button at the top right. This will erase all your test records, XP, streaks, badges, and progress—so be sure you really want to! After resetting, the app will behave as if you're a new user. (Pro tip: If you reset three times in a row, you might discover something special...)</p>
               </Accordion>
             </div>
           </Accordion>
