@@ -10,7 +10,9 @@ self.addEventListener("install", event => {
         "/",
         "/offline.html",
         "/icons/192x192.png",
-        "/icons/512x512.png"
+        "/icons/512x512.png",
+        "/assets/index-BjcbuA7T.css",
+        "/assets/index-DsnSqe82.js"
       ]);
     })
   );
