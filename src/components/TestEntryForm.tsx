@@ -86,97 +86,96 @@ export const TestEntryForm = () => {
   };
 
   const handleSaveAllTopics = (topics: { [key: number]: string }) => {
-    setAllQuestionTopics(topics);
-    setIsTopicInputForAllOpen(false);
+  setAllQuestionTopics(topics);
+  setIsTopicInputForAllOpen(false);
 
-    // Now that we have topics for all questions, finalize grading and save the score
-    let correct = 0;
-    const questionCorrectness: { [questionNum: number]: boolean } = {};
+  let correct = 0;
+  const questionCorrectness: { [questionNum: number]: boolean } = {};
 
-    for (let i = 0; i < 25; i++) {
-      const questionNum = i + 1;
-      // Treat space as wrong answer, but any other character normally
-      const userAnswer = userAnswers[i] === ' ' ? 'WRONG' : userAnswers[i];
-      const isCorrect = userAnswer === answerKey[i];
-      questionCorrectness[questionNum] = isCorrect;
-      if (isCorrect) {
-        correct++;
-      }
-    }
+  for (let i = 0; i < 25; i++) {
+    const questionNum = i + 1;
+    const userAnswer = userAnswers[i] === ' ' ? 'WRONG' : userAnswers[i];
+    const isCorrect = userAnswer === answerKey[i];
+    questionCorrectness[questionNum] = isCorrect;
+    if (isCorrect) correct++;
+  }
 
-    const incorrect = 25 - correct;
-    const percent = Math.round((correct / 25) * 100);
-    const date = new Date().toISOString().split("T")[0];
+  const incorrect = 25 - correct;
+  const percent = Math.round((correct / 25) * 100);
+  const date = new Date().toISOString().split("T")[0];
 
-    const scores: TestScore[] = JSON.parse(localStorage.getItem("scores") || "[]");
-    const newScore: TestScore = {
-      date,
-      score: correct,
-      testType,
-      year: parseInt(testYear),
-      input: userAnswers,
-      key: answerKey,
-      label: label.trim() || undefined,
-      questionTopics: topics, // Store topics for all questions
-      questionCorrectness: questionCorrectness, // Store correctness for all questions
-    };
-    scores.push(newScore);
-    localStorage.setItem("scores", JSON.stringify(scores));
-
-    const currentXp = parseInt(localStorage.getItem("xp") || "0");
-    let xpEarned = 10 + correct;
-
-    const today = new Date().toISOString().split("T")[0];
-    const lastDate = localStorage.getItem("lastPracticeDate");
-    let streak = parseInt(localStorage.getItem("streak") || "0");
-    let streakBonus = 0;
-
-    if (lastDate !== today) {
-      const yesterday = new Date();
-      yesterday.setDate(yesterday.getDate() - 1);
-      const yStr = yesterday.toISOString().split("T")[0];
-      streak = lastDate === yStr ? streak + 1 : 1;
-      localStorage.setItem("lastPracticeDate", today);
-      localStorage.setItem("streak", streak.toString());
-      
-      if (streak >= 7) streakBonus = Math.floor(streak / 7) * 5;
-      if (streak >= 30) streakBonus += 20;
-    }
-
-    let performanceBonus = 0;
-    if (percent >= 90) performanceBonus = 15;
-    else if (percent >= 80) performanceBonus = 10;
-    else if (percent >= 70) performanceBonus = 5;
-
-    xpEarned += streakBonus + performanceBonus;
-    const newXp = currentXp + xpEarned;
-    localStorage.setItem("xp", newXp.toString());
-
-    let resultText = `✅ You scored ${correct} out of 25. ✔️ Correct: ${correct} | ❌ Incorrect: ${incorrect} | 📈 ${percent}%`;
-    if (streakBonus > 0) resultText += ` | 🔥 Streak Bonus: +${streakBonus} XP`;
-    if (performanceBonus > 0) resultText += ` | ⭐ Performance Bonus: +${performanceBonus} XP`;
-    
-    setResult(resultText);
-    
-    toast({
-      title: "Test Graded! 🎉",
-      description: `Score: ${correct}/25 (${percent}%) | +${xpEarned} XP`,
-    });
-
-    const newLevel = Math.floor(newXp / 250) + 1;
-    const currentLevel = Math.floor(currentXp / 250) + 1;
-    if (newLevel > currentLevel) {
-      setTimeout(() => {
-        window.dispatchEvent(new CustomEvent('levelUp', { detail: { newLevel } }));
-      }, 1000);
-    }
-
-    setUserAnswers("");
-    setAnswerKey("");
-    setLabel("");
-    setAllQuestionTopics({}); // Clear topics for the next test
-    window.dispatchEvent(new CustomEvent('dataUpdate'));
+  const scores: TestScore[] = JSON.parse(localStorage.getItem("scores") || "[]");
+  const newScore: TestScore = {
+    date,
+    score: correct,
+    testType,
+    year: parseInt(testYear),
+    input: userAnswers,
+    key: answerKey,
+    label: label.trim() || undefined,
+    questionTopics: topics, // ✅ use this, not allQuestionTopics
+    questionCorrectness,
   };
+  scores.push(newScore);
+  localStorage.setItem("scores", JSON.stringify(scores));
+
+  const currentXp = parseInt(localStorage.getItem("xp") || "0");
+  let xpEarned = 10 + correct;
+
+  const today = new Date().toISOString().split("T")[0];
+  const lastDate = localStorage.getItem("lastPracticeDate");
+  let streak = parseInt(localStorage.getItem("streak") || "0");
+  let streakBonus = 0;
+
+  if (lastDate !== today) {
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yStr = yesterday.toISOString().split("T")[0];
+    streak = lastDate === yStr ? streak + 1 : 1;
+    localStorage.setItem("lastPracticeDate", today);
+    localStorage.setItem("streak", streak.toString());
+
+    if (streak >= 7) streakBonus = Math.floor(streak / 7) * 5;
+    if (streak >= 30) streakBonus += 20;
+  }
+
+  let performanceBonus = 0;
+  if (percent >= 90) performanceBonus = 15;
+  else if (percent >= 80) performanceBonus = 10;
+  else if (percent >= 70) performanceBonus = 5;
+
+  xpEarned += streakBonus + performanceBonus;
+  const newXp = currentXp + xpEarned;
+  localStorage.setItem("xp", newXp.toString());
+
+  let resultText = `✅ You scored ${correct} out of 25. ✔️ Correct: ${correct} | ❌ Incorrect: ${incorrect} | 📈 ${percent}%`;
+  if (streakBonus > 0) resultText += ` | 🔥 Streak Bonus: +${streakBonus} XP`;
+  if (performanceBonus > 0) resultText += ` | ⭐ Performance Bonus: +${performanceBonus} XP`;
+
+  setResult(resultText);
+
+  toast({
+    title: "Test Graded! 🎉",
+    description: `Score: ${correct}/25 (${percent}%) | +${xpEarned} XP`,
+  });
+
+  const newLevel = Math.floor(newXp / 250) + 1;
+  const currentLevel = Math.floor(currentXp / 250) + 1;
+  if (newLevel > currentLevel) {
+    setTimeout(() => {
+      window.dispatchEvent(new CustomEvent("levelUp", { detail: { newLevel } }));
+    }, 1000);
+  }
+
+  setUserAnswers("");
+  setAnswerKey("");
+  setLabel("");
+  setAllQuestionTopics({});
+
+  // ✅ THIS triggers the topic breakdown to refresh
+  window.dispatchEvent(new CustomEvent("dataUpdate"));
+};
+
 
   // This handler is no longer needed in this form, as we get topics for all questions
   // const handleSaveTopic = (questionNum: number, topic: string) => {
