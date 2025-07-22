@@ -78,10 +78,22 @@ export const TopicInputPopup: React.FC<TopicInputPopupProps> = ({
 
   const handleSkipAll = () => {
     const updatedTopics = { ...topics };
-    // Set all remaining questions to 'Other'
-    for (let i = currentQuestionIndex; i < totalQuestions; i++) {
-      updatedTopics[questionsToTopic[i]] = "Other";
+    
+    // Ensure the current question has a topic if user was on it
+    const topicForCurrentQuestion = topics[currentQuestionNumber];
+    if (!topicForCurrentQuestion || topicForCurrentQuestion.trim() === "") {
+      updatedTopics[currentQuestionNumber] = "Other";
     }
+    
+    // Set all remaining questions (after current) to 'Other', preserving any existing selections
+    for (let i = currentQuestionIndex + 1; i < totalQuestions; i++) {
+      const questionNum = questionsToTopic[i];
+      // Only set to "Other" if no topic has been selected yet
+      if (!updatedTopics[questionNum] || updatedTopics[questionNum].trim() === "") {
+        updatedTopics[questionNum] = "Other";
+      }
+    }
+    
     setTopics(updatedTopics);
     // Use a timeout to allow state to update before saving and closing
     setTimeout(() => {
@@ -91,14 +103,27 @@ export const TopicInputPopup: React.FC<TopicInputPopupProps> = ({
   };
 
   const handleSaveAllAndClose = () => {
+    const updatedTopics = { ...topics };
+    
     // Ensure the current question has a topic before saving all
     const topicForCurrentQuestion = topics[currentQuestionNumber];
-      if (!topicForCurrentQuestion || topicForCurrentQuestion.trim() === "") {
-          handleTopicChange("Other"); // Default to 'Other' if nothing was selected
+    if (!topicForCurrentQuestion || topicForCurrentQuestion.trim() === "") {
+      updatedTopics[currentQuestionNumber] = "Other"; // Default to 'Other' if nothing was selected
+    }
+    
+    // Ensure ALL questions have topics (fill any missing ones with "Other")
+    for (let i = 0; i < totalQuestions; i++) {
+      const questionNum = questionsToTopic[i];
+      if (!updatedTopics[questionNum] || updatedTopics[questionNum].trim() === "") {
+        updatedTopics[questionNum] = "Other";
       }
+    }
+    
+    // Update state and save
+    setTopics(updatedTopics);
     // Use a timeout to allow state to update before saving
     setTimeout(() => {
-        onSaveTopics(topics);
+        onSaveTopics(updatedTopics);
         onClose();
     }, 0);
   };
