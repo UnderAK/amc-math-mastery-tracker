@@ -71,19 +71,8 @@ export const TestHistoryTable = ({ filterType = "all" }: TestHistoryTableProps) 
           Past Tests
         </h2>
         
-        <div className="flex items-center gap-2">
-          <Filter className="w-4 h-4 text-muted-foreground" />
-          <Select value={filterType} onValueChange={setFilterType}>
-            <SelectTrigger className="w-32">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Types</SelectItem>
-              <SelectItem value="amc8">AMC 8</SelectItem>
-              <SelectItem value="amc10">AMC 10</SelectItem>
-              <SelectItem value="amc12">AMC 12</SelectItem>
-            </SelectContent>
-          </Select>
+        <div className="text-sm text-muted-foreground">
+          Filtered by: {filterType === "all" ? "All Tests" : `AMC ${filterType}`}
           
           <Select value={filterLabel} onValueChange={setFilterLabel}>
             <SelectTrigger className="w-36">
