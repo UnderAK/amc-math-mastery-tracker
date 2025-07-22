@@ -46,10 +46,15 @@ export const TopicInputPopup: React.FC<TopicInputPopupProps> = ({
   const currentQuestionNumber = questionsToTopic[currentQuestionIndex];
 
   const handleTopicChange = (topic: string) => {
-    setTopics(prevTopics => ({
-      ...prevTopics,
-      [currentQuestionNumber]: topic.trim(),
-    }));
+    console.log(`DEBUG: handleTopicChange - Question ${currentQuestionNumber}, Topic: ${topic}`);
+    setTopics(prevTopics => {
+      const newTopics = {
+        ...prevTopics,
+        [currentQuestionNumber]: topic.trim(),
+      };
+      console.log('DEBUG: handleTopicChange - Updated topics state:', newTopics);
+      return newTopics;
+    });
   };
 
   const moveToNextQuestion = () => {
@@ -65,7 +70,7 @@ export const TopicInputPopup: React.FC<TopicInputPopupProps> = ({
   const handleSaveAndNext = () => {
     // Ensure a topic is selected/entered for the current question before moving on
     const topicForCurrentQuestion = topics[currentQuestionNumber];
-    if (!topicForCurrentQuestion || topicForCurrentQuestion.trim() === "") {
+    if (topicForCurrentQuestion === undefined || topicForCurrentQuestion === null) {
       handleTopicChange("Other"); // Default to 'Other' if nothing was selected
     }
     moveToNextQuestion();
@@ -105,10 +110,16 @@ export const TopicInputPopup: React.FC<TopicInputPopupProps> = ({
   const handleSaveAllAndClose = () => {
     const updatedTopics = { ...topics };
     
+    console.log('DEBUG: handleSaveAllAndClose - Current topics state:', topics);
+    console.log('DEBUG: handleSaveAllAndClose - Current question number:', currentQuestionNumber);
+    
     // Ensure the current question has a topic before saving all
     const topicForCurrentQuestion = topics[currentQuestionNumber];
     if (topicForCurrentQuestion === undefined || topicForCurrentQuestion === null) {
       updatedTopics[currentQuestionNumber] = "Other"; // Default to 'Other' if nothing was selected
+      console.log('DEBUG: Set current question to Other');
+    } else {
+      console.log('DEBUG: Current question already has topic:', topicForCurrentQuestion);
     }
     
     // Ensure ALL questions have topics (fill any missing ones with "Other")
@@ -117,13 +128,19 @@ export const TopicInputPopup: React.FC<TopicInputPopupProps> = ({
       const questionNum = questionsToTopic[i];
       if (updatedTopics[questionNum] === undefined || updatedTopics[questionNum] === null) {
         updatedTopics[questionNum] = "Other";
+        console.log(`DEBUG: Set question ${questionNum} to Other (was undefined/null)`);
+      } else {
+        console.log(`DEBUG: Question ${questionNum} already has topic:`, updatedTopics[questionNum]);
       }
     }
+    
+    console.log('DEBUG: Final updatedTopics before saving:', updatedTopics);
     
     // Update state and save
     setTopics(updatedTopics);
     // Use a timeout to allow state to update before saving
     setTimeout(() => {
+        console.log('DEBUG: About to call onSaveTopics with:', updatedTopics);
         onSaveTopics(updatedTopics);
         onClose();
     }, 0);

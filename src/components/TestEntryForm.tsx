@@ -73,9 +73,8 @@ export const TestEntryForm = () => {
 
     // Initialize allQuestionTopics with default topics
     const initialTopics: { [key: number]: string } = {};
-    for (let i = 1; i <= 25; i++) {
-      initialTopics[i] = getTopicForQuestion(i); // Use default topic initially
-    }
+    // Don't pre-fill topics - let the popup handle topic selection
+    // The popup will default unselected questions to "Other" when saving
     setAllQuestionTopics(initialTopics);
     setIsTopicInputForAllOpen(true); // Open the popup to get topics for all questions
 
