@@ -37,7 +37,8 @@ export const TopicInputPopup: React.FC<TopicInputPopupProps> = ({
     const initializedTopics: { [questionNum: number]: string } = {};
 
     for (const q of questionsToTopic) {
-      initializedTopics[q] = initialTopics[q] || "Other";
+      const topic = initialTopics[q];
+      initializedTopics[q] = topic && topic.trim() !== "" ? topic : "Other";
     }
 
     setTopics(initializedTopics);
@@ -46,6 +47,7 @@ export const TopicInputPopup: React.FC<TopicInputPopupProps> = ({
     setCurrentQuestionIndex(0);
   }
 }, [isOpen, initialTopics, questionsToTopic]);
+
 
   const totalQuestions = questionsToTopic.length; // Should be 25
   const currentQuestionNumber = questionsToTopic[currentQuestionIndex];
