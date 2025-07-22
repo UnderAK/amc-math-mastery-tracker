@@ -14,9 +14,12 @@ interface TestScore {
   label?: string;
 }
 
-export const TestHistoryTable = () => {
+interface TestHistoryTableProps {
+  filterType?: string;
+}
+
+export const TestHistoryTable = ({ filterType = "all" }: TestHistoryTableProps) => {
   const [scores, setScores] = useState<TestScore[]>([]);
-  const [filterType, setFilterType] = useState("all");
   const [filterLabel, setFilterLabel] = useState("all");
 
   useEffect(() => {

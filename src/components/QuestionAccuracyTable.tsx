@@ -17,9 +17,12 @@ interface QuestionStat {
   accuracy: number;
 }
 
-export const QuestionAccuracyTable = () => {
+interface QuestionAccuracyTableProps {
+  filterType?: string;
+}
+
+export const QuestionAccuracyTable = ({ filterType = "all" }: QuestionAccuracyTableProps) => {
   const [questionStats, setQuestionStats] = useState<QuestionStat[]>([]);
-  const [filterType, setFilterType] = useState("all");
 
   useEffect(() => {
     const updateQuestionStats = () => {
@@ -96,21 +99,9 @@ export const QuestionAccuracyTable = () => {
           <Target className="w-5 h-5" />
           Question Accuracy
         </h2>
-        
-        <Select value={filterType} onValueChange={setFilterType}>
-          <SelectTrigger className="w-32">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Tests</SelectItem>
-            <SelectItem value="amc8">AMC 8</SelectItem>
-            <SelectItem value="amc10">AMC 10</SelectItem>
-            <SelectItem value="amc12">AMC 12</SelectItem>
-          </SelectContent>
-        </Select>
       </div>
 
-      {hasData ? (
+      {hasImperfectQuestions ? (
         <div className="space-y-6">
           {/* Insights */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
