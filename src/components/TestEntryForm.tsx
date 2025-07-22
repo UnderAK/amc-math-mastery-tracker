@@ -121,41 +121,6 @@ export const TestEntryForm = () => {
   };
 
   const handleSaveAllTopics = (topics: { [key: number]: string }) => {
-    // --- Achievement check logic ---
-    // Import badge logic from BadgesPanel (duplicated here for popup)
-    const scores: TestScore[] = [...savedTests];
-    const streak = parseInt(localStorage.getItem("streak") || "0");
-    const xp = parseInt(localStorage.getItem("xp") || "0");
-    const dailyBonus = JSON.parse(localStorage.getItem("dailyBonus") || '{"streak": 0, "totalBonusClaimed": 0}');
-    const latestScore = (scores.length > 0 ? scores[scores.length - 1].score : 0) + 0;
-    const bestScore = scores.length > 0 ? Math.max(...scores.map(s => s.score)) : 0;
-    const totalTests = scores.length + 1; // This test is about to be saved
-    // List of badge checks (simplified, only show newly earned)
-    const prevBadges = JSON.parse(localStorage.getItem("earnedBadges") || "[]");
-    const badgeChecks = [
-      { emoji: "🌟", title: "First Steps", description: "Take your first test", earned: scores.length === 0 },
-      { emoji: "🎯", title: "Sharp Shooter", description: "Score 15+ on any test", earned: bestScore < 15 && (latestScore >= 15) },
-      { emoji: "🧠", title: "High Achiever", description: "Score 20+ on any test", earned: bestScore < 20 && (latestScore >= 20) },
-      { emoji: "💯", title: "Perfect Score", description: "Score 25/25 on any test", earned: bestScore < 25 && (latestScore === 25) },
-      { emoji: "⏫", title: "New Personal Best", description: "Beat your previous best score", earned: latestScore > bestScore },
-      { emoji: "📚", title: "Dedicated Student", description: "Complete 5 tests", earned: totalTests === 5 },
-      { emoji: "📝", title: "Test Master", description: "Complete 10 tests", earned: totalTests === 10 },
-      { emoji: "🧪", title: "Research Scholar", description: "Complete 25 tests", earned: totalTests === 25 },
-      { emoji: "🎓", title: "Graduate", description: "Complete 50 tests", earned: totalTests === 50 },
-      { emoji: "🏛️", title: "Professor", description: "Complete 100 tests", earned: totalTests === 100 },
-      { emoji: "⚡", title: "Power User", description: "Reach 500 XP", earned: xp < 500 && (xp + latestScore >= 500) },
-      { emoji: "🌟", title: "Rising Star", description: "Reach Level 10", earned: Math.floor(xp / 100) + 1 < 10 && (Math.floor((xp + latestScore) / 100) + 1 >= 10) },
-      { emoji: "🚀", title: "Math Champion", description: "Reach Level 25", earned: Math.floor(xp / 100) + 1 < 25 && (Math.floor((xp + latestScore) / 100) + 1 >= 25) },
-      { emoji: "👑", title: "Math Royalty", description: "Reach Level 50", earned: Math.floor(xp / 100) + 1 < 50 && (Math.floor((xp + latestScore) / 100) + 1 >= 50) },
-    ];
-    const newlyEarned = badgeChecks.filter(b => b.earned && !prevBadges.includes(b.title));
-    if (newlyEarned.length > 0) {
-      setNewAchievements(newlyEarned);
-      setShowAchievementPopup(true);
-      // Save the earned badges
-      localStorage.setItem("earnedBadges", JSON.stringify([...prevBadges, ...newlyEarned.map(b => b.title)]));
-    }
-    // --- End achievement check logic ---
     try {
       console.log('DEBUG TestEntryForm: handleSaveAllTopics called with:', topics);
       
@@ -343,7 +308,46 @@ export const TestEntryForm = () => {
         description: "An error occurred while grading your test. Please try again.",
         variant: "destructive",
       });
+      return;
     }
+
+    // --- Achievement check logic (AFTER all updates) ---
+    try {
+      const scores: TestScore[] = JSON.parse(localStorage.getItem("scores") || "[]");
+      const streak = parseInt(localStorage.getItem("streak") || "0");
+      const xp = parseInt(localStorage.getItem("xp") || "0");
+      const dailyBonus = JSON.parse(localStorage.getItem("dailyBonus") || '{"streak": 0, "totalBonusClaimed": 0}');
+      const latestScore = scores.length > 0 ? scores[scores.length - 1].score : 0;
+      const bestScore = scores.length > 0 ? Math.max(...scores.map(s => s.score)) : 0;
+      const totalTests = scores.length;
+      const prevBadges = JSON.parse(localStorage.getItem("earnedBadges") || "[]");
+      const badgeChecks = [
+        { emoji: "🌟", title: "First Steps", description: "Take your first test", earned: totalTests >= 1 },
+        { emoji: "🎯", title: "Sharp Shooter", description: "Score 15+ on any test", earned: bestScore >= 15 },
+        { emoji: "🧠", title: "High Achiever", description: "Score 20+ on any test", earned: bestScore >= 20 },
+        { emoji: "💯", title: "Perfect Score", description: "Score 25/25 on any test", earned: bestScore === 25 },
+        { emoji: "⏫", title: "New Personal Best", description: "Beat your previous best score", earned: scores.length > 1 && latestScore === bestScore && bestScore > 0 },
+        { emoji: "📚", title: "Dedicated Student", description: "Complete 5 tests", earned: totalTests >= 5 },
+        { emoji: "📝", title: "Test Master", description: "Complete 10 tests", earned: totalTests >= 10 },
+        { emoji: "🧪", title: "Research Scholar", description: "Complete 25 tests", earned: totalTests >= 25 },
+        { emoji: "🎓", title: "Graduate", description: "Complete 50 tests", earned: totalTests >= 50 },
+        { emoji: "🏛️", title: "Professor", description: "Complete 100 tests", earned: totalTests >= 100 },
+        { emoji: "⚡", title: "Power User", description: "Reach 500 XP", earned: xp >= 500 },
+        { emoji: "🌟", title: "Rising Star", description: "Reach Level 10", earned: Math.floor(xp / 100) + 1 >= 10 },
+        { emoji: "🚀", title: "Math Champion", description: "Reach Level 25", earned: Math.floor(xp / 100) + 1 >= 25 },
+        { emoji: "👑", title: "Math Royalty", description: "Reach Level 50", earned: Math.floor(xp / 100) + 1 >= 50 },
+      ];
+      const newlyEarned = badgeChecks.filter(b => b.earned && !prevBadges.includes(b.title));
+      if (newlyEarned.length > 0) {
+        setNewAchievements(newlyEarned);
+        setShowAchievementPopup(true);
+        // Save the earned badges
+        localStorage.setItem("earnedBadges", JSON.stringify([...prevBadges, ...newlyEarned.map(b => b.title)]));
+      }
+    } catch (err) {
+      console.error('ERROR in achievement popup logic:', err);
+    }
+    // --- End achievement check logic ---
   };
 
   // This handler is no longer needed in this form, as we get topics for all questions
