@@ -70,29 +70,27 @@ export const TopicInputPopup: React.FC<TopicInputPopupProps> = ({
   const handleSaveAndNext = () => {
     console.log('DEBUG: handleSaveAndNext - Current question:', currentQuestionNumber);
     console.log('DEBUG: handleSaveAndNext - Current topic:', topics[currentQuestionNumber]);
-    console.log('DEBUG: handleSaveAndNext - All topics before update:', topics);
     
-    // Create updated topics with current question set to Other if not selected
+    // Create updated topics - ensure current question has a topic
     const updatedTopics = { ...topics };
-    const topicForCurrentQuestion = topics[currentQuestionNumber];
+    const currentTopic = topics[currentQuestionNumber];
     
-    if (topicForCurrentQuestion === undefined || topicForCurrentQuestion === null || topicForCurrentQuestion === '') {
-      console.log('DEBUG: handleSaveAndNext - No topic selected, setting to Other');
+    // If no topic selected for current question, set to "Other"
+    if (!currentTopic || currentTopic === '' || currentTopic === undefined || currentTopic === null) {
+      console.log('DEBUG: handleSaveAndNext - Setting current question to Other');
       updatedTopics[currentQuestionNumber] = "Other";
-    } else {
-      console.log('DEBUG: handleSaveAndNext - Topic already selected:', topicForCurrentQuestion);
     }
     
-    console.log('DEBUG: handleSaveAndNext - Final updated topics:', updatedTopics);
+    console.log('DEBUG: handleSaveAndNext - Updated topics:', updatedTopics);
     
-    // Always update the topics state with the current state
+    // Update state immediately and synchronously
     setTopics(updatedTopics);
     
-    // Use setTimeout to ensure state update completes before moving to next question
+    // Move to next question after a brief delay to ensure state update
     setTimeout(() => {
-      console.log('DEBUG: handleSaveAndNext - About to move to next question');
+      console.log('DEBUG: handleSaveAndNext - Moving to next question');
       moveToNextQuestion();
-    }, 10); // Increased timeout to be more reliable
+    }, 50); // Longer timeout for reliability
   };
 
   const handleSkip = () => {
