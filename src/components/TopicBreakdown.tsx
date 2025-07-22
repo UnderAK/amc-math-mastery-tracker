@@ -34,7 +34,7 @@ export const TopicBreakdown = () => {
 
   // Function to determine topic based on question number (can be refined) - Used as a fallback or for older data approximation
   const getDefaultTopicForQuestion = (questionNum: number): string => {
-    return "Advanced Topics";
+    return "Other";
   };
 
   useEffect(() => {
