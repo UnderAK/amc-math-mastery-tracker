@@ -29,7 +29,7 @@ const getTopicForQuestion = (questionNum: number): string => {
 
 export const TestEntryForm = () => {
   const [savedTests, setSavedTests] = useState<TestScore[]>(() => {
-    const saved = localStorage.getItem("testScores");
+    const saved = localStorage.getItem("scores");
     return saved ? JSON.parse(saved) : [];
   });
   const [testType, setTestType] = useState("amc8");
@@ -67,11 +67,35 @@ export const TestEntryForm = () => {
   };
 
   const gradeTest = () => {
+    // Validate input lengths
     if (userAnswers.length !== 25 || answerKey.length !== 25) {
       setResult("❌ You must enter exactly 25 characters in both fields (A–E only).");
       toast({
         title: "Invalid Input",
-        description: "Both answer fields must contain exactly 25 letters (A-E)",
+        description: `User answers: ${userAnswers.length}/25, Answer key: ${answerKey.length}/25 characters`,
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Validate that test type and year are selected
+    if (!testType || !testYear) {
+      setResult("❌ Please select a test type and enter a year.");
+      toast({
+        title: "Missing Information",
+        description: "Test type and year are required",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Validate year is reasonable
+    const year = parseInt(testYear);
+    if (isNaN(year) || year < 2000 || year > 2030) {
+      setResult("❌ Please enter a valid year between 2000 and 2030.");
+      toast({
+        title: "Invalid Year",
+        description: "Year must be between 2000 and 2030",
         variant: "destructive",
       });
       return;
@@ -86,10 +110,13 @@ export const TestEntryForm = () => {
       description: "Please assign topics to each question in the popup that will appear",
     });
 
-    // Initialize allQuestionTopics with default topics
+    // Initialize allQuestionTopics with default topics for all 25 questions
     const initialTopics: { [key: number]: string } = {};
-    // Don't pre-fill topics - let the popup handle topic selection
-    // The popup will default unselected questions to "Other" when saving
+    // Pre-fill all questions with "Other" as default to ensure popup shows selections
+    for (let i = 1; i <= 25; i++) {
+      initialTopics[i] = "Other";
+    }
+    console.log('DEBUG TestEntryForm: Setting initial topics:', initialTopics);
     setAllQuestionTopics(initialTopics);
     setIsTopicInputForAllOpen(true); // Open the popup to get topics for all questions
 
@@ -97,23 +124,55 @@ export const TestEntryForm = () => {
   };
 
   const handleSaveAllTopics = (topics: { [key: number]: string }) => {
-    console.log('DEBUG TestEntryForm: handleSaveAllTopics called with:', topics);
-    setAllQuestionTopics(topics);
-    setIsTopicInputForAllOpen(false);
+    try {
+      console.log('DEBUG TestEntryForm: handleSaveAllTopics called with:', topics);
+      
+      // Validate topics object
+      if (!topics || typeof topics !== 'object') {
+        console.error('ERROR: Invalid topics object received');
+        setIsGrading(false);
+        toast({
+          title: "Error Saving Topics",
+          description: "Invalid topic data received. Please try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // Validate we have exactly 25 topics
+      const topicKeys = Object.keys(topics).map(k => parseInt(k)).sort((a, b) => a - b);
+      if (topicKeys.length !== 25) {
+        console.error('ERROR: Expected 25 topics, got:', topicKeys.length);
+        setIsGrading(false);
+        toast({
+          title: "Error Saving Topics",
+          description: `Expected 25 topics, but received ${topicKeys.length}. Please try again.`,
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      setAllQuestionTopics(topics);
+      setIsTopicInputForAllOpen(false);
 
-    // Now that we have topics for all questions, finalize grading and save the score
+      // Now that we have topics for all questions, finalize grading and save the score
     let correct = 0;
     const questionCorrectness: { [questionNum: number]: boolean } = {};
 
     for (let i = 0; i < 25; i++) {
       const questionNum = i + 1;
-      // Treat space as wrong answer, but any other character normally
-      const userAnswer = userAnswers[i] === ' ' ? 'WRONG' : userAnswers[i];
-      const isCorrect = userAnswer === answerKey[i];
+      const userAnswer = userAnswers[i];
+      const correctAnswer = answerKey[i];
+      
+      // Treat space as always wrong (no answer provided)
+      const isCorrect = userAnswer !== ' ' && userAnswer === correctAnswer;
       questionCorrectness[questionNum] = isCorrect;
+      
       if (isCorrect) {
         correct++;
       }
+      
+      console.log(`DEBUG: Q${questionNum}: User='${userAnswer}' Correct='${correctAnswer}' Match=${isCorrect}`);
     }
 
     const incorrect = 25 - correct;
@@ -142,7 +201,7 @@ export const TestEntryForm = () => {
     });
     const updatedTests = [...savedTests, newScore];
     setSavedTests(updatedTests);
-    localStorage.setItem("testScores", JSON.stringify(updatedTests));
+    localStorage.setItem("scores", JSON.stringify(updatedTests));
     
     console.log('DEBUG TestEntryForm: Saved to localStorage. Total scores:', updatedTests.length);
     
@@ -217,6 +276,15 @@ export const TestEntryForm = () => {
     
     // Dispatch coin update event
     window.dispatchEvent(new CustomEvent('coinUpdate'));
+    } catch (error) {
+      console.error('ERROR in handleSaveAllTopics:', error);
+      setIsGrading(false);
+      toast({
+        title: "Error Grading Test",
+        description: "An error occurred while grading your test. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   // This handler is no longer needed in this form, as we get topics for all questions

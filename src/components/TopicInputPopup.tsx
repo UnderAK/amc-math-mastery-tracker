@@ -34,7 +34,9 @@ export const TopicInputPopup: React.FC<TopicInputPopupProps> = ({
   // Initialize topics state when the popup opens or initialTopics change
   useEffect(() => {
     if (isOpen) {
+      console.log('DEBUG TopicInputPopup: Popup opened, initialTopics:', initialTopics);
       setTopics(initialTopics);
+      setCurrentQuestionIndex(0); // Always start from question 1
     } else {
       // Reset when closed
       setTopics({});
@@ -53,6 +55,7 @@ export const TopicInputPopup: React.FC<TopicInputPopupProps> = ({
         [currentQuestionNumber]: topic.trim(),
       };
       console.log('DEBUG: handleTopicChange - Updated topics state:', newTopics);
+      console.log('DEBUG: handleTopicChange - Current question topic set to:', newTopics[currentQuestionNumber]);
       return newTopics;
     });
   };
@@ -131,42 +134,58 @@ export const TopicInputPopup: React.FC<TopicInputPopupProps> = ({
   };
 
   const handleSaveAllAndClose = () => {
-    const updatedTopics = { ...topics };
-    
-    console.log('DEBUG: handleSaveAllAndClose - Current topics state:', topics);
-    console.log('DEBUG: handleSaveAllAndClose - Current question number:', currentQuestionNumber);
-    
-    // Ensure the current question has a topic before saving all
-    const topicForCurrentQuestion = topics[currentQuestionNumber];
-    if (topicForCurrentQuestion === undefined || topicForCurrentQuestion === null) {
-      updatedTopics[currentQuestionNumber] = "Other"; // Default to 'Other' if nothing was selected
-      console.log('DEBUG: Set current question to Other');
-    } else {
-      console.log('DEBUG: Current question already has topic:', topicForCurrentQuestion);
-    }
-    
-    // Ensure ALL questions have topics (fill any missing ones with "Other")
-    // Only set to "Other" if the topic is truly missing (undefined or null)
-    for (let i = 0; i < totalQuestions; i++) {
-      const questionNum = questionsToTopic[i];
-      if (updatedTopics[questionNum] === undefined || updatedTopics[questionNum] === null) {
-        updatedTopics[questionNum] = "Other";
-        console.log(`DEBUG: Set question ${questionNum} to Other (was undefined/null)`);
-      } else {
-        console.log(`DEBUG: Question ${questionNum} already has topic:`, updatedTopics[questionNum]);
+    try {
+      const updatedTopics = { ...topics };
+      
+      console.log('DEBUG: handleSaveAllAndClose - Current topics state:', topics);
+      console.log('DEBUG: handleSaveAllAndClose - Current question number:', currentQuestionNumber);
+      
+      // Validate that we have the expected number of questions
+      if (totalQuestions !== 25) {
+        console.error('ERROR: Expected 25 questions, got:', totalQuestions);
+        return;
       }
+      
+      // Ensure the current question has a topic before saving all
+      const topicForCurrentQuestion = topics[currentQuestionNumber];
+      if (!topicForCurrentQuestion || topicForCurrentQuestion.trim() === '') {
+        updatedTopics[currentQuestionNumber] = "Other"; // Default to 'Other' if nothing was selected
+        console.log('DEBUG: Set current question to Other');
+      } else {
+        console.log('DEBUG: Current question already has topic:', topicForCurrentQuestion);
+      }
+      
+      // Ensure ALL questions have topics (fill any missing ones with "Other")
+      for (let i = 0; i < totalQuestions; i++) {
+        const questionNum = questionsToTopic[i];
+        if (!updatedTopics[questionNum] || updatedTopics[questionNum].trim() === '') {
+          updatedTopics[questionNum] = "Other";
+          console.log(`DEBUG: Set question ${questionNum} to Other (was missing/empty)`);
+        } else {
+          console.log(`DEBUG: Question ${questionNum} already has topic:`, updatedTopics[questionNum]);
+        }
+      }
+      
+      // Final validation - ensure we have exactly 25 topics
+      const topicKeys = Object.keys(updatedTopics).map(k => parseInt(k)).sort((a, b) => a - b);
+      if (topicKeys.length !== 25 || topicKeys[0] !== 1 || topicKeys[24] !== 25) {
+        console.error('ERROR: Invalid topic structure. Expected questions 1-25, got:', topicKeys);
+        return;
+      }
+      
+      console.log('DEBUG: Final updatedTopics before saving:', updatedTopics);
+      
+      // Update state and save
+      setTopics(updatedTopics);
+      // Use a timeout to allow state to update before saving
+      setTimeout(() => {
+          console.log('DEBUG: About to call onSaveTopics with:', updatedTopics);
+          onSaveTopics(updatedTopics);
+          onClose();
+      }, 0);
+    } catch (error) {
+      console.error('ERROR in handleSaveAllAndClose:', error);
     }
-    
-    console.log('DEBUG: Final updatedTopics before saving:', updatedTopics);
-    
-    // Update state and save
-    setTopics(updatedTopics);
-    // Use a timeout to allow state to update before saving
-    setTimeout(() => {
-        console.log('DEBUG: About to call onSaveTopics with:', updatedTopics);
-        onSaveTopics(updatedTopics);
-        onClose();
-    }, 0);
   };
 
   // If questionsToTopic is empty (shouldn't happen if called correctly from TestEntryForm), return null
@@ -177,6 +196,8 @@ export const TopicInputPopup: React.FC<TopicInputPopupProps> = ({
 
   // Determine the topic currently selected for the current question
   const currentSelectedTopic = topics[currentQuestionNumber] || "";
+  console.log('DEBUG TopicInputPopup: Current question:', currentQuestionNumber, 'Selected topic:', currentSelectedTopic);
+  console.log('DEBUG TopicInputPopup: All topics state:', topics);
 
   return (
     <AlertDialog open={isOpen} onOpenChange={onClose}>
@@ -205,16 +226,21 @@ export const TopicInputPopup: React.FC<TopicInputPopupProps> = ({
               style={{ width: `${((currentQuestionIndex) / totalQuestions) * 100}%` }}
             ></div>
           </div>
-          <Select value={currentSelectedTopic} onValueChange={handleTopicChange}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select Topic" />
-            </SelectTrigger>
-            <SelectContent>
-              {topicOptions.map(topic => (
-                <SelectItem key={topic} value={topic}>{topic}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="space-y-2">
+            <div className="text-xs text-muted-foreground">
+              Current selection: {currentSelectedTopic || "None"}
+            </div>
+            <Select value={currentSelectedTopic} onValueChange={handleTopicChange}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select Topic" />
+              </SelectTrigger>
+              <SelectContent>
+                {topicOptions.map(topic => (
+                  <SelectItem key={topic} value={topic}>{topic}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         <AlertDialogFooter>
