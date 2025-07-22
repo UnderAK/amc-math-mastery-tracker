@@ -68,12 +68,24 @@ export const TopicInputPopup: React.FC<TopicInputPopupProps> = ({
   };
 
   const handleSaveAndNext = () => {
+    console.log('DEBUG: handleSaveAndNext - Current question:', currentQuestionNumber);
+    console.log('DEBUG: handleSaveAndNext - Current topic:', topics[currentQuestionNumber]);
+    
     // Ensure a topic is selected/entered for the current question before moving on
     const topicForCurrentQuestion = topics[currentQuestionNumber];
-    if (topicForCurrentQuestion === undefined || topicForCurrentQuestion === null) {
-      handleTopicChange("Other"); // Default to 'Other' if nothing was selected
+    if (topicForCurrentQuestion === undefined || topicForCurrentQuestion === null || topicForCurrentQuestion === '') {
+      console.log('DEBUG: handleSaveAndNext - No topic selected, setting to Other');
+      // Update topics state directly and then move to next question
+      const updatedTopics = { ...topics };
+      updatedTopics[currentQuestionNumber] = "Other";
+      setTopics(updatedTopics);
+      console.log('DEBUG: handleSaveAndNext - Updated topics:', updatedTopics);
     }
-    moveToNextQuestion();
+    
+    // Use setTimeout to ensure state update completes before moving to next question
+    setTimeout(() => {
+      moveToNextQuestion();
+    }, 0);
   };
 
   const handleSkip = () => {
