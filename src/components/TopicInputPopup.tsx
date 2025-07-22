@@ -201,13 +201,13 @@ export const TopicInputPopup: React.FC<TopicInputPopupProps> = ({
 
   return (
     <AlertDialog open={isOpen} onOpenChange={onClose}>
-      <AlertDialogContent className="max-w-lg mx-auto">
+      <AlertDialogContent className="w-full max-w-xl mx-auto p-6">
+        {/* Increased max width and padding for better fit */}
         <AlertDialogHeader className="text-center">
-          <AlertDialogTitle>📝 Assign Topic - Question {currentQuestionNumber}</AlertDialogTitle>
-          <AlertDialogDescription className="text-center">
-            Please assign a topic to this question to complete grading.
-            <br />
-            <span className="text-sm text-muted-foreground">
+          <AlertDialogTitle className="text-xl text-center break-words">📝 Assign Topic - Question {currentQuestionNumber}</AlertDialogTitle>
+          <AlertDialogDescription className="text-center break-words">
+            <span className="block">Please assign a topic to this question to complete grading.</span>
+            <span className="text-sm text-muted-foreground block mt-1">
               ({currentQuestionIndex + 1} of {totalQuestions} questions)
             </span>
           </AlertDialogDescription>
@@ -216,12 +216,14 @@ export const TopicInputPopup: React.FC<TopicInputPopupProps> = ({
         <div className="space-y-4 py-4">
           <div className="space-y-2">
             <Select value={currentSelectedTopic} onValueChange={handleTopicChange}>
-              <SelectTrigger className="w-full">
+              <SelectTrigger className="w-full min-w-[220px] max-w-full text-sm">
                 <SelectValue placeholder="Select Topic" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="max-w-xl w-full">
                 {topicOptions.map(topic => (
-                  <SelectItem key={topic} value={topic}>{topic}</SelectItem>
+                  <SelectItem key={topic} value={topic} className="break-words whitespace-normal text-sm px-2 py-1">
+                    {topic}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
