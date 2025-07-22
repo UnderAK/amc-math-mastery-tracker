@@ -1,5 +1,5 @@
 **Known BUGS** <br>
-Test Topic Selection can be a bit buggy if you select certain ways (skip all and spamming through save and next)
+Test Topic Selection can be a bit buggy if you select certain ways (skip all and spamming through save and next) ####### PATCHED #######
 <br>
 When offline, grade test button doesn't work
 <br>
