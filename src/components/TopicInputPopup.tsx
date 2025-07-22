@@ -81,15 +81,15 @@ export const TopicInputPopup: React.FC<TopicInputPopupProps> = ({
     
     // Ensure the current question has a topic if user was on it
     const topicForCurrentQuestion = topics[currentQuestionNumber];
-    if (!topicForCurrentQuestion || topicForCurrentQuestion.trim() === "") {
+    if (topicForCurrentQuestion === undefined || topicForCurrentQuestion === null) {
       updatedTopics[currentQuestionNumber] = "Other";
     }
     
     // Set all remaining questions (after current) to 'Other', preserving any existing selections
     for (let i = currentQuestionIndex + 1; i < totalQuestions; i++) {
       const questionNum = questionsToTopic[i];
-      // Only set to "Other" if no topic has been selected yet
-      if (!updatedTopics[questionNum] || updatedTopics[questionNum].trim() === "") {
+      // Only set to "Other" if no topic has been selected yet (truly missing)
+      if (updatedTopics[questionNum] === undefined || updatedTopics[questionNum] === null) {
         updatedTopics[questionNum] = "Other";
       }
     }
@@ -107,14 +107,15 @@ export const TopicInputPopup: React.FC<TopicInputPopupProps> = ({
     
     // Ensure the current question has a topic before saving all
     const topicForCurrentQuestion = topics[currentQuestionNumber];
-    if (!topicForCurrentQuestion || topicForCurrentQuestion.trim() === "") {
+    if (topicForCurrentQuestion === undefined || topicForCurrentQuestion === null) {
       updatedTopics[currentQuestionNumber] = "Other"; // Default to 'Other' if nothing was selected
     }
     
     // Ensure ALL questions have topics (fill any missing ones with "Other")
+    // Only set to "Other" if the topic is truly missing (undefined or null)
     for (let i = 0; i < totalQuestions; i++) {
       const questionNum = questionsToTopic[i];
-      if (!updatedTopics[questionNum] || updatedTopics[questionNum].trim() === "") {
+      if (updatedTopics[questionNum] === undefined || updatedTopics[questionNum] === null) {
         updatedTopics[questionNum] = "Other";
       }
     }
