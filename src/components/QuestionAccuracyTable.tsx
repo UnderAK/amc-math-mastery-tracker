@@ -41,7 +41,8 @@ export const QuestionAccuracyTable = () => {
         for (let i = 0; i < 25; i++) {
           if (input[i] && key[i]) {
             stats[i].total++;
-            if (input[i] === key[i]) {
+            // Check if input[i] is a space (should count as wrong)
+            if (input[i] === key[i] && input[i] !== ' ') {
               stats[i].correct++;
             }
           }

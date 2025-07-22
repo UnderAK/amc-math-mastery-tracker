@@ -295,7 +295,7 @@ export const TopicBreakdown = () => {
       ) : (
         <div className="text-center py-12">
           <div className="text-4xl mb-3">📊</div>
-          <p className="text-muted-foreground">No topic data yet</p>
+          <p className="text-muted-foreground">I need more data!</p>
           <p className="text-sm text-muted-foreground mt-1">
             Complete some tests and enter topics for all questions to see your performance by topic.
           </p>

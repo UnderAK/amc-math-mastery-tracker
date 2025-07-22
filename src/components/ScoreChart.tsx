@@ -8,7 +8,11 @@ interface TestScore {
   year: number;
 }
 
-export const ScoreChart = () => {
+interface ChartProps {
+  showAllTestTypes?: boolean;
+}
+
+export const ScoreChart = ({ showAllTestTypes = false }: ChartProps = {}) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [scores, setScores] = useState<TestScore[]>([]);
   const [trend, setTrend] = useState<"up" | "down" | "stable">("stable");
@@ -77,19 +81,34 @@ export const ScoreChart = () => {
 
     // Get theme colors
     const isDark = document.documentElement.classList.contains('dark');
-    const primaryColor = isDark ? '#60a5fa' : '#3b82f6';
     const gridColor = isDark ? '#334155' : '#e5e7eb';
     const textColor = isDark ? '#f8fafc' : '#1e293b';
 
-    // Set up data
-    const scores = data.map(d => d.score);
+    // Set up data and colors by test type
     const maxScore = 25;
     const minScore = 0;
+
+    // Different colors for different test types when showing all
+    const testTypeColors = {
+      'amc8': isDark ? '#ef4444' : '#dc2626',  // red
+      'amc10': isDark ? '#3b82f6' : '#2563eb', // blue  
+      'amc12': isDark ? '#10b981' : '#059669'  // green
+    };
+
+    // Group data by test type if showing all test types
+    const dataByType = showAllTestTypes ? {
+      'amc8': data.filter(d => d.testType === 'amc8'),
+      'amc10': data.filter(d => d.testType === 'amc10'),
+      'amc12': data.filter(d => d.testType === 'amc12')
+    } : { 'all': data };
+
+    const primaryColor = showAllTestTypes ? null : (isDark ? '#60a5fa' : '#3b82f6');
 
     // Calculate positions
     const chartWidth = width - padding * 2;
     const chartHeight = height - padding * 2;
-    const stepX = chartWidth / Math.max(scores.length - 1, 1);
+    const allDataPoints = showAllTestTypes ? data : data;
+    const stepX = chartWidth / Math.max(allDataPoints.length - 1, 1);
 
     // Draw grid lines
     ctx.strokeStyle = gridColor;
@@ -114,49 +133,104 @@ export const ScoreChart = () => {
     // Draw the line chart
     ctx.setLineDash([]);
     ctx.lineWidth = 3;
-    ctx.strokeStyle = primaryColor;
-    ctx.fillStyle = primaryColor + '20';
 
-    if (scores.length === 1) {
-      // Single point
-      const x = padding + chartWidth / 2;
-      const y = padding + chartHeight - ((scores[0] / maxScore) * chartHeight);
-      
-      ctx.beginPath();
-      ctx.arc(x, y, 6, 0, 2 * Math.PI);
-      ctx.fillStyle = primaryColor;
-      ctx.fill();
-    } else {
-      // Multiple points - draw line
-      ctx.beginPath();
-      scores.forEach((score, index) => {
-        const x = padding + index * stepX;
-        const y = padding + chartHeight - ((score / maxScore) * chartHeight);
+    if (showAllTestTypes) {
+      // Draw separate lines for each test type
+      Object.entries(dataByType).forEach(([testType, typeData]) => {
+        if (typeData.length === 0) return;
         
-        if (index === 0) {
-          ctx.moveTo(x, y);
+        const color = testTypeColors[testType as keyof typeof testTypeColors];
+        ctx.strokeStyle = color;
+        ctx.fillStyle = color + '20';
+
+        if (typeData.length === 1) {
+          // Single point
+          const dataIndex = allDataPoints.findIndex(d => d === typeData[0]);
+          const x = padding + dataIndex * stepX;
+          const y = padding + chartHeight - ((typeData[0].score / maxScore) * chartHeight);
+          
+          ctx.beginPath();
+          ctx.arc(x, y, 6, 0, 2 * Math.PI);
+          ctx.fillStyle = color;
+          ctx.fill();
         } else {
-          ctx.lineTo(x, y);
+          // Multiple points - draw line
+          ctx.beginPath();
+          let firstPoint = true;
+          typeData.forEach((scoreData) => {
+            const dataIndex = allDataPoints.findIndex(d => d === scoreData);
+            const x = padding + dataIndex * stepX;
+            const y = padding + chartHeight - ((scoreData.score / maxScore) * chartHeight);
+            
+            if (firstPoint) {
+              ctx.moveTo(x, y);
+              firstPoint = false;
+            } else {
+              ctx.lineTo(x, y);
+            }
+          });
+          ctx.stroke();
+
+          // Draw points
+          ctx.fillStyle = color;
+          typeData.forEach((scoreData) => {
+            const dataIndex = allDataPoints.findIndex(d => d === scoreData);
+            const x = padding + dataIndex * stepX;
+            const y = padding + chartHeight - ((scoreData.score / maxScore) * chartHeight);
+            
+            ctx.beginPath();
+            ctx.arc(x, y, 4, 0, 2 * Math.PI);
+            ctx.fill();
+          });
         }
       });
-      ctx.stroke();
+    } else {
+      // Single line for all data
+      const scores = data.map(d => d.score);
+      ctx.strokeStyle = primaryColor;
+      ctx.fillStyle = primaryColor + '20';
 
-      // Draw area under curve
-      ctx.lineTo(padding + (scores.length - 1) * stepX, padding + chartHeight);
-      ctx.lineTo(padding, padding + chartHeight);
-      ctx.closePath();
-      ctx.fill();
-
-      // Draw points
-      ctx.fillStyle = primaryColor;
-      scores.forEach((score, index) => {
-        const x = padding + index * stepX;
-        const y = padding + chartHeight - ((score / maxScore) * chartHeight);
+      if (scores.length === 1) {
+        // Single point
+        const x = padding + chartWidth / 2;
+        const y = padding + chartHeight - ((scores[0] / maxScore) * chartHeight);
         
         ctx.beginPath();
-        ctx.arc(x, y, 4, 0, 2 * Math.PI);
+        ctx.arc(x, y, 6, 0, 2 * Math.PI);
+        ctx.fillStyle = primaryColor;
         ctx.fill();
-      });
+      } else {
+        // Multiple points - draw line
+        ctx.beginPath();
+        scores.forEach((score, index) => {
+          const x = padding + index * stepX;
+          const y = padding + chartHeight - ((score / maxScore) * chartHeight);
+          
+          if (index === 0) {
+            ctx.moveTo(x, y);
+          } else {
+            ctx.lineTo(x, y);
+          }
+        });
+        ctx.stroke();
+
+        // Draw area under curve
+        ctx.lineTo(padding + (scores.length - 1) * stepX, padding + chartHeight);
+        ctx.lineTo(padding, padding + chartHeight);
+        ctx.closePath();
+        ctx.fill();
+
+        // Draw points
+        ctx.fillStyle = primaryColor;
+        scores.forEach((score, index) => {
+          const x = padding + index * stepX;
+          const y = padding + chartHeight - ((score / maxScore) * chartHeight);
+          
+          ctx.beginPath();
+          ctx.arc(x, y, 4, 0, 2 * Math.PI);
+          ctx.fill();
+        });
+      }
     }
 
     // X-axis labels (dates)
@@ -194,6 +268,23 @@ export const ScoreChart = () => {
         <div className="absolute top-2 right-2 flex items-center gap-2 text-sm text-muted-foreground bg-background/80 px-2 py-1 rounded-lg">
           {getTrendIcon()}
           <span>{getTrendText()}</span>
+        </div>
+      )}
+      
+      {showAllTestTypes && scores.length > 0 && (
+        <div className="absolute top-2 left-2 flex items-center gap-2 text-xs">
+          <div className="flex items-center gap-1">
+            <div className="w-3 h-3 bg-red-500 rounded"></div>
+            <span>AMC 8</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="w-3 h-3 bg-blue-500 rounded"></div>
+            <span>AMC 10</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="w-3 h-3 bg-green-500 rounded"></div>
+            <span>AMC 12</span>
+          </div>
         </div>
       )}
       

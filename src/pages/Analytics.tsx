@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { ArrowLeft, BarChart3, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -9,9 +10,15 @@ import { QuestionAccuracyTable } from "@/components/QuestionAccuracyTable";
 import { TestHistoryTable } from "@/components/TestHistoryTable";
 import { TopicBreakdown } from "@/components/TopicBreakdown";
 import { WeaknessReport } from "@/components/WeaknessReport";
+import { AdvancedFeatures } from "@/components/AdvancedFeatures";
 
 const Analytics = () => {
   const navigate = useNavigate();
+  const [chartMode, setChartMode] = useState("combined");
+  
+  // Get user level for advanced features
+  const xp = parseInt(localStorage.getItem("xp") || "0");
+  const userLevel = Math.floor(xp / 250) + 1;
 
   // Function to clear all local storage data
   const handleResetData = () => {
@@ -82,6 +89,9 @@ const Analytics = () => {
             <BadgesPanel />
           </div>
 
+          {/* Advanced Features for Level 10+ Users */}
+          <AdvancedFeatures userLevel={userLevel} userXP={xp} />
+
           {/* Topic Performance and Weakness Analysis */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div>
@@ -104,7 +114,18 @@ const Analytics = () => {
                 <BarChart3 className="w-5 h-5" />
                 Score Progress Over Time
               </h2>
-              <ScoreChart />
+              <div className="mb-4 flex items-center gap-2">
+                <label className="text-sm font-medium">Chart Mode:</label>
+                <select 
+                  className="bg-secondary/30 border border-border rounded px-2 py-1 text-sm"
+                  onChange={(e) => setChartMode(e.target.value)}
+                  value={chartMode}
+                >
+                  <option value="combined">Combined View</option>
+                  <option value="separate">Separate Lines (AMC 8/10/12)</option>
+                </select>
+              </div>
+              <ScoreChart showAllTestTypes={chartMode === 'separate'} />
             </div>
           </div>
 
