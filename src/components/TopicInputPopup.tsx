@@ -33,14 +33,19 @@ export const TopicInputPopup: React.FC<TopicInputPopupProps> = ({
 
   // Initialize topics state when the popup opens or initialTopics change
   useEffect(() => {
-    if (isOpen) {
-      setTopics(initialTopics);
-    } else {
-      // Reset when closed
-      setTopics({});
-      setCurrentQuestionIndex(0);
+  if (isOpen) {
+    const initializedTopics: { [questionNum: number]: string } = {};
+
+    for (const q of questionsToTopic) {
+      initializedTopics[q] = initialTopics[q] || "Other";
     }
-  }, [isOpen, initialTopics]);
+
+    setTopics(initializedTopics);
+  } else {
+    setTopics({});
+    setCurrentQuestionIndex(0);
+  }
+}, [isOpen, initialTopics, questionsToTopic]);
 
   const totalQuestions = questionsToTopic.length; // Should be 25
   const currentQuestionNumber = questionsToTopic[currentQuestionIndex];
@@ -110,7 +115,7 @@ export const TopicInputPopup: React.FC<TopicInputPopupProps> = ({
   }
 
   // Determine the topic currently selected for the current question
-  const currentSelectedTopic = topics[currentQuestionNumber] || "";
+  const currentSelectedTopic = topics[currentQuestionNumber] || "Other";
 
   return (
     <AlertDialog open={isOpen} onOpenChange={onClose}>
