@@ -1,5 +1,7 @@
-import { ArrowLeft, BarChart3, AlertCircle } from "lucide-react";
+import { useState } from "react";
+import { ArrowLeft, BarChart3, AlertCircle, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useNavigate } from "react-router-dom";
 import { GamificationPanel } from "@/components/GamificationPanel";
 import { StatsPanel } from "@/components/StatsPanel";
@@ -12,6 +14,7 @@ import { WeaknessReport } from "@/components/WeaknessReport";
 
 const Analytics = () => {
   const navigate = useNavigate();
+  const [globalFilter, setGlobalFilter] = useState("all");
 
   // Function to clear all local storage data
   const handleResetData = () => {
@@ -52,16 +55,35 @@ const Analytics = () => {
                 </p>
               </div>
             </div>
-             {/* Reset Data Button */}
-             <Button
-              variant="destructive"
-              size="sm"
-              onClick={handleResetData}
-              className="hover-scale"
-            >
-              <AlertCircle className="w-4 h-4 mr-2" />
-              Reset All Data
-            </Button>
+            
+            <div className="flex items-center gap-4">
+              {/* Global Filter Toggle */}
+              <div className="flex items-center gap-2">
+                <Filter className="w-4 h-4 text-muted-foreground" />
+                <Select value={globalFilter} onValueChange={setGlobalFilter}>
+                  <SelectTrigger className="w-32">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All AMCs</SelectItem>
+                    <SelectItem value="AMC 8">AMC 8</SelectItem>
+                    <SelectItem value="AMC 10">AMC 10</SelectItem>
+                    <SelectItem value="AMC 12">AMC 12</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              {/* Reset Data Button */}
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={handleResetData}
+                className="hover-scale"
+              >
+                <AlertCircle className="w-4 h-4 mr-2" />
+                Reset All Data
+              </Button>
+            </div>
           </div>
         </header>
 
@@ -85,16 +107,16 @@ const Analytics = () => {
           {/* Topic Performance and Weakness Analysis */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div>
-              <TopicBreakdown />
+              <TopicBreakdown filterType={globalFilter} />
             </div>
             <div>
-              <WeaknessReport />
+              <WeaknessReport filterType={globalFilter} />
             </div>
           </div>
 
           {/* Test History */}
           <div>
-            <TestHistoryTable />
+            <TestHistoryTable filterType={globalFilter} />
           </div>
 
           {/* Score Progress Chart */}
@@ -104,13 +126,13 @@ const Analytics = () => {
                 <BarChart3 className="w-5 h-5" />
                 Score Progress Over Time
               </h2>
-              <ScoreChart />
+              <ScoreChart filterType={globalFilter} />
             </div>
           </div>
 
           {/* Question Accuracy Analysis */}
           <div>
-            <QuestionAccuracyTable />
+            <QuestionAccuracyTable filterType={globalFilter} />
           </div>
         </main>
       </div>

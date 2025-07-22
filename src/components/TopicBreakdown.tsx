@@ -27,9 +27,12 @@ interface TopicStats {
   mistakes: number;
 }
 
-export const TopicBreakdown = () => {
+interface TopicBreakdownProps {
+  filterType?: string;
+}
+
+export const TopicBreakdown = ({ filterType = "all" }: TopicBreakdownProps) => {
   const [topicStats, setTopicStats] = useState<TopicStats[]>([]);
-  const [filterType, setFilterType] = useState("all");
   const [relevantStats, setRelevantStats] = useState<TopicStats[]>([]); // Declare relevantStats here
 
   // Function to determine topic based on question number (can be refined) - Used as a fallback or for older data approximation
@@ -196,18 +199,6 @@ export const TopicBreakdown = () => {
           <BookOpen className="w-5 h-5" />
           Topic Performance
         </h2>
-        
-        <Select value={filterType} onValueChange={setFilterType}>
-          <SelectTrigger className="w-32">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Tests</SelectItem>
-            <SelectItem value="amc8">AMC 8</SelectItem>
-            <SelectItem value="amc10">AMC 10</SelectItem>
-            <SelectItem value="amc12">AMC 12</SelectItem>
-          </SelectContent>
-        </Select>
       </div>
 
       {hasData ? (
