@@ -1,20 +1,25 @@
 {
-  "start_url": "/",
-  "name": "AMC8/10/12 Tracker",
-  "theme_color": "#000000",
-  "background_color": "#000000",
+  "name": "AMC Math Mastery Tracker",
   "short_name": "AMC Tracker",
-  "id": "AMC Tracker",
+  "description": "Track AMC test performance and progress offline and online.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#317EFB",
+  "orientation": "any",
   "icons": [
     {
       "src": "/icons/192x192.png",
-      "type": "image/png",
-      "sizes": "192x192"
+      "sizes": "192x192",
+      "type": "image/png"
     },
     {
       "src": "/icons/512x512.png",
-      "type": "image/png",
-      "sizes": "512x512"
+      "sizes": "512x512",
+      "type": "image/png"
     }
-  ]
+  ],
+  "launch_handler": {
+    "client_mode": "focus-existing"
+  }
 }
