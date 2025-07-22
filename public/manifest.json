@@ -4,6 +4,7 @@
   "description": "Track AMC test performance and progress offline and online.",
   "start_url": "/",
   "display": "standalone",
+  "display_override": ["window-controls-overlay"],
   "background_color": "#ffffff",
   "theme_color": "#317EFB",
   "orientation": "any",
@@ -19,7 +20,27 @@
       "type": "image/png"
     }
   ],
+  "screenshots": [
+    {
+      "src": "/screenshots/home.png",
+      "sizes": "540x720",
+      "type": "image/png",
+      "label": "Home page"
+    },
+    {
+      "src": "/screenshots/results.png",
+      "sizes": "540x720",
+      "type": "image/png",
+      "label": "Score breakdown"
+    }
+  ],
   "launch_handler": {
     "client_mode": "focus-existing"
+  },
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
+  "handle_links": {
+    "urls": ["https://amc-math-mastery-tracker.vercel.app/*"]
   }
 }
