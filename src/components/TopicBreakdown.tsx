@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { BarChart3, TrendingUp, AlertTriangle, BookOpen, Target } from "lucide-react";
+import { BarChart3, TrendingUp, TrendingDown, AlertTriangle, BookOpen, Target } from "lucide-react";
 import { TestScore } from "@/types/TestScore";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
