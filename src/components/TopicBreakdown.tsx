@@ -56,12 +56,26 @@ export const TopicBreakdown = () => {
         topicData[topic] = { correct: 0, total: 0, mistakes: 0 };
       });
 
-      filteredScores.forEach(score => {
+      console.log('DEBUG TopicBreakdown: Processing scores:', filteredScores.length);
+      
+      filteredScores.forEach((score, scoreIndex) => {
+        console.log(`DEBUG TopicBreakdown: Processing score ${scoreIndex}:`, {
+          date: score.date,
+          hasQuestionTopics: !!score.questionTopics,
+          hasQuestionCorrectness: !!score.questionCorrectness,
+          questionTopics: score.questionTopics
+        });
+        
         // Prioritize new data structure
         if (score.questionTopics && score.questionCorrectness) {
+            console.log('DEBUG TopicBreakdown: Using new data structure');
             for (let i = 1; i <= 25; i++) {
                 const topic = score.questionTopics[i] || "Other"; // Assign 'Other' if topic is missing
                 const isCorrect = score.questionCorrectness[i];
+                
+                if (i <= 5) { // Only log first 5 questions to avoid spam
+                  console.log(`DEBUG TopicBreakdown: Q${i} - Topic: ${topic}, Correct: ${isCorrect}`);
+                }
 
                 // Ensure topic exists in initialized data or add it
                 if (!topicData[topic]) {
