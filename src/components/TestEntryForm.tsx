@@ -117,7 +117,7 @@ export const TestEntryForm = () => {
       input: userAnswers,
       key: answerKey,
       label: label.trim() || undefined,
-      questionTopics: allQuestionTopics, // Store topics for all questions
+      questionTopics: topics, // Store topics for all questions
       questionCorrectness: questionCorrectness, // Store correctness for all questions
     };
     scores.push(newScore);
