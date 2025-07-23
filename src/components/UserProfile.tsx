@@ -88,32 +88,33 @@ export const UserProfile = () => {
     setIsEditing(true);
   };
 
-  const handleSave = () => {
-  if (tempUsername.trim() !== profile.username) {
-    // Username is being changed, require coins
-    setPendingUsername(tempUsername.trim());
-    setShowUsernameConfirm(true);
-    return;
+  function saveProfile(newUsername: string, newAvatar: string) {
+    const updatedProfile = {
+      ...profile,
+      username: newUsername,
+      avatar: newAvatar
+    };
+    setProfile(updatedProfile);
+    localStorage.setItem("userProfile", JSON.stringify(updatedProfile));
+    setIsEditing(false);
+    toast({
+      title: "Profile Updated! ✨",
+      description: "Your profile has been saved successfully"
+    });
+    window.dispatchEvent(new CustomEvent('profileUpdate'));
   }
-  // Avatar-only change
-  saveProfile(tempUsername.trim(), tempAvatar);
-};
 
-function saveProfile(newUsername: string, newAvatar: string) {
-  const updatedProfile = {
-    ...profile,
-    username: newUsername,
-    avatar: newAvatar
+  const handleSave = () => {
+    if (tempUsername.trim() !== profile.username) {
+      // Username is being changed, require coins
+      setPendingUsername(tempUsername.trim());
+      setShowUsernameConfirm(true);
+      return;
+    }
+    // Avatar-only change
+    saveProfile(tempUsername.trim(), tempAvatar);
   };
-  setProfile(updatedProfile);
-  localStorage.setItem("userProfile", JSON.stringify(updatedProfile));
-  setIsEditing(false);
-  toast({
-    title: "Profile Updated! ✨",
-    description: "Your profile has been saved successfully"
-  });
-  window.dispatchEvent(new CustomEvent('profileUpdate'));
-}
+
   const handleCancel = () => {
     setIsEditing(false);
     setTempUsername("");
@@ -354,7 +355,7 @@ function saveProfile(newUsername: string, newAvatar: string) {
                 </Button>
               </>
             ) : (
-              <Button onClick={handleEdit} className="w-full gap-2">
+              <Button onClick={() => setIsEditing(true)} className="w-full gap-2">
                 <Edit3 className="w-4 h-4" />
                 Edit Profile
               </Button>
