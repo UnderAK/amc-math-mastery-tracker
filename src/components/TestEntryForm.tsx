@@ -469,7 +469,7 @@ export const TestEntryForm = () => {
         <div className="flex justify-end">
           <Button
             onClick={gradeTest}
-            className="gradient-primary hover-bounce hover-glow animate-pulse-glow"
+            className="gradient-primary hover-bounce hover-glow animate-pulse-glow text-white"
             disabled={userAnswers.length !== 25 || answerKey.length !== 25 || isGrading}
             aria-label="Grade Test"
           >
