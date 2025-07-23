@@ -251,11 +251,10 @@ const Index = () => {
               
               <Button
                 onClick={() => setIsLeaderboardOpen(true)} 
-                variant="gradient-secondary" className="hover-scale"
+                variant="secondary" className="hover-scale hover-glow"
                 size="sm"
               >
-                <Trophy className="w-4 h-4 mr-2" />
-                Leaderboard
+                🏆 Leaderboard
               </Button>
 
                {/* Link to Analytics Page */}
