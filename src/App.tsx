@@ -1,6 +1,7 @@
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { Button } from "@/components/ui/button";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
@@ -21,7 +22,7 @@ const OfflineBanner = () => {
       <div className="bg-yellow-300 text-yellow-900 py-2 px-4 text-center font-semibold shadow-md flex items-center justify-center gap-2">
         <span role="img" aria-label="offline">📶❌</span>
         You are offline. Most features work, but some (like leaderboard) require internet.
-        <button className="ml-4 bg-yellow-400 px-2 py-1 rounded text-xs font-bold" onClick={() => setShow(false)}>Dismiss</button>
+        <Button variant="outline" size="sm" className="ml-4 text-xs font-bold" onClick={() => setShow(false)}>Dismiss</Button>
       </div>
     </div>
   );

@@ -89,14 +89,15 @@ const Accordion = ({ title, children }: { title: string, children: React.ReactNo
   const [open, setOpen] = useState(false);
   return (
     <div className="border rounded-lg mb-2 bg-white dark:bg-zinc-900/60">
-      <button
-        className="w-full px-4 py-2 flex justify-between items-center font-semibold text-left text-primary focus:outline-none focus:ring hover:bg-zinc-100 dark:hover:bg-zinc-800 transition"
+      <Button
+        variant="ghost"
+        className="w-full px-4 py-2 flex justify-between items-center font-semibold text-left text-primary focus:outline-none focus:ring transition h-auto"
         onClick={() => setOpen(o => !o)}
         aria-expanded={open}
       >
         {title}
         <span className={"ml-2 transition-transform " + (open ? "rotate-90" : "rotate-0")}>▶</span>
-      </button>
+      </Button>
       {open && <div className="px-4 pb-4 pt-2 animate-fade-in">{children}</div>}
     </div>
   );
@@ -289,7 +290,7 @@ const Index = () => {
         {showIntro && (
           <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center">
             <div className="bg-white dark:bg-zinc-900 rounded-2xl p-8 max-w-lg w-full shadow-xl relative animate-fade-in">
-              <button className="absolute top-3 right-3 text-xl font-bold text-zinc-400 hover:text-primary" onClick={() => { setShowIntro(false); localStorage.setItem('introSeen','1'); }}>&times;</button>
+              <Button variant="ghost" size="icon" className="absolute top-3 right-3 text-xl font-bold text-zinc-400 hover:text-primary" onClick={() => { setShowIntro(false); localStorage.setItem('introSeen','1'); }}>&times;</Button>
               <h2 className="text-2xl font-bold mb-2 text-primary">Welcome to AMC Math Mastery Tracker!</h2>
               <div className="mb-4 text-muted-foreground">Track your AMC progress, analyze your strengths, and earn badges as you level up your math skills.</div>
               <ol className="space-y-3 mb-4">
