@@ -78,9 +78,9 @@ const RandomWelcome = () => {
     setMsg(welcomeMessages[Math.floor(Math.random() * welcomeMessages.length)]);
   }, []);
   return (
-    <p className="text-base text-primary/80 font-medium mt-3 mb-2 animate-fade-in">
+    <h1 className="text-base text-primary/80 font-medium mt-3 mb-2 animate-fade-in">
       {msg}
-    </p>
+    </h1>
   );
 };
 
@@ -331,6 +331,7 @@ const Index = () => {
           <Accordion title="How It Works">
             <div className="flex items-center justify-center p-4">
               <button className="liquid-button group relative px-7 py-3 rounded-2xl font-semibold overflow-hidden shadow-[0_0_20px_rgba(255,255,255,0.1)] transition-transform duration-300 hover:scale-[1.03]" onClick={() => console.log('Explore Now button clicked!')}>
+                <h5 className="relative z-10">Explore Now</h5>
                 <span className="relative z-10">Explore Now</span>
                 {/* Inner liquid shine */}
                 <div className="liquid-shine"></div>
