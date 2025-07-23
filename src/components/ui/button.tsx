@@ -21,6 +21,7 @@ const buttonVariants = cva(
         link: "text-primary underline-offset-4 hover:underline",
         gradient: "text-primary-foreground dark:text-secondary-foreground border-transparent bg-transparent",
         "gradient-secondary": "gradient-secondary text-secondary-foreground",
+        "gradient-primary": "gradient-primary text-primary-foreground",
       },
       size: {
         default: "h-10 px-4 py-2",

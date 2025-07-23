@@ -251,7 +251,7 @@ const Index = () => {
               
               <Button
                 onClick={() => setIsLeaderboardOpen(true)} 
-                variant="gradient-secondary" className="w-full hover-scale"
+                variant="gradient-secondary" className="hover-scale"
                 size="sm"
               >
                 <Trophy className="w-4 h-4 mr-2" />
