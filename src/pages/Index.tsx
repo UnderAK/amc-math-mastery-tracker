@@ -386,12 +386,33 @@ const Index = () => {
               <Accordion title="How do I reset my data?">
                 <p className="text-muted-foreground">If you ever want a fresh start, go to the <b>Analytics</b> page and click the <b>Reset All Data</b> button at the top right. This will erase all your test records, XP, streaks, badges, and progress—so be sure you really want to! After resetting, the app will behave as if you're a new user. (Pro tip: If you reset three times in a row, you might discover something special...)</p>
               </Accordion>
+              <Accordion title="How do coins and the shop work?">
+                <p className="text-muted-foreground">You earn coins by completing tests. Coins can be spent in the avatar shop to unlock new profile pictures, or to change your username. Your coin balance and transaction history are shown in your profile. Spend wisely!</p>
+              </Accordion>
+              <Accordion title="How do I unlock avatars?">
+                <p className="text-muted-foreground">Visit your profile and open the avatar shop. Each avatar has a coin price. Click on a locked avatar to purchase it using your coins. Once unlocked, you can select it as your profile picture anytime!</p>
+              </Accordion>
+              <Accordion title="Can I edit my username?">
+                <p className="text-muted-foreground">Yes! In your profile, click the edit icon next to your username. Changing your username costs coins, so make sure you have enough. Confirm your new name and enjoy your unique identity!</p>
+              </Accordion>
+              <Accordion title="How do I export/import my progress?">
+                <p className="text-muted-foreground">Use the Export and Import buttons on the homepage. Export saves your progress to a file, which you can later import to restore your data on any device. Your progress is never uploaded to a server—it's all local and private.</p>
+              </Accordion>
+              <Accordion title="Is my data private and secure?">
+                <p className="text-muted-foreground">Yes! All your progress, coins, and settings are stored locally in your browser. Nothing is uploaded or shared unless you export your data yourself. You control your privacy.</p>
+              </Accordion>
+              <Accordion title="What is the Konami code?">
+                <p className="text-muted-foreground">The Konami code is a classic gaming easter egg: Up, Up, Down, Down, Left, Right, Left, Right, B, A. Try entering it on the homepage for a fun surprise!</p>
+              </Accordion>
+              <Accordion title="Who made this app?">
+                <p className="text-muted-foreground">This app was created by Aarav Tibrewal and contributors, inspired by a love of math competitions. If you have feedback or ideas, check the GitHub repository for ways to contribute or get in touch!</p>
+              </Accordion>
             </div>
           </Accordion>
 
         </main>
 
-        {/* Reset Data Button - Moved to Analytics Page */}
+// ... (rest of the code remains the same)
         {/* <div className="flex justify-center mt-10">
             <Button variant="destructive" onClick={handleResetData}>
                 <AlertCircle className="w-4 h-4 mr-2" />

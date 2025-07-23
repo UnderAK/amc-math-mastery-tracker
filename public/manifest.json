@@ -1,17 +1,26 @@
 {
+  "id": "/",
   "name": "AMC Math Mastery Tracker",
   "short_name": "AMC Tracker",
   "description": "Track AMC test performance and progress offline and online.",
+  "lang": "en",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
-  "display_override": ["window-controls-overlay"],
   "background_color": "#ffffff",
   "theme_color": "#317EFB",
   "orientation": "any",
+  "categories": ["education", "productivity", "math"],
+  "prefer_related_applications": false,
   "icons": [
     {
       "src": "/icons/192x192.png",
       "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/384x384.png",
+      "sizes": "384x384",
       "type": "image/png"
     },
     {
@@ -20,31 +29,31 @@
       "type": "image/png"
     }
   ],
+  "screenshots": [],
   "shortcuts": [
-  {
-    "name": "Enter Test",
-    "short_name": "Enter",
-    "url": "/entry",
-    "icons": [
-      {
-        "src": "/icons/192x192.png",
-        "sizes": "192x192",
-        "type": "image/png"
-      }
-    ]
-  },
-  {
-    "name": "View Scores",
-    "short_name": "Scores",
-    "url": "/scores",
-    "icons": [
-      {
-        "src": "/icons/192x192.png",
-        "sizes": "192x192",
-        "type": "image/png"
-      }
-    ]
-  }
-]
-
+    {
+      "name": "Enter Test",
+      "short_name": "Enter",
+      "url": "/entry",
+      "icons": [
+        {
+          "src": "/icons/192x192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "View Scores",
+      "short_name": "Scores",
+      "url": "/scores",
+      "icons": [
+        {
+          "src": "/icons/192x192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    }
+  ]
 }
