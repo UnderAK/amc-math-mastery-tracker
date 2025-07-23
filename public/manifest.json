@@ -13,47 +13,61 @@
   "categories": ["education", "productivity", "math"],
   "prefer_related_applications": false,
   "icons": [
+    { "src": "/icons/192x192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icons/256x256.png", "sizes": "256x256", "type": "image/png" },
+    { "src": "/icons/384x384.png", "sizes": "384x384", "type": "image/png" },
+    { "src": "/icons/512x512.png", "sizes": "512x512", "type": "image/png" }
+  ],
+  "screenshots": [
     {
-      "src": "/icons/192x192.png",
-      "sizes": "192x192",
-      "type": "image/png"
+      "src": "/screenshots/home.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "label": "Home page (replace with real screenshot)"
     },
     {
-      "src": "/icons/384x384.png",
-      "sizes": "384x384",
-      "type": "image/png"
-    },
-    {
-      "src": "/icons/512x512.png",
-      "sizes": "512x512",
-      "type": "image/png"
+      "src": "/screenshots/profile.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "label": "Profile page (replace with real screenshot)"
     }
   ],
-  "screenshots": [],
   "shortcuts": [
     {
       "name": "Enter Test",
       "short_name": "Enter",
       "url": "/entry",
-      "icons": [
-        {
-          "src": "/icons/192x192.png",
-          "sizes": "192x192",
-          "type": "image/png"
-        }
-      ]
+      "icons": [{ "src": "/icons/192x192.png", "sizes": "192x192", "type": "image/png" }]
     },
     {
       "name": "View Scores",
       "short_name": "Scores",
       "url": "/scores",
-      "icons": [
-        {
-          "src": "/icons/192x192.png",
-          "sizes": "192x192",
-          "type": "image/png"
-        }
-      ]
+      "icons": [{ "src": "/icons/192x192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Avatar Shop",
+      "short_name": "Shop",
+      "url": "/profile#shop",
+      "icons": [{ "src": "/icons/192x192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Import/Export Progress",
+      "short_name": "Import/Export",
+      "url": "/#import-export",
+      "icons": [{ "src": "/icons/192x192.png", "sizes": "192x192", "type": "image/png" }]
     }
-  ]
+  ],
+  "related_applications": [
+    {
+      "platform": "play",
+      "url": "https://play.google.com/store/apps/details?id=your.app.id",
+      "id": "your.app.id"
+    },
+    {
+      "platform": "itunes",
+      "url": "https://apps.apple.com/app/idYOUR_APP_ID"
+    }
+  ],
+  "iarc_rating_id": "e.g. YOUR_IARC_ID"
 }
