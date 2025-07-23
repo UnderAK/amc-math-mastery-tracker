@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import confetti from "canvas-confetti";
 import { Trophy, Target, TrendingUp, BookOpen, Award, Moon, Sun, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SummaryPanel } from "@/components/SummaryPanel";
@@ -100,19 +101,85 @@ const Accordion = ({ title, children }: { title: string, children: React.ReactNo
   );
 };
 
+const KONAMI = [38,38,40,40,37,39,37,39,66,65];
+
 const Index = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false);
+  const [showIntro, setShowIntro] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
+  // Konami code confetti
+  useEffect(() => {
+    let seq: number[] = [];
+    const handler = (e: KeyboardEvent) => {
+      seq.push(e.keyCode);
+      if (seq.length > KONAMI.length) seq.shift();
+      if (KONAMI.every((v, i) => seq[i] === v)) {
+        confetti({
+          particleCount: 200,
+          spread: 120,
+          origin: { y: 0.6 }
+        });
+        toast({ title: "Konami code unlocked! 🎉", description: "You found the secret!", variant: "default" });
+        seq = [];
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [toast]);
+
+  // Show intro popup on first visit
+  useEffect(() => {
+    const scores = localStorage.getItem("scores");
+    if (!scores) setShowIntro(true);
+  }, []);
+
+  // Import/export logic
+  const handleExport = () => {
+    const keys = ["scores","xp","streak","level","earnedBadges","profile","settings"];
+    const data: Record<string, any> = {};
+    keys.forEach(k => { const v = localStorage.getItem(k); if (v) data[k] = v; });
+    const blob = new Blob([JSON.stringify(data,null,2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "amc-math-mastery-save.json";
+    a.click();
+    URL.revokeObjectURL(url);
+    toast({ title: "Progress exported!", description: "Your data has been saved as a file." });
+  };
+  const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImporting(true);
+    const reader = new FileReader();
+    reader.onload = evt => {
+      try {
+        const json = JSON.parse(evt.target?.result as string);
+        Object.entries(json).forEach(([k,v]) => localStorage.setItem(k, typeof v === "string" ? v : JSON.stringify(v)));
+        window.dispatchEvent(new CustomEvent('dataUpdate'));
+        toast({ title: "Import successful!", description: "Your progress has been restored." });
+      } catch {
+        toast({ title: "Import failed", description: "Invalid file format.", variant: "destructive" });
+      } finally {
+        setImporting(false);
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  // Theme effect (fix lint)
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme");
     // Default to light mode - only use dark mode if explicitly set
     const shouldBeDark = savedTheme === "dark";
-    
     setIsDarkMode(shouldBeDark);
     document.documentElement.classList.toggle("dark", shouldBeDark);
   }, []);
+
 
   const toggleDarkMode = () => {
     const newMode = !isDarkMode;
@@ -205,6 +272,48 @@ const Index = () => {
             </div>
           </div>
         </header>
+
+        {/* Import/Export Buttons */}
+        <div className="flex justify-center gap-2 mb-4">
+          <Button variant="outline" onClick={handleExport}>
+            Export Progress
+          </Button>
+          <Button variant="outline" onClick={() => fileInputRef.current?.click()} disabled={importing}>
+            {importing ? "Importing..." : "Import Progress"}
+          </Button>
+          <input type="file" accept="application/json" ref={fileInputRef} style={{ display: "none" }} onChange={handleImport} />
+        </div>
+
+        {/* Introduction Popup */}
+        {showIntro && (
+          <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center">
+            <div className="bg-white dark:bg-zinc-900 rounded-2xl p-8 max-w-lg w-full shadow-xl relative animate-fade-in">
+              <button className="absolute top-3 right-3 text-xl font-bold text-zinc-400 hover:text-primary" onClick={() => { setShowIntro(false); localStorage.setItem('introSeen','1'); }}>&times;</button>
+              <h2 className="text-2xl font-bold mb-2 text-primary">Welcome to AMC Math Mastery Tracker!</h2>
+              <div className="mb-4 text-muted-foreground">Track your AMC progress, analyze your strengths, and earn badges as you level up your math skills.</div>
+              <ol className="space-y-3 mb-4">
+                <li className="flex items-center gap-3">
+                  <img src="/icons/192x192.png" alt="Test" className="w-10 h-10 rounded shadow" />
+                  <span><b>Enter Tests:</b> Record your answers for AMC 8/10/12 and see instant results.</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <img src="/icons/512x512.png" alt="Analytics" className="w-10 h-10 rounded shadow" />
+                  <span><b>Analyze:</b> Use Analytics to see your progress by topic and question.</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <span className="text-3xl">🏅</span>
+                  <span><b>Earn Badges:</b> Achieve milestones and keep your practice streak alive!</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <span className="text-3xl">📤</span>
+                  <span><b>Export:</b> Save your progress and import it on any device.</span>
+                </li>
+              </ol>
+              <Button className="w-full mt-2" onClick={() => { setShowIntro(false); localStorage.setItem('introSeen','1'); }}>Get Started</Button>
+            </div>
+          </div>
+        )}
+
 
         {/* Homepage Content */}
         <main className="space-y-6">
