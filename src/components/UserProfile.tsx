@@ -129,10 +129,13 @@ export const UserProfile = () => {
                   ))}
                 </div>
               </div>
-            ) : (
-              <div className="text-6xl mb-4">{profile.avatar}</div>
-            )}
+            ) : null}
           </div>
+          {!isEditing && (
+            <div className="flex justify-center mb-2">
+              <span className="text-6xl">{profile.avatar}</span>
+            </div>
+          )}
 
           {/* Username Edit */}
           {isEditing ? (
