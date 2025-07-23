@@ -183,10 +183,7 @@ All colors MUST be HSL.
     color: var(--accent-foreground);
   }
 
-  /* Custom text color for secondary gradient button */
-  .text-gradient-secondary {
-    color: hsl(var(--secondary-foreground));
-  }
+
 
   /* Hover animations */
   .hover-scale {
