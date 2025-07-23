@@ -120,7 +120,7 @@ All colors MUST be HSL.
     --ring: 217 91% 70%;
 
     /* Custom text color for buttons with colored backgrounds */
-    --btn-colored-foreground: 0 0% 0%; /* black */
+    --btn-colored-foreground: 0 0% 100%; /* white */
 
     /* Dark Glass */
     --glass-bg: 217 32% 12% / 0.8;
