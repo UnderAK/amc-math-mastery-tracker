@@ -98,7 +98,6 @@ export const UserProfile = () => {
           style={{ minWidth: 90, alignItems: 'center', display: 'flex' }}
         >
           <span className="text-2xl">{profile.avatar}</span>
-          <User className="w-4 h-4" />
           <span className="truncate max-w-[70px]">{profile.username}</span>
         </Button>
       </DialogTrigger>
