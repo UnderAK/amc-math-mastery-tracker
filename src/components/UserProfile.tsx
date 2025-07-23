@@ -112,21 +112,25 @@ export const UserProfile = () => {
         <div className="space-y-6">
           {/* Avatar Display/Selection */}
           <div className="text-center">
-            <div className="text-6xl mb-4">{isEditing ? tempAvatar : profile.avatar}</div>
-            {isEditing && (
-              <div className="grid grid-cols-6 gap-2 mb-4">
-                {AVATAR_OPTIONS.map((avatar) => (
-                  <button
-                    key={avatar}
-                    onClick={() => setTempAvatar(avatar)}
-                    className={`text-2xl p-2 rounded-lg hover:bg-secondary transition-colors ${
-                      tempAvatar === avatar ? "bg-primary/20 ring-2 ring-primary" : ""
-                    }`}
-                  >
-                    {avatar}
-                  </button>
-                ))}
+            {isEditing ? (
+              <div>
+                <div className="text-6xl mb-4">{tempAvatar}</div>
+                <div className="grid grid-cols-6 gap-2 mb-4">
+                  {AVATAR_OPTIONS.map((avatar) => (
+                    <button
+                      key={avatar}
+                      onClick={() => setTempAvatar(avatar)}
+                      className={`text-2xl p-2 rounded-lg hover:bg-secondary transition-colors ${
+                        tempAvatar === avatar ? "bg-primary/20 ring-2 ring-primary" : ""
+                      }`}
+                    >
+                      {avatar}
+                    </button>
+                  ))}
+                </div>
               </div>
+            ) : (
+              <div className="text-6xl mb-4">{profile.avatar}</div>
             )}
           </div>
 
