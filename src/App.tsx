@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import Analytics from "./pages/Analytics";
 import TestEntryPage from "./pages/TestEntryPage"; // Import TestEntryPage
 import NotFound from "./pages/NotFound";
+import { Analytics as VercelAnalytics } from "@vercel/analytics/react";
 
 const queryClient = new QueryClient();
 
@@ -89,6 +90,7 @@ const App = () => {
     </BrowserRouter>
     {/* Konami code toast */}
     <KonamiToast />
+    <VercelAnalytics />
   </TooltipProvider>
 </QueryClientProvider>
   );
