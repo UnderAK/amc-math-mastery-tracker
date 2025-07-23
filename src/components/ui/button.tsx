@@ -16,12 +16,12 @@ const buttonVariants = cva(
         outline:
           "border border-btn-border bg-transparent backdrop-blur-md text-btn-foreground hover:bg-btn-background-hover",
         secondary:
-          "bg-btn-primary-background text-secondary-foreground border border-transparent backdrop-blur-lg shadow-inner-blue-sm hover:bg-btn-primary-background-hover",
+          "bg-btn-primary-background border border-transparent backdrop-blur-lg shadow-inner-blue-sm hover:bg-btn-primary-background-hover text-btn-colored-foreground",
         ghost: "hover:bg-btn-background-hover text-btn-foreground",
         link: "text-primary underline-offset-4 hover:underline",
         gradient: "text-primary-foreground dark:text-secondary-foreground border-transparent bg-transparent",
-        "gradient-secondary": "gradient-secondary text-secondary-foreground",
-        "gradient-primary": "gradient-primary text-white",
+        "gradient-secondary": "gradient-secondary text-btn-colored-foreground",
+        "gradient-primary": "gradient-primary text-btn-colored-foreground",
       },
       size: {
         default: "h-10 px-4 py-2",
