@@ -407,7 +407,7 @@ export const TestEntryForm = () => {
       <div className="space-y-4">
         {/* Test Type Selection */}
         <Select value={testType} onValueChange={setTestType}>
-          <SelectTrigger>
+          <SelectTrigger aria-label="Select AMC test type">
             <SelectValue placeholder="Select test type" />
           </SelectTrigger>
           <SelectContent>
