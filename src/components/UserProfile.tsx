@@ -26,7 +26,6 @@ export const UserProfile = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [tempUsername, setTempUsername] = useState("");
   const [tempAvatar, setTempAvatar] = useState("");
-  const [highContrast, setHighContrast] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -89,16 +88,12 @@ export const UserProfile = () => {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button
-          variant="outline"
-          size="sm"
-          className="gap-2 px-3 py-2 rounded-lg shadow focus:ring-2 focus:ring-primary focus:outline-none transition-all text-base font-semibold"
-          style={{ minWidth: 90, alignItems: 'center', display: 'flex' }}
-        >
-          <span className="text-2xl">{profile.avatar}</span>
-          <span className="truncate max-w-[70px]">{profile.username}</span>
-        </Button>
-      </DialogTrigger>
+  <Button variant="outline" size="sm" className="gap-2 hover-scale">
+    <User className="w-4 h-4" />
+    {profile.username}
+  </Button>
+</DialogTrigger>
+
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -110,53 +105,10 @@ export const UserProfile = () => {
         <div className="space-y-6">
           {/* Avatar Display/Selection */}
           <div className="text-center">
-            {isEditing ? (
-              <div>
-                <div className="text-6xl mb-4">{tempAvatar}</div>
-                <div className="grid grid-cols-6 gap-2 mb-4">
-                  {AVATAR_OPTIONS.map((avatar) => (
-                    <button
-                      key={avatar}
-                      onClick={() => setTempAvatar(avatar)}
-                      className={`text-2xl p-2 rounded-lg hover:bg-secondary transition-colors ${
-                        tempAvatar === avatar ? "bg-primary/20 ring-2 ring-primary" : ""
-                      }`}
-                    >
-                      {avatar}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ) : null}
-          </div>
           {!isEditing && (
-            <div className="flex justify-center mb-2">
-              <span className="text-6xl">{profile.avatar}</span>
-            </div>
-          )}
+  <div className="text-6xl mb-4">{profile.avatar}</div>
+)}
 
-          {/* Username Edit */}
-          {isEditing ? (
-            <div className="space-y-2">
-              <input
-                className="input input-bordered w-full"
-                value={tempUsername}
-                onChange={e => setTempUsername(e.target.value)}
-                maxLength={24}
-                minLength={2}
-                placeholder="Enter username"
-                autoFocus
-              />
-
-            </div>
-          ) : (
-            <div className="text-lg font-semibold mb-2">{profile.username}</div>
-          )}
-
-          {/* Avatar Display/Selection */}
-          <div className="text-center">
-            <div className="text-6xl mb-4">{isEditing ? tempAvatar : profile.avatar}</div>
-            
             {isEditing && (
               <div className="grid grid-cols-6 gap-2 mb-4">
                 {AVATAR_OPTIONS.map((avatar) => (
