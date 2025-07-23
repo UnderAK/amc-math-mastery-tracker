@@ -60,7 +60,23 @@ export default {
 				card: {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
-				}
+				},
+        btn: {
+          background: 'hsl(var(--btn-bg))',
+          'background-hover': 'hsl(var(--btn-bg-hover))',
+          foreground: 'hsl(var(--btn-text))',
+          border: 'hsl(var(--btn-border))',
+          primary: {
+            background: 'hsl(var(--btn-primary-bg))',
+            'background-hover': 'hsl(var(--btn-primary-bg-hover))',
+            foreground: 'hsl(var(--btn-primary-text))',
+          },
+          destructive: {
+            background: 'hsl(var(--btn-destructive-bg))',
+            'background-hover': 'hsl(var(--btn-destructive-bg-hover))',
+            foreground: 'hsl(var(--btn-destructive-text))',
+          }
+        }
 			},
 			fontFamily: {
 				'sans': ['Inter', 'system-ui', 'sans-serif'],

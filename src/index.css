@@ -60,6 +60,20 @@ All colors MUST be HSL.
     /* Animations */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-bounce: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+    /* Custom Button Vars */
+    --btn-bg: 240 10% 98%;
+    --btn-bg-hover: 240 10% 95%;
+    --btn-text: 217 32% 17%;
+    --btn-border: 217 50% 88%;
+
+    --btn-primary-bg: 217 91% 60%;
+    --btn-primary-bg-hover: 217 91% 55%;
+    --btn-primary-text: 0 0% 100%;
+
+    --btn-destructive-bg: 0 84% 60%;
+    --btn-destructive-bg-hover: 0 84% 55%;
+    --btn-destructive-text: 0 0% 100%;
   }
 
   .dark {
@@ -105,6 +119,20 @@ All colors MUST be HSL.
     /* Dark Shadows */
     --shadow-glow: 0 0 40px hsl(217 91% 70% / 0.4);
     --shadow-glass: 0 8px 32px hsl(0 0% 0% / 0.3);
+
+    /* Custom Button Vars */
+    --btn-bg: 217 32% 15%;
+    --btn-bg-hover: 217 32% 20%;
+    --btn-text: 217 50% 95%;
+    --btn-border: 217 32% 25%;
+
+    --btn-primary-bg: 217 91% 70%;
+    --btn-primary-bg-hover: 217 91% 65%;
+    --btn-primary-text: 217 32% 8%;
+
+    --btn-destructive-bg: 0 84% 65%;
+    --btn-destructive-bg-hover: 0 84% 60%;
+    --btn-destructive-text: 217 32% 8%;
   }
 }
 

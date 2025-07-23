@@ -10,14 +10,14 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-white/10 text-white border border-white/20 backdrop-blur-lg shadow-inner-white-sm hover:bg-white/20",
+          "bg-btn-background text-btn-foreground border border-btn-border backdrop-blur-lg shadow-inner-white-sm hover:bg-btn-background-hover",
         destructive:
-          "bg-red-500/10 text-red-400 border border-red-500/30 backdrop-blur-lg shadow-inner-red-sm hover:bg-red-500/20 hover:text-red-300",
+          "bg-btn-destructive-background text-btn-destructive-foreground border border-transparent backdrop-blur-lg shadow-inner-red-sm hover:bg-btn-destructive-background-hover",
         outline:
-          "border border-input bg-background/40 text-foreground backdrop-blur-md shadow-inner-white-sm hover:bg-accent hover:text-accent-foreground",
+          "border border-btn-border bg-transparent backdrop-blur-md text-btn-foreground hover:bg-btn-background-hover",
         secondary:
-          "bg-blue-500/10 text-blue-400 border border-blue-500/30 backdrop-blur-lg shadow-inner-blue-sm hover:bg-blue-500/20 hover:text-blue-300",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
+          "bg-btn-primary-background text-btn-primary-foreground border border-transparent backdrop-blur-lg shadow-inner-blue-sm hover:bg-btn-primary-background-hover",
+        ghost: "hover:bg-btn-background-hover text-btn-foreground",
         link: "text-primary underline-offset-4 hover:underline",
       },
       size: {
@@ -32,7 +32,7 @@ const buttonVariants = cva(
       size: "default",
     },
   }
-)
+);
 
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,

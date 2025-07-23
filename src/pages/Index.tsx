@@ -407,7 +407,7 @@ const Index = () => {
                 <p className="text-muted-foreground">The Konami code is a classic gaming easter egg: Up, Up, Down, Down, Left, Right, Left, Right, B, A. Try entering it on the homepage for a fun surprise!</p>
               </Accordion>
               <Accordion title="Who made this app?">
-                <p className="text-muted-foreground">This app was created by Aarav Tibrewal and contributors, inspired by a love of math competitions. If you have feedback or ideas, check the GitHub repository for ways to contribute or get in touch!</p>
+                <p className="text-muted-foreground">This app was created by Aarav and contributors, inspired by a love of math competitions. If you have feedback or ideas, check the GitHub repository for ways to contribute or get in touch!</p>
               </Accordion>
             </div>
           </Accordion>
