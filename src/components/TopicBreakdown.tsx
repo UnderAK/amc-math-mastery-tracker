@@ -58,19 +58,14 @@ export const TopicBreakdown = ({ filterType = "all" }: TopicBreakdownProps) => {
         if (score.questionTopics && score.questionCorrectness) {
             console.log('DEBUG TopicBreakdown: Using new data structure');
             for (let i = 1; i <= 25; i++) {
-                const topic = score.questionTopics[i] || "Other"; // Assign 'Other' if topic is missing
+                const rawTopic = score.questionTopics[i] || "Other";
+                const topic = possibleTopics.includes(rawTopic) ? rawTopic : "Other"; // Only allow standard topics
                 const isCorrect = score.questionCorrectness[i];
                 
                 if (i <= 5) { // Only log first 5 questions to avoid spam
                   console.log(`DEBUG TopicBreakdown: Q${i} - Topic: ${topic}, Correct: ${isCorrect}`);
                 }
 
-                // Ensure topic exists in initialized data or add it
-                if (!topicData[topic]) {
-                     topicData[topic] = { correct: 0, total: 0, mistakes: 0 };
-                     console.warn(`Dynamically adding topic: ${topic}`);
-                }
-                
                 topicData[topic].total++;
                 if (isCorrect) {
                     topicData[topic].correct++;
@@ -83,15 +78,10 @@ export const TopicBreakdown = ({ filterType = "all" }: TopicBreakdownProps) => {
             // This approach is less accurate for total attempts per topic as it only counts incorrect questions.
             score.incorrectQuestions.forEach(qNum => {
                  // Attempt to get a topic for the incorrect question (might be a rough approximation)
-                 const topic = score.topicMistakes?.[getDefaultTopicForQuestion(qNum)] !== undefined 
-                                ? getDefaultTopicForQuestion(qNum) : `Question ${qNum} Topic (Approx.)`; // Fallback
+                 const rawTopic = score.topicMistakes?.[getDefaultTopicForQuestion(qNum)] !== undefined 
+                                ? getDefaultTopicForQuestion(qNum) : `Question ${qNum} Topic (Approx.)`;
+                const topic = possibleTopics.includes(rawTopic) ? rawTopic : "Other";
                 
-                // Ensure topic exists in initialized data or add it
-                if (!topicData[topic]) {
-                     topicData[topic] = { correct: 0, total: 0, mistakes: 0 };
-                     console.warn(`Dynamically adding topic (from old data): ${topic}`);
-                }
-
                 topicData[topic].mistakes++;
                  // We cannot accurately determine total attempts per topic for older data
                  // Skipping attempt count for older data to avoid misleading totals
@@ -102,23 +92,19 @@ export const TopicBreakdown = ({ filterType = "all" }: TopicBreakdownProps) => {
                // Handle scores with completely missing topic data by assigning them to 'Other'
                for (let i = 1; i <= 25; i++) {
                    const topic = "Other";
-                    if (!topicData[topic]) {
-                      topicData[topic] = { correct: 0, total: 0, mistakes: 0 };
-                    }
                     topicData[topic].total++;
                     // We don't know correctness, so we can't increment correct or mistakes based on question number
                }
         }
       });
 
-      // Calculate stats
-      const stats: TopicStats[] = Object.entries(topicData).map(([topic, data]) => ({
-            topic,
-            correct: data.correct,
-            total: data.total,
-            // Calculate accuracy only if total attempts > 0, otherwise 0%
-            accuracy: data.total > 0 ? Math.round(((data.correct) / data.total) * 100) : 0,
-            mistakes: data.mistakes
+      // Only use the five standard topics for stats
+      const stats: TopicStats[] = possibleTopics.map(topic => ({
+        topic,
+        correct: topicData[topic].correct,
+        total: topicData[topic].total,
+        accuracy: topicData[topic].total > 0 ? Math.round(((topicData[topic].correct) / topicData[topic].total) * 100) : 0,
+        mistakes: topicData[topic].mistakes
       }));
 
       // Filter out topics with no attempts and no mistakes
