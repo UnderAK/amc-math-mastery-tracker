@@ -50,6 +50,13 @@ export const TestHistoryTable = ({ filterType = "all" }: TestHistoryTableProps) 
     return typeMatch && labelMatch;
   });
 
+  const getScoreColor = (score: number) => {
+    if (score >= 23) return "text-green-600 font-semibold";
+    if (score >= 20) return "text-blue-600 font-medium";
+    if (score >= 15) return "text-yellow-600";
+    return "text-red-600";
+  };
+
   if (scores.length === 0) {
     return (
       <section className="glass p-6 rounded-2xl shadow-xl">
@@ -113,29 +120,23 @@ export const TestHistoryTable = ({ filterType = "all" }: TestHistoryTableProps) 
             </thead>
             <tbody className="divide-y divide-border">
               {filteredScores.map((test, index) => {
-                const percent = Math.round((test.score / 25) * 100);
-                const getScoreColor = (score: number) => {
-                  if (score >= 23) return "text-green-600 font-semibold";
-                  if (score >= 20) return "text-blue-600 font-medium";
-                  if (score >= 15) return "text-yellow-600";
-                  return "text-red-600";
-                };
+                const totalQuestions = 
+                  (test.questionCorrectness && Object.keys(test.questionCorrectness).length > 0) 
+                  ? Object.keys(test.questionCorrectness).length 
+                  : (test.key && test.key.length > 0) ? test.key.length : 25;
 
-                // Calculate incorrect questions from either legacy format or questionCorrectness
+                const percent = totalQuestions > 0 ? Math.round((test.score / totalQuestions) * 100) : 0;
+                
                 let incorrectQuestions: number[] = [];
-                
-                if (test.incorrectQuestions && test.incorrectQuestions.length > 0) {
-                  // Use legacy format if available
-                  incorrectQuestions = test.incorrectQuestions;
-                } else if (test.questionCorrectness) {
-                  // Extract incorrect questions from questionCorrectness object
+                if (test.questionCorrectness) {
                   incorrectQuestions = Object.entries(test.questionCorrectness)
-                    .filter(([_, isCorrect]) => !isCorrect)
-                    .map(([questionNum, _]) => parseInt(questionNum))
-                    .sort((a, b) => a - b);
+                    .filter(([, isCorrect]) => !isCorrect)
+                    .map(([qNum]) => parseInt(qNum));
+                } else if (test.input && test.key) {
+                  incorrectQuestions = Array.from({ length: totalQuestions }, (_, i) => i + 1)
+                    .filter((qNum, i) => test.input[i] && test.key[i] && test.input[i] !== test.key[i]);
                 }
-                
-                const incorrectCount = incorrectQuestions.length || (25 - test.score);
+                const incorrectCount = incorrectQuestions.length;
 
                 return (
                   <tr 
@@ -145,7 +146,7 @@ export const TestHistoryTable = ({ filterType = "all" }: TestHistoryTableProps) 
                   >
                     <td className="px-4 py-3">{test.date}</td>
                     <td className={`px-4 py-3 ${getScoreColor(test.score)}`}>
-                      {test.score} / 25
+                      {test.score} / {totalQuestions}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">

@@ -20,9 +20,18 @@ export const BadgesPanel = () => {
       const streak = parseInt(localStorage.getItem("streak") || "0");
       const xp = parseInt(localStorage.getItem("xp") || "0");
       const dailyBonus = JSON.parse(localStorage.getItem("dailyBonus") || '{"streak": 0, "totalBonusClaimed": 0}');
+
+      const scoresWithData = scores.map(s => {
+        const totalQuestions = 
+          (s.questionCorrectness && Object.keys(s.questionCorrectness).length > 0) 
+          ? Object.keys(s.questionCorrectness).length 
+          : (s.key && s.key.length > 0) ? s.key.length : 25;
+        const percentage = totalQuestions > 0 ? (s.score / totalQuestions) * 100 : 0;
+        return { ...s, totalQuestions, percentage };
+      });
       
-      const latestScore = scores.length > 0 ? scores[scores.length - 1].score : 0;
-      const bestScore = scores.length > 0 ? Math.max(...scores.map(s => s.score)) : 0;
+      const latestScoreData = scoresWithData.length > 0 ? scoresWithData[scoresWithData.length - 1] : null;
+      const bestScoreData = scoresWithData.length > 0 ? Math.max(...scoresWithData.map(s => s.percentage)) : 0;
       const totalTests = scores.length;
 
       const allBadges: Badge[] = [
@@ -36,20 +45,20 @@ export const BadgesPanel = () => {
         {
           emoji: "🎯",
           title: "Sharp Shooter",
-          description: "Score 15+ on any test",
-          earned: bestScore >= 15
+          description: "Score 60% or more on any test",
+          earned: bestScoreData >= 60
         },
         {
           emoji: "🧠",
           title: "High Achiever",
-          description: "Score 20+ on any test",
-          earned: bestScore >= 20
+          description: "Score 80% or more on any test",
+          earned: bestScoreData >= 80
         },
         {
           emoji: "💯",
           title: "Perfect Score",
-          description: "Score 25/25 on any test",
-          earned: bestScore === 25
+          description: "Get a perfect 100% score on any test",
+          earned: bestScoreData === 100
         },
 
         // Streak badges
@@ -121,19 +130,19 @@ export const BadgesPanel = () => {
           emoji: "🌟",
           title: "Rising Star",
           description: "Reach Level 10",
-          earned: Math.floor(xp / 100) + 1 >= 10
+          earned: Math.floor(xp / 250) + 1 >= 10
         },
         {
           emoji: "🚀",
           title: "Math Champion",
           description: "Reach Level 25",
-          earned: Math.floor(xp / 100) + 1 >= 25
+          earned: Math.floor(xp / 250) + 1 >= 25
         },
         {
           emoji: "👑",
           title: "Math Royalty",
           description: "Reach Level 50",
-          earned: Math.floor(xp / 100) + 1 >= 50
+          earned: Math.floor(xp / 250) + 1 >= 50
         },
 
         // Daily bonus badges
@@ -210,18 +219,19 @@ export const BadgesPanel = () => {
       ];
 
       // Check for improvement badges
-      if (scores.length > 1) {
-        const prevScore = scores[scores.length - 2].score;
-        if (latestScore - prevScore >= 5) {
+      if (scoresWithData.length > 1) {
+        const latest = scoresWithData[scoresWithData.length - 1];
+        const previous = scoresWithData[scoresWithData.length - 2];
+        if (latest.percentage - previous.percentage >= 20) { // 5 points out of 25 is 20%
           allBadges.push({
             emoji: "📈",
             title: "Big Improvement",
-            description: "Improve by 5+ points",
+            description: "Improve by 20% or more",
             earned: true
           });
         }
         
-        if (latestScore === prevScore && latestScore > 0) {
+        if (Math.abs(latest.percentage - previous.percentage) < 1 && latest.score > 0) {
           allBadges.push({
             emoji: "🎯",
             title: "Consistent",
@@ -232,13 +242,17 @@ export const BadgesPanel = () => {
       }
 
       // Check for new personal best
-      if (latestScore === bestScore && latestScore > 0 && scores.length > 1) {
-        allBadges.push({
-          emoji: "⏫",
-          title: "New Personal Best",
-          description: "Beat your previous best score",
-          earned: true
-        });
+      if (latestScoreData && scoresWithData.length > 1) {
+        const previousScores = scoresWithData.slice(0, -1);
+        const previousBest = previousScores.length > 0 ? Math.max(...previousScores.map(s => s.percentage)) : 0;
+        if (latestScoreData.percentage > previousBest) {
+          allBadges.push({
+            emoji: "⏫",
+            title: "New Personal Best",
+            description: `Beat your previous best score with ${latestScoreData.percentage.toFixed(0)}%`,
+            earned: true
+          });
+        }
       }
 
       setBadges(allBadges);

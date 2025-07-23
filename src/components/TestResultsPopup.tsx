@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 
 interface TestResult {
   score: number;
+  totalQuestions: number;
   incorrectQuestions: number[];
   testType: string;
   year: number;
@@ -15,8 +16,7 @@ interface TestResult {
     title: string;
     description: string;
   }>;
-  averageScore?: number;
-  personalBest?: number;
+  averagePercentage?: number;
   isPersonalBest?: boolean;
 }
 
@@ -29,7 +29,7 @@ interface TestResultsPopupProps {
 export const TestResultsPopup = ({ result, isOpen, onClose }: TestResultsPopupProps) => {
   if (!result) return null;
 
-  const percentage = Math.round((result.score / 25) * 100);
+  const percentage = result.totalQuestions > 0 ? Math.round((result.score / result.totalQuestions) * 100) : 0;
   
   const getScoreColor = () => {
     if (percentage >= 90) return "text-green-600";
@@ -49,11 +49,11 @@ export const TestResultsPopup = ({ result, isOpen, onClose }: TestResultsPopupPr
 
   const getPerformanceMessage = () => {
     if (result.isPersonalBest) return "New Personal Best! 🎉";
-    if (result.averageScore && result.score > result.averageScore) {
-      return `Above your average by ${(result.score - result.averageScore).toFixed(1)} points! 📈`;
+    if (result.averagePercentage && percentage > result.averagePercentage) {
+      return `Above your average of ${result.averagePercentage.toFixed(1)}%! 📈`;
     }
-    if (result.averageScore && result.score < result.averageScore) {
-      return `Below your average by ${(result.averageScore - result.score).toFixed(1)} points`;
+    if (result.averagePercentage && percentage < result.averagePercentage) {
+      return `Below your average of ${result.averagePercentage.toFixed(1)}%`;
     }
     return "Keep practicing to improve! 💪";
   };
@@ -74,7 +74,7 @@ export const TestResultsPopup = ({ result, isOpen, onClose }: TestResultsPopupPr
           {/* Score Display */}
           <div className="text-center space-y-2">
             <div className={`text-4xl font-bold ${getScoreColor()}`}>
-              {result.score}/25
+              {result.score}/{result.totalQuestions}
             </div>
             <div className={`text-2xl font-semibold ${getScoreColor()}`}>
               {percentage}%
@@ -111,7 +111,7 @@ export const TestResultsPopup = ({ result, isOpen, onClose }: TestResultsPopupPr
           )}
 
           {/* Perfect Score */}
-          {result.score === 25 && (
+          {result.score === result.totalQuestions && (
             <div className="text-center p-4 bg-gradient-to-r from-yellow-100 to-yellow-200 dark:from-yellow-900/20 dark:to-yellow-800/20 rounded-lg">
               <div className="text-2xl mb-2">🎯</div>
               <h3 className="font-bold text-yellow-800 dark:text-yellow-200">
@@ -151,18 +151,18 @@ export const TestResultsPopup = ({ result, isOpen, onClose }: TestResultsPopupPr
           )}
 
           {/* Stats Comparison */}
-          {result.averageScore && (
+          {result.averagePercentage && (
             <div className="grid grid-cols-2 gap-4 p-4 bg-muted/30 rounded-lg">
               <div className="text-center">
                 <div className="text-sm text-muted-foreground">Your Average</div>
                 <div className="text-lg font-semibold">
-                  {result.averageScore.toFixed(1)}/25
+                  {result.averagePercentage.toFixed(1)}%
                 </div>
               </div>
               <div className="text-center">
                 <div className="text-sm text-muted-foreground">This Test</div>
                 <div className={`text-lg font-semibold ${getScoreColor()}`}>
-                  {result.score}/25
+                  {percentage}%
                 </div>
               </div>
             </div>

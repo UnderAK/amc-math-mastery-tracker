@@ -65,41 +65,13 @@ export const TopicInputPopup: React.FC<TopicInputPopupProps> = ({
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     } else {
       // Last question, save all topics and close
-      // Fill any missing topics with "Other"
-      const filledTopics: { [questionNum: number]: string } = {};
-      questionsToTopic.forEach(q => {
-        filledTopics[q] = topics[q] || "Other";
-      });
-      onSaveTopics(filledTopics);
-
+      onSaveTopics(topics);
       onClose();
     }
   };
 
   const handleSaveAndNext = () => {
-    console.log('DEBUG: handleSaveAndNext - Current question:', currentQuestionNumber);
-    console.log('DEBUG: handleSaveAndNext - Current topic:', topics[currentQuestionNumber]);
-    
-    // Create updated topics - ensure current question has a topic
-    const updatedTopics = { ...topics };
-    const currentTopic = topics[currentQuestionNumber];
-    
-    // If no topic selected for current question, set to "Other"
-    if (!currentTopic || currentTopic === '' || currentTopic === undefined || currentTopic === null) {
-      console.log('DEBUG: handleSaveAndNext - Setting current question to Other');
-      updatedTopics[currentQuestionNumber] = "Other";
-    }
-    
-    console.log('DEBUG: handleSaveAndNext - Updated topics:', updatedTopics);
-    
-    // Update state immediately and synchronously
-    setTopics(updatedTopics);
-    
-    // Move to next question after a brief delay to ensure state update
-    setTimeout(() => {
-      console.log('DEBUG: handleSaveAndNext - Moving to next question');
-      moveToNextQuestion();
-    }, 50); // Longer timeout for reliability
+    moveToNextQuestion();
   };
 
   const handleSkip = () => {
@@ -108,29 +80,9 @@ export const TopicInputPopup: React.FC<TopicInputPopupProps> = ({
   };
 
   const handleSkipAll = () => {
-    const updatedTopics = { ...topics };
-    
-    // Ensure the current question has a topic if user was on it
-    const topicForCurrentQuestion = topics[currentQuestionNumber];
-    if (topicForCurrentQuestion === undefined || topicForCurrentQuestion === null) {
-      updatedTopics[currentQuestionNumber] = "Other";
-    }
-    
-    // Set all remaining questions (after current) to 'Other', preserving any existing selections
-    for (let i = currentQuestionIndex + 1; i < totalQuestions; i++) {
-      const questionNum = questionsToTopic[i];
-      // Only set to "Other" if no topic has been selected yet (truly missing)
-      if (updatedTopics[questionNum] === undefined || updatedTopics[questionNum] === null) {
-        updatedTopics[questionNum] = "Other";
-      }
-    }
-    
-    setTopics(updatedTopics);
-    // Use a timeout to allow state to update before saving and closing
-    setTimeout(() => {
-        onSaveTopics(updatedTopics);
-        onClose();
-    }, 0);
+    // All questions already have a default topic, so just save the current state and close.
+    onSaveTopics(topics);
+    onClose();
   };
 
   const handleSaveAllAndClose = () => {

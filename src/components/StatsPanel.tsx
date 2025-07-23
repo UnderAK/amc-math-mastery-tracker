@@ -34,7 +34,16 @@ export const StatsPanel = ({ filterType = "all" }: StatsPanelProps) => {
         ? allScores 
         : allScores.filter(s => s.testType === internalFilter);
       
-      if (filteredScores.length === 0) {
+      const scoresWithData = filteredScores.map(s => {
+        const totalQuestions = 
+          (s.questionCorrectness && Object.keys(s.questionCorrectness).length > 0) 
+          ? Object.keys(s.questionCorrectness).length 
+          : (s.key && s.key.length > 0) ? s.key.length : 25;
+        const percentage = totalQuestions > 0 ? (s.score / totalQuestions) * 100 : 0;
+        return { ...s, totalQuestions, percentage };
+      });
+
+      if (scoresWithData.length === 0) {
         setStats({
           total: 0,
           lastDate: "—",
@@ -48,46 +57,46 @@ export const StatsPanel = ({ filterType = "all" }: StatsPanelProps) => {
         return;
       }
 
-      const total = filteredScores.length;
-      const scoreValues = filteredScores.map(s => s.score);
-      const best = Math.max(...scoreValues);
-      const worst = Math.min(...scoreValues);
-      const average = scoreValues.reduce((acc, s) => acc + s, 0) / scoreValues.length;
-      const lastDate = filteredScores[filteredScores.length - 1].date;
+      const total = scoresWithData.length;
+      const lastDate = scoresWithData[scoresWithData.length - 1].date;
+      const percentages = scoresWithData.map(s => s.percentage);
       
-      // Calculate improvement trend (last 3 vs first 3 tests)
+      const best = Math.max(...percentages);
+      const worst = Math.min(...percentages);
+      const average = percentages.reduce((acc, p) => acc + p, 0) / percentages.length;
+
       let improvement = "—";
-      if (filteredScores.length >= 6) {
-        const firstThree = scoreValues.slice(0, 3).reduce((a, b) => a + b, 0) / 3;
-        const lastThree = scoreValues.slice(-3).reduce((a, b) => a + b, 0) / 3;
+      if (percentages.length >= 6) {
+        const firstThree = percentages.slice(0, 3).reduce((a, b) => a + b, 0) / 3;
+        const lastThree = percentages.slice(-3).reduce((a, b) => a + b, 0) / 3;
         const improvementValue = lastThree - firstThree;
-        improvement = improvementValue > 0 ? `+${improvementValue.toFixed(1)}` : improvementValue.toFixed(1);
+        improvement = `${improvementValue > 0 ? '+' : ''}${improvementValue.toFixed(1)}%`;
       }
-      
-      // Calculate consistency (standard deviation)
+
       let consistency = "—";
-      if (filteredScores.length >= 3) {
-        const variance = scoreValues.reduce((acc, score) => acc + Math.pow(score - average, 2), 0) / scoreValues.length;
+      if (percentages.length >= 3) {
+        const mean = average;
+        const variance = percentages.reduce((acc, p) => acc + Math.pow(p - mean, 2), 0) / percentages.length;
         const stdDev = Math.sqrt(variance);
-        const consistencyPercent = Math.max(0, 100 - (stdDev / average) * 100);
+        // Lower std dev is better. We can represent this on a 0-100 scale.
+        const consistencyPercent = Math.max(0, 100 - (stdDev / 25) * 100); // Assuming 25% is a high std dev
         consistency = `${consistencyPercent.toFixed(0)}%`;
       }
-      
-      // Calculate recent average (last 5 tests)
+
       let recentAverage = "—";
-      if (filteredScores.length >= 3) {
-        const recentTests = Math.min(5, filteredScores.length);
-        const recentScores = scoreValues.slice(-recentTests);
+      if (percentages.length >= 3) {
+        const recentTests = Math.min(5, percentages.length);
+        const recentScores = percentages.slice(-recentTests);
         const recentAvg = recentScores.reduce((a, b) => a + b, 0) / recentScores.length;
-        recentAverage = recentAvg.toFixed(1);
+        recentAverage = `${recentAvg.toFixed(1)}%`;
       }
 
       setStats({
         total,
         lastDate,
-        average: average.toFixed(1),
-        best: best.toString(),
-        worst: worst.toString(),
+        average: `${average.toFixed(1)}%`,
+        best: `${best.toFixed(1)}%`,
+        worst: `${worst.toFixed(1)}%`,
         improvement,
         consistency,
         recentAverage

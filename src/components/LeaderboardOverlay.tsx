@@ -13,6 +13,7 @@ interface LeaderEntry {
   testsTaken: number;
   averageScore: number;
   streak: number;
+  bestScoreTotalQuestions: number;
 }
 
 interface LeaderboardOverlayProps {
@@ -31,26 +32,47 @@ export const LeaderboardOverlay = ({ isOpen, onClose }: LeaderboardOverlayProps)
     const xp = parseInt(localStorage.getItem("xp") || "0");
     const streak = parseInt(localStorage.getItem("streak") || "0");
     
+    let bestScore = 0;
+    let bestScoreTotalQuestions = 25;
+    if (scores.length > 0) {
+      const bestScoreTest = scores.reduce((prev, current) => (prev.score > current.score) ? prev : current);
+      bestScore = bestScoreTest.score;
+      if (bestScoreTest.questionCorrectness && Object.keys(bestScoreTest.questionCorrectness).length > 0) {
+        bestScoreTotalQuestions = Object.keys(bestScoreTest.questionCorrectness).length;
+      }
+    }
+
+    const totalScores = scores.reduce((sum, score) => sum + score.score, 0);
+    const totalQuestions = scores.reduce((sum, score) => {
+      if (score.questionCorrectness && Object.keys(score.questionCorrectness).length > 0) {
+        return sum + Object.keys(score.questionCorrectness).length;
+      }
+      return sum + 25; // fallback for old data
+    }, 0);
+
+    const averageScore = scores.length > 0 ? totalScores / scores.length : 0;
+
     const currentUser: LeaderEntry = {
       name: "You",
-      score: scores.length > 0 ? Math.max(...scores.map(s => s.score)) : 0,
+      score: bestScore,
       xp,
-      level: Math.floor(xp / 100) + 1,
+      level: Math.floor(xp / 250) + 1,
       testsTaken: scores.length,
-      averageScore: scores.length > 0 ? scores.reduce((acc, s) => acc + s.score, 0) / scores.length : 0,
-      streak
+      averageScore: averageScore,
+      streak,
+      bestScoreTotalQuestions: bestScoreTotalQuestions
     };
 
     // Generate mock competitors
     const mockUsers: LeaderEntry[] = [
-      { name: "MathWiz2024", score: 25, xp: 2450, level: 25, testsTaken: 42, averageScore: 22.3, streak: 15 },
-      { name: "AlgebraKing", score: 24, xp: 1890, level: 19, testsTaken: 38, averageScore: 21.8, streak: 8 },
-      { name: "GeometryQueen", score: 23, xp: 1650, level: 17, testsTaken: 35, averageScore: 20.9, streak: 12 },
-      { name: "CalculusNinja", score: 23, xp: 1420, level: 15, testsTaken: 29, averageScore: 20.1, streak: 5 },
-      { name: "NumberCruncher", score: 22, xp: 1200, level: 13, testsTaken: 26, averageScore: 19.5, streak: 7 },
-      { name: "MathMaster", score: 22, xp: 980, level: 10, testsTaken: 22, averageScore: 18.8, streak: 3 },
-      { name: "ProblemSolver", score: 21, xp: 750, level: 8, testsTaken: 18, averageScore: 17.9, streak: 4 },
-      { name: "Mathlete2025", score: 20, xp: 580, level: 6, testsTaken: 15, averageScore: 16.2, streak: 2 },
+      { name: "MathWiz2024", score: 25, xp: 2450, level: 25, testsTaken: 42, averageScore: 22.3, streak: 15, bestScoreTotalQuestions: 25 },
+      { name: "AlgebraKing", score: 24, xp: 1890, level: 19, testsTaken: 38, averageScore: 21.8, streak: 8, bestScoreTotalQuestions: 25 },
+      { name: "GeometryQueen", score: 23, xp: 1650, level: 17, testsTaken: 35, averageScore: 20.9, streak: 12, bestScoreTotalQuestions: 25 },
+      { name: "CalculusNinja", score: 23, xp: 1420, level: 15, testsTaken: 29, averageScore: 20.1, streak: 5, bestScoreTotalQuestions: 25 },
+      { name: "NumberCruncher", score: 22, xp: 1200, level: 13, testsTaken: 26, averageScore: 19.5, streak: 7, bestScoreTotalQuestions: 25 },
+      { name: "MathMaster", score: 22, xp: 980, level: 10, testsTaken: 22, averageScore: 18.8, streak: 3, bestScoreTotalQuestions: 25 },
+      { name: "ProblemSolver", score: 21, xp: 750, level: 8, testsTaken: 18, averageScore: 17.9, streak: 4, bestScoreTotalQuestions: 25 },
+      { name: "Mathlete2025", score: 20, xp: 580, level: 6, testsTaken: 15, averageScore: 16.2, streak: 2, bestScoreTotalQuestions: 25 },
     ];
 
     // Insert current user and sort by XP
@@ -156,7 +178,7 @@ export const LeaderboardOverlay = ({ isOpen, onClose }: LeaderboardOverlayProps)
                       {user.xp.toLocaleString()} XP
                     </div>
                     <div className="text-sm text-muted-foreground">
-                      Best: {user.score}/25
+                      Best: {user.score}/{user.bestScoreTotalQuestions}
                     </div>
                   </div>
                 </div>

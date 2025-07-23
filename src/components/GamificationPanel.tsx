@@ -26,8 +26,15 @@ export const GamificationPanel = () => {
     let totalQuestions = 0;
     
     scores.forEach(score => {
-      totalCorrect += score.score;
-      totalQuestions += 25; // Each test has 25 questions
+      if (score.questionCorrectness) {
+        // New data structure: most accurate source
+        totalCorrect += Object.values(score.questionCorrectness).filter(c => c).length;
+        totalQuestions += Object.keys(score.questionCorrectness).length;
+      } else {
+        // Fallback for older data
+        totalCorrect += score.score;
+        totalQuestions += 25; // Assume 25 questions for older tests
+      }
     });
 
     setProblemStats({ correct: totalCorrect, total: totalQuestions });

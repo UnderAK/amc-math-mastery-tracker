@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 // TestScore interface is now imported from shared types
 
 interface QuestionStat {
+  question: number;
   correct: number;
   total: number;
   accuracy: number;
@@ -28,32 +29,63 @@ export const QuestionAccuracyTable = ({ filterType = "all" }: QuestionAccuracyTa
             s.testType.replace(/\s+/g, '').toLowerCase() === filterType.replace(/\s+/g, '').toLowerCase()
           );
 
-      const stats: QuestionStat[] = Array(25).fill(null).map(() => ({ 
-        correct: 0, 
-        total: 0, 
-        accuracy: 0 
-      }));
+      const stats: { [key: number]: QuestionStat } = {};
 
       filteredScores.forEach(score => {
-        const input = score.input || "";
-        const key = score.key || "";
-        
-        for (let i = 0; i < 25; i++) {
-  if (typeof key[i] !== "undefined") {
-    stats[i].total++;
-    if (input[i] && input[i] === key[i]) {
-      stats[i].correct++;
-    }
-  }
-}
+        // Modern, preferred data structure
+        if (score.questionCorrectness && Object.keys(score.questionCorrectness).length > 0) {
+          Object.entries(score.questionCorrectness).forEach(([qNumStr, isCorrect]) => {
+            const qNum = parseInt(qNumStr, 10);
+            if (!stats[qNum]) {
+              stats[qNum] = { question: qNum, correct: 0, total: 0, accuracy: 0 };
+            }
+            stats[qNum].total++;
+            if (isCorrect) {
+              stats[qNum].correct++;
+            }
+          });
+        } else { // Fallback for legacy data
+          const input = score.input || "";
+          const key = score.key || "";
+          const questionsInTest = Math.max(input.length, key.length);
+
+          for (let i = 0; i < questionsInTest; i++) {
+            if (typeof key[i] !== "undefined") {
+              const qNum = i + 1;
+              if (!stats[qNum]) {
+                stats[qNum] = { question: qNum, correct: 0, total: 0, accuracy: 0 };
+              }
+              stats[qNum].total++;
+              if (input[i] && input[i] === key[i]) {
+                stats[qNum].correct++;
+              }
+            }
+          }
+        }
       });
 
-      // Calculate accuracy percentages
-      stats.forEach(stat => {
-        stat.accuracy = stat.total > 0 ? Math.round((stat.correct / stat.total) * 100) : 0;
-      });
+      const sortedStats = Object.keys(stats)
+        .map(Number)
+        .sort((a, b) => a - b)
+        .map(qNum => {
+          const stat = stats[qNum];
+          stat.accuracy = stat.total > 0 ? Math.round((stat.correct / stat.total) * 100) : 0;
+          return { ...stat, question: qNum };
+        });
 
-      setQuestionStats(stats);
+      // Create a full array for display, filling in missing questions
+      const maxQuestion = sortedStats.length > 0 ? Math.max(...sortedStats.map(s => s.question)) : 0;
+      const finalStats: QuestionStat[] = [];
+      for (let i = 1; i <= Math.max(25, maxQuestion); i++) {
+        const existingStat = sortedStats.find(s => s.question === i);
+        if (existingStat) {
+          finalStats[i - 1] = existingStat;
+        } else {
+          finalStats[i - 1] = { question: i, correct: 0, total: 0, accuracy: 0 };
+        }
+      }
+
+      setQuestionStats(finalStats);
     };
 
     updateQuestionStats();
@@ -69,13 +101,11 @@ export const QuestionAccuracyTable = ({ filterType = "all" }: QuestionAccuracyTa
 
   const hasData = questionStats.some(stat => stat.total > 0);
   const worstQuestions = questionStats
-    .map((stat, index) => ({ ...stat, question: index + 1 }))
     .filter(stat => stat.total >= 3 && stat.accuracy < 100) // Only questions attempted at least 3 times and not perfect
     .sort((a, b) => a.accuracy - b.accuracy)
     .slice(0, 3);
 
   const bestQuestions = questionStats
-    .map((stat, index) => ({ ...stat, question: index + 1 }))
     .filter(stat => stat.total >= 3)
     .sort((a, b) => b.accuracy - a.accuracy)
     .slice(0, 3);

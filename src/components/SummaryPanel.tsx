@@ -12,6 +12,7 @@ export const SummaryPanel = () => {
   const [streak, setStreak] = useState(0);
   const [totalTests, setTotalTests] = useState(0);
   const [averageScore, setAverageScore] = useState(0);
+  const [averageTotalQuestions, setAverageTotalQuestions] = useState(25);
   const navigate = useNavigate();
 
   const loadData = () => {
@@ -23,12 +24,24 @@ export const SummaryPanel = () => {
     setLevel(Math.floor(savedXp / 250) + 1);
     setStreak(savedStreak);
     setTotalTests(scores.length);
-    
+
     if (scores.length > 0) {
-      const avgScore = scores.reduce((sum, score) => sum + score.score, 0) / scores.length;
+      const totalScores = scores.reduce((sum, score) => sum + score.score, 0);
+      const totalQuestions = scores.reduce((sum, score) => {
+        if (score.questionCorrectness && Object.keys(score.questionCorrectness).length > 0) {
+          return sum + Object.keys(score.questionCorrectness).length;
+        }
+        return sum + 25; // fallback for old data
+      }, 0);
+
+      const avgScore = totalScores / scores.length;
+      const avgTotalQuestions = totalQuestions / scores.length;
+
       setAverageScore(Math.round(avgScore * 10) / 10);
+      setAverageTotalQuestions(Math.round(avgTotalQuestions));
     } else {
       setAverageScore(0);
+      setAverageTotalQuestions(25);
     }
   };
 
@@ -65,7 +78,7 @@ export const SummaryPanel = () => {
           
           <div className="flex items-center gap-2">
             <BarChart3 className="w-4 h-4 text-green-500" />
-            <span className="text-sm font-medium">Avg: {averageScore}/25</span>
+            <span className="text-sm font-medium">Avg: {averageScore}/{averageTotalQuestions}</span>
           </div>
         </div>
 

@@ -18,22 +18,7 @@ export const WeaknessReport = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
 
-   // Helper function to get topic, prioritizing new data, then old, then a fallback
-   const getTopicForQuestionRobust = (score: TestScore, questionNum: number): string => {
-      if (score.questionTopics?.[questionNum]) {
-          return score.questionTopics[questionNum];
-      } else if (score.topicMistakes) {
-          // Attempt to infer topic from topicMistakes (less precise)
-          // This is a simplification; a more robust approach might involve mapping question numbers to topics for older data
-          // For now, if the question is in incorrectQuestions and topicMistakes exists, we'll just use a generic fallback
-          if (score.incorrectQuestions?.includes(questionNum) && score.topicMistakes) {
-              // Cannot reliably determine specific topic from topicMistakes alone per question
-              return `Question ${questionNum} Topic (Approx.)`;
-          }
-      }
-      // Fallback for no topic data
-      return "Unknown Topic";
-   };
+
 
   const generateReport = () => {
     setIsGenerating(true);
@@ -63,52 +48,26 @@ export const WeaknessReport = () => {
       scores.forEach(score => {
         // Process scores with the new data structure
         if (score.questionTopics && score.questionCorrectness) {
-            for (let i = 1; i <= 25; i++) {
-                const topic = score.questionTopics[i];
-                const isCorrect = score.questionCorrectness[i];
-                const questionNum = i;
+          for (let i = 1; i <= 25; i++) {
+            const topic = score.questionTopics[i];
+            const isCorrect = score.questionCorrectness[i];
+            const questionNum = i;
 
-                // Topic analysis
-                if (!topicData[topic]) topicData[topic] = { mistakes: 0, attempts: 0 };
-                topicData[topic].attempts++;
-                if (!isCorrect) {
-                    topicData[topic].mistakes++;
-                }
-
-                // Question analysis
-                 questionData[questionNum].attempts++;
-                 if (!isCorrect) {
-                     questionData[questionNum].errors++;
-                 }
+            // Topic analysis
+            if (!topicData[topic]) topicData[topic] = { mistakes: 0, attempts: 0 };
+            topicData[topic].attempts++;
+            if (!isCorrect) {
+              topicData[topic].mistakes++;
             }
-        } else if (score.incorrectQuestions) {
-            // Process older scores with incorrectQuestions (approximate attempts)
-            for(let i = 1; i <= 25; i++) {
-                 const questionNum = i;
-                 // For older scores, we can only assume an attempt was made if it was an incorrect question listed.
-                 // This is an approximation and will not be perfectly accurate for questions answered correctly.
-                 if(score.incorrectQuestions.includes(questionNum)) {
-                     if (!questionData[questionNum]) questionData[questionNum] = { errors: 0, attempts: 0 };
-                     questionData[questionNum].errors++;
-                     questionData[questionNum].attempts++; // Count as an attempt if it was incorrect
 
-                     // Approximate topic for older scores if not available
-                    const topic = score.topicMistakes && score.topicMistakes[getTopicForQuestionRobust(score, questionNum)] !== undefined 
-                                ? getTopicForQuestionRobust(score, questionNum) : `Question ${questionNum} Topic (Approx.)`;
-                    if (!topicData[topic]) topicData[topic] = { mistakes: 0, attempts: 0 };
-                     topicData[topic].mistakes++;
-                     // Cannot accurately count attempts per topic for older data with this structure
-                 } else {
-                      // For correctly answered questions in older scores, we don't have topic info per question
-                      // and cannot accurately count attempts per topic.
-                      // We can, however, count this as an attempt for the question number.
-                       if (!questionData[questionNum]) questionData[questionNum] = { errors: 0, attempts: 0 };
-                       questionData[questionNum].attempts++; // Count as an attempt if the test included this question number
-                 }
+            // Question analysis
+            questionData[questionNum].attempts++;
+            if (!isCorrect) {
+              questionData[questionNum].errors++;
             }
-            console.warn(`Processing score from ${score.date} with old data structure for weakness report.`);
+          }
         } else {
-             console.warn(`Skipping score from ${score.date} for weakness report due to missing data.`);
+          console.warn(`Skipping score from ${score.date} for weakness report due to missing data.`);
         }
       });
 

@@ -16,12 +16,21 @@ export default defineConfig(({ mode }) => ({
     VitePWA({
       registerType: 'autoUpdate',
       manifest: require('./public/manifest.json'),
-      includeAssets: ['favicon.ico', 'robots.txt', 'offline.html'],
+      includeAssets: ['favicon.ico', 'robots.txt'],
       injectRegister: 'auto',
       workbox: {
         globPatterns: ['**/*.{js,css,html,png,svg,ico,json}'],
         maximumFileSizeToCacheInBytes: 5000000,
-        navigateFallback: '/index.html'
+        navigateFallback: '/index.html',
+        runtimeCaching: [
+          {
+            urlPattern: ({ request }) => request.mode === 'navigate',
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'navigation-cache',
+            },
+          },
+        ],
       },
       devOptions: {
         enabled: mode === 'development'

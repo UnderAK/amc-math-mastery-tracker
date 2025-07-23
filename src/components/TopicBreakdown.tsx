@@ -20,14 +20,7 @@ export const TopicBreakdown = ({ filterType = "all" }: TopicBreakdownProps) => {
   const [topicStats, setTopicStats] = useState<TopicStats[]>([]);
   const [relevantStats, setRelevantStats] = useState<TopicStats[]>([]); // Declare relevantStats here
 
-  // Function to determine topic based on question number (can be refined) - Used as a fallback or for older data approximation
-  const getDefaultTopicForQuestion = (questionNum: number): string => {
-    if (questionNum <= 5) return "Algebra";
-    if (questionNum <= 10) return "Geometry";
-    if (questionNum <= 15) return "Number Theory";
-    if (questionNum <= 20) return "Combinatorics";
-    return "Other";
-  };
+
 
   useEffect(() => {
     const updateTopicStats = () => {
@@ -73,20 +66,6 @@ export const TopicBreakdown = ({ filterType = "all" }: TopicBreakdownProps) => {
                     topicData[topic].mistakes++;
                 }
             }
-        } else if (score.incorrectQuestions) {
-            // Handle older scores with incorrectQuestions (approximate topic and attempts)
-            // This approach is less accurate for total attempts per topic as it only counts incorrect questions.
-            score.incorrectQuestions.forEach(qNum => {
-                 // Attempt to get a topic for the incorrect question (might be a rough approximation)
-                 const rawTopic = score.topicMistakes?.[getDefaultTopicForQuestion(qNum)] !== undefined 
-                                ? getDefaultTopicForQuestion(qNum) : `Question ${qNum} Topic (Approx.)`;
-                const topic = possibleTopics.includes(rawTopic) ? rawTopic : "Other";
-                
-                topicData[topic].mistakes++;
-                 // We cannot accurately determine total attempts per topic for older data
-                 // Skipping attempt count for older data to avoid misleading totals
-            });
-             console.warn(`Processing score from ${score.date} with old data structure for topic breakdown (approximate data).`);
         } else {
               console.warn(`Skipping score from ${score.date} for topic breakdown due to missing data.`);
                // Handle scores with completely missing topic data by assigning them to 'Other'

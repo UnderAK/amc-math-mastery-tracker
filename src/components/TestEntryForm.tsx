@@ -109,9 +109,9 @@ export const TestEntryForm = () => {
 
     // Initialize allQuestionTopics with default topics for all 25 questions
     const initialTopics: { [key: number]: string } = {};
-    // Pre-fill all questions with "Other" as default to ensure popup shows selections
+    // Pre-fill all questions with default topics using the dedicated function
     for (let i = 1; i <= 25; i++) {
-      initialTopics[i] = "Other";
+      initialTopics[i] = getTopicForQuestion(i);
     }
     console.log('DEBUG TestEntryForm: Setting initial topics:', initialTopics);
     setAllQuestionTopics(initialTopics);

@@ -11,21 +11,33 @@ export const ScoreChart = () => {
     const updateChart = () => {
       const savedScores: TestScore[] = JSON.parse(localStorage.getItem("scores") || "[]");
       setScores(savedScores);
-      drawChart(savedScores);
+
+      const scoresWithData = savedScores.map(s => {
+        const totalQuestions = 
+          (s.questionCorrectness && Object.keys(s.questionCorrectness).length > 0) 
+          ? Object.keys(s.questionCorrectness).length 
+          : (s.key && s.key.length > 0) ? s.key.length : 25;
+        const percentage = totalQuestions > 0 ? (s.score / totalQuestions) * 100 : 0;
+        return { ...s, totalQuestions, percentage };
+      });
+
+      drawChart(scoresWithData);
       
-      // Calculate trend
-      if (savedScores.length >= 2) {
-        const recent = savedScores.slice(-3).map(s => s.score);
+      // Calculate trend based on percentage
+      if (scoresWithData.length >= 2) {
+        const recent = scoresWithData.slice(-5).map(s => s.percentage);
         const average = recent.reduce((a, b) => a + b, 0) / recent.length;
         const firstHalf = recent.slice(0, Math.ceil(recent.length / 2));
-        const secondHalf = recent.slice(Math.ceil(recent.length / 2));
+        const secondHalf = recent.slice(Math.floor(recent.length / 2));
         
-        const firstAvg = firstHalf.reduce((a, b) => a + b, 0) / firstHalf.length;
-        const secondAvg = secondHalf.reduce((a, b) => a + b, 0) / secondHalf.length;
-        
-        if (secondAvg > firstAvg + 1) setTrend("up");
-        else if (secondAvg < firstAvg - 1) setTrend("down");
-        else setTrend("stable");
+        if (firstHalf.length > 0 && secondHalf.length > 0) {
+          const firstAvg = firstHalf.reduce((a, b) => a + b, 0) / firstHalf.length;
+          const secondAvg = secondHalf.reduce((a, b) => a + b, 0) / secondHalf.length;
+          
+          if (secondAvg > firstAvg + 2) setTrend("up");
+          else if (secondAvg < firstAvg - 2) setTrend("down");
+          else setTrend("stable");
+        }
       }
     };
 
@@ -40,7 +52,7 @@ export const ScoreChart = () => {
     };
   }, []);
 
-  const drawChart = (data: TestScore[]) => {
+  const drawChart = (data: (TestScore & { totalQuestions: number; percentage: number })[]) => {
     const canvas = canvasRef.current;
     if (!canvas || data.length === 0) return;
 
@@ -76,8 +88,8 @@ export const ScoreChart = () => {
     const textColor = isDark ? '#f8fafc' : '#1e293b';
 
     // Set up data
-    const scores = data.map(d => d.score);
-    const maxScore = 25;
+    const scores = data.map(d => d.percentage);
+    const maxScore = 100;
     const minScore = 0;
 
     // Calculate positions
@@ -102,7 +114,7 @@ export const ScoreChart = () => {
       ctx.fillStyle = textColor;
       ctx.font = "12px Inter, sans-serif";
       ctx.textAlign = "right";
-      ctx.fillText(`${25 - (i * 5)}`, padding - 10, y + 4);
+      ctx.fillText(`${100 - (i * 20)}%`, padding - 10, y + 4);
     }
 
     // Draw the line chart
