@@ -51,7 +51,9 @@ const PodiumEntry = ({ user, rank }: { user: LeaderEntry; rank: number }) => {
   return (
     <div className={`relative flex flex-col items-center justify-end w-1/3 p-2 rounded-t-2xl border-b-4 transition-all duration-300 ease-in-out transform hover:-translate-y-2 ${rankStyles.container}`}>
       <div className="absolute top-2 right-2">{rankStyles.rankIcon}</div>
-      <img src={user.avatar} alt={user.name} className={`rounded-full border-4 border-white/20 shadow-lg ${rankStyles.avatarSize}`} />
+      <div className={`rounded-full border-4 border-white/20 shadow-lg ${rankStyles.avatarSize} flex items-center justify-center bg-background/20`}>
+        <span className="text-4xl md:text-5xl" role="img" aria-label={user.name}>{user.avatar}</span>
+      </div>
       <h3 className={`mt-2 truncate w-full text-center ${rankStyles.name}`}>{user.name}</h3>
       <p className={`font-bold ${rankStyles.xp}`}>{user.xp.toLocaleString()} XP</p>
     </div>
@@ -63,7 +65,9 @@ const LeaderboardItem = ({ user, rank, isCurrentUser }: { user: LeaderEntry; ran
   <div
     className={`flex items-center gap-4 p-3 rounded-xl border transition-all hover:bg-primary/10 ${isCurrentUser ? 'bg-primary/20 border-primary/50 animate-pulse-glow' : 'bg-card/50 border-border/50'}`}>
     <div className="flex items-center justify-center w-8 font-bold text-lg text-muted-foreground">{rank}</div>
-    <img src={user.avatar} alt={user.name} className="w-12 h-12 rounded-full border-2 border-white/10" />
+    <div className="w-12 h-12 rounded-full border-2 border-white/10 flex items-center justify-center bg-background/20">
+      <span className="text-2xl" role="img" aria-label={user.name}>{user.avatar}</span>
+    </div>
     <div className="flex-1 min-w-0">
       <h4 className={`font-semibold truncate ${isCurrentUser ? 'text-primary' : 'text-foreground'}`}>{user.name}</h4>
       <p className="text-sm text-muted-foreground">Level {user.level} • {user.averageScore.toFixed(1)} avg</p>
@@ -123,14 +127,14 @@ export const LeaderboardOverlay = ({ isOpen, onClose }: LeaderboardOverlayProps)
 
     // Generate mock competitors with cool avatars
     const mockUsers: LeaderEntry[] = [
-      { name: "MathWiz", score: 25, xp: 2450, level: 25, testsTaken: 42, averageScore: 22.3, streak: 15, bestScoreTotalQuestions: 25, avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=Max' },
-      { name: "AlgebraKing", score: 24, xp: 1890, level: 19, testsTaken: 38, averageScore: 21.8, streak: 8, bestScoreTotalQuestions: 25, avatar: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Leo' },
-      { name: "GeoQueen", score: 23, xp: 1650, level: 17, testsTaken: 35, averageScore: 20.9, streak: 12, bestScoreTotalQuestions: 25, avatar: 'https://api.dicebear.com/7.x/female/svg?seed=Zoe' },
-      { name: "CalculusNinja", score: 23, xp: 1420, level: 15, testsTaken: 29, averageScore: 20.1, streak: 5, bestScoreTotalQuestions: 25, avatar: 'https://api.dicebear.com/7.x/ninja/svg?seed=Toby' },
-      { name: "NumberCrunch", score: 22, xp: 1200, level: 13, testsTaken: 26, averageScore: 19.5, streak: 7, bestScoreTotalQuestions: 25, avatar: 'https://api.dicebear.com/7.x/miniavs/svg?seed=Rocky' },
-      { name: "MathMaster", score: 22, xp: 980, level: 10, testsTaken: 22, averageScore: 18.8, streak: 3, bestScoreTotalQuestions: 25, avatar: 'https://api.dicebear.com/7.x/personas/svg?seed=Milo' },
-      { name: "ProblemSolver", score: 21, xp: 750, level: 8, testsTaken: 18, averageScore: 17.9, streak: 4, bestScoreTotalQuestions: 25, avatar: 'https://api.dicebear.com/7.x/open-peeps/svg?seed=Simon' },
-      { name: "Mathlete", score: 20, xp: 580, level: 6, testsTaken: 15, averageScore: 16.2, streak: 2, bestScoreTotalQuestions: 25, avatar: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=Loki' },
+      { name: "Euler's Ghost", score: 25, xp: 1250, level: 10, testsTaken: 30, averageScore: 22.5, streak: 15, bestScoreTotalQuestions: 25, avatar: '👻' },
+      { name: "Gauss Jr.", score: 24, xp: 1100, level: 9, testsTaken: 28, averageScore: 21.8, streak: 10, bestScoreTotalQuestions: 25, avatar: '🤖' },
+      { name: "PythagorasFan", score: 23, xp: 950, level: 8, testsTaken: 25, averageScore: 20.1, streak: 8, bestScoreTotalQuestions: 25, avatar: '📐' },
+      { name: "Ramanujan", score: 22, xp: 800, level: 7, testsTaken: 20, averageScore: 18.5, streak: 5, bestScoreTotalQuestions: 25, avatar: '🧠' },
+      { name: "Mathlete", score: 20, xp: 580, level: 6, testsTaken: 15, averageScore: 16.2, streak: 2, bestScoreTotalQuestions: 25, avatar: '🏆' },
+      { name: "MathMaster", score: 22, xp: 980, level: 10, testsTaken: 22, averageScore: 18.8, streak: 3, bestScoreTotalQuestions: 25, avatar: '🎓' },
+      { name: "ProblemSolver", score: 21, xp: 750, level: 8, testsTaken: 18, averageScore: 17.9, streak: 4, bestScoreTotalQuestions: 25, avatar: '💡' },
+      { name: "NumberCrunch", score: 22, xp: 1200, level: 13, testsTaken: 26, averageScore: 19.5, streak: 7, bestScoreTotalQuestions: 25, avatar: '📊' },
     ];
 
     // Combine user with mock data

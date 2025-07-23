@@ -251,7 +251,7 @@ const Index = () => {
               
               <Button
                 onClick={() => setIsLeaderboardOpen(true)} 
-                variant="gradient-secondary" className="hover-scale hover-glow"
+                variant="secondary" className="hover-scale hover-glow"
                 size="sm"
               >
                 🏆 Leaderboard
@@ -259,14 +259,14 @@ const Index = () => {
 
                {/* Link to Analytics Page */}
                <Link to="/analytics">
-                 <Button variant="gradient-secondary" size="sm" className="hover-scale hover-glow">
+                 <Button variant="secondary" size="sm" className="hover-scale hover-glow">
                    📊 Analytics
                  </Button>
                </Link>
 
                 {/* Link to Test Entry Page */}
                <Link to="/test-entry">
-                 <Button variant="gradient-secondary" size="sm" className="hover-scale hover-glow">
+                 <Button variant="secondary" size="sm" className="hover-scale hover-glow">
                     ✍️ Enter Test
                  </Button>
                </Link>
