@@ -43,8 +43,6 @@ export const UserProfile = () => {
       localStorage.setItem("userProfile", JSON.stringify(defaultProfile));
       setProfile(defaultProfile);
     }
-    // Load contrast preference
-    setHighContrast(localStorage.getItem("profileHighContrast") === "1");
   }, []);
 
   const handleEdit = () => {
@@ -101,7 +99,7 @@ export const UserProfile = () => {
           <span className="truncate max-w-[70px]">{profile.username}</span>
         </Button>
       </DialogTrigger>
-      <DialogContent className={`max-w-md ${highContrast ? "high-contrast border-4 border-yellow-500 shadow-lg" : ""}`}>
+      <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <User className="w-5 h-5" />
@@ -149,28 +147,7 @@ export const UserProfile = () => {
                 placeholder="Enter username"
                 autoFocus
               />
-              {/* Contrast Toggle - only in edit mode */}
-              <div className="flex items-center gap-3 mt-2 mb-1 border-t pt-3">
-                <label htmlFor="contrast-toggle" className="text-sm font-semibold mr-2">
-                  High Contrast Mode
-                </label>
-                <button
-                  id="contrast-toggle"
-                  type="button"
-                  aria-pressed={highContrast}
-                  onClick={() => {
-                    setHighContrast(!highContrast);
-                    localStorage.setItem("profileHighContrast", !highContrast ? "1" : "0");
-                  }}
-                  className={`relative w-12 h-6 rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary border ${highContrast ? 'bg-yellow-400 border-yellow-600' : 'bg-zinc-300 border-zinc-400'}`}
-                  style={{ minWidth: 48 }}
-                >
-                  <span
-                    className={`absolute left-0 top-0 h-6 w-6 rounded-full bg-white shadow transition-transform duration-200 ${highContrast ? 'translate-x-6' : ''}`}
-                    style={{ transform: highContrast ? 'translateX(24px)' : 'translateX(0)' }}
-                  />
-                </button>
-              </div>
+
             </div>
           ) : (
             <div className="text-lg font-semibold mb-2">{profile.username}</div>
