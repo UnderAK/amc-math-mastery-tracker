@@ -26,6 +26,7 @@ export const UserProfile = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [tempUsername, setTempUsername] = useState("");
   const [tempAvatar, setTempAvatar] = useState("");
+  const [highContrast, setHighContrast] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -42,6 +43,8 @@ export const UserProfile = () => {
       localStorage.setItem("userProfile", JSON.stringify(defaultProfile));
       setProfile(defaultProfile);
     }
+    // Load contrast preference
+    setHighContrast(localStorage.getItem("profileHighContrast") === "1");
   }, []);
 
   const handleEdit = () => {
@@ -88,19 +91,40 @@ export const UserProfile = () => {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-2 hover-scale">
-          <span className="text-lg">{profile.avatar}</span>
-          <User className="w-4 h-4" />
-          {profile.username}
+        <Button
+          variant="outline"
+          size="lg"
+          className="gap-3 px-5 py-3 rounded-xl shadow focus:ring-2 focus:ring-primary focus:outline-none transition-all text-base font-semibold"
+          style={{ minWidth: 120 }}
+        >
+          <span className="text-2xl">{profile.avatar}</span>
+          <User className="w-5 h-5" />
+          <span className="truncate max-w-[80px]">{profile.username}</span>
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-md">
+      <DialogContent className={`max-w-md ${highContrast ? "high-contrast" : ""}`}>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <User className="w-5 h-5" />
             User Profile
           </DialogTitle>
         </DialogHeader>
+
+        <div className="flex items-center gap-3 mb-4">
+          <input
+            type="checkbox"
+            id="contrast-toggle"
+            checked={highContrast}
+            onChange={e => {
+              setHighContrast(e.target.checked);
+              localStorage.setItem("profileHighContrast", e.target.checked ? "1" : "0");
+            }}
+            className="accent-primary w-4 h-4"
+          />
+          <label htmlFor="contrast-toggle" className="text-sm font-semibold">
+            Increase Contrast
+          </label>
+        </div>
 
         <div className="space-y-6">
           {/* Avatar Display/Selection */}

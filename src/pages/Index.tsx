@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { SummaryPanel } from "@/components/SummaryPanel";
 import { LeaderboardOverlay } from "@/components/LeaderboardOverlay";
 import { LevelUpModal } from "@/components/LevelUpModal";
+import { StreakCelebrationOverlay } from "@/components/StreakCelebrationOverlay";
 import { UserProfile } from "@/components/UserProfile";
 import { DailyBonus } from "@/components/DailyBonus";
 import { useToast } from "@/hooks/use-toast";
@@ -406,7 +407,12 @@ const Index = () => {
         isOpen={isLeaderboardOpen} 
         onClose={() => setIsLeaderboardOpen(false)} 
       />
+      <StreakCelebrationOverlay />
       <LevelUpModal />
+      {/* Secret message (RandomWelcome) at the very bottom */}
+      <div className="mt-8 flex justify-center">
+        <RandomWelcome />
+      </div>
     </div>
   );
 };
