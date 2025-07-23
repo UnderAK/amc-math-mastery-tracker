@@ -412,7 +412,6 @@ const Index = () => {
 
         </main>
 
-// ... (rest of the code remains the same)
         {/* <div className="flex justify-center mt-10">
             <Button variant="destructive" onClick={handleResetData}>
                 <AlertCircle className="w-4 h-4 mr-2" />
