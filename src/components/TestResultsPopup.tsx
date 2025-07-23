@@ -169,7 +169,7 @@ export const TestResultsPopup = ({ result, isOpen, onClose }: TestResultsPopupPr
           )}
 
           {/* Close Button */}
-          <Button onClick={onClose} className="w-full">
+          <Button onClick={onClose} className="w-full" aria-label="Close results popup">
             Continue Practicing
           </Button>
         </div>

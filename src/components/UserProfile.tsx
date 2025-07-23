@@ -124,7 +124,7 @@ export const UserProfile = () => {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-2 hover-scale">
+        <Button variant="outline" size="sm" className="gap-2 hover-scale" aria-label="Open user profile dialog">
           <User className="w-4 h-4" />
           {profile.username}
           <span className="ml-2 px-2 py-1 rounded-full bg-yellow-100 text-yellow-700 text-xs font-bold flex items-center gap-1">
@@ -155,6 +155,7 @@ export const UserProfile = () => {
                   return (
                     <button
                       key={avatar}
+                      aria-label={`Select avatar ${avatar}${!isUnlocked ? ' (locked)' : ''}`}
                       onClick={() => {
                         if (isUnlocked) {
                           setTempAvatar(avatar);
@@ -222,6 +223,7 @@ export const UserProfile = () => {
                   </Button>
                   <Button
                     variant="outline"
+                    aria-label="Cancel avatar unlock"
                     onClick={() => {
                       setShowAvatarConfirm(false);
                       setAvatarToUnlock(null);
@@ -275,6 +277,7 @@ export const UserProfile = () => {
                   </Button>
                   <Button
                     variant="outline"
+                    aria-label="Cancel username change"
                     onClick={() => {
                       setShowUsernameConfirm(false);
                       setPendingUsername("");
@@ -345,17 +348,17 @@ export const UserProfile = () => {
           <div className="flex gap-3">
             {isEditing ? (
               <>
-                <Button onClick={handleSave} className="flex-1 gap-2">
+                <Button onClick={handleSave} className="flex-1 gap-2" aria-label="Save profile changes">
                   <Save className="w-4 h-4" />
                   Save
                 </Button>
-                <Button variant="outline" onClick={handleCancel} className="flex-1 gap-2">
+                <Button variant="outline" onClick={handleCancel} className="flex-1 gap-2" aria-label="Cancel editing profile">
                   <X className="w-4 h-4" />
                   Cancel
                 </Button>
               </>
             ) : (
-              <Button onClick={() => setIsEditing(true)} className="w-full gap-2">
+              <Button onClick={() => setIsEditing(true)} className="w-full gap-2" aria-label="Edit profile">
                 <Edit3 className="w-4 h-4" />
                 Edit Profile
               </Button>

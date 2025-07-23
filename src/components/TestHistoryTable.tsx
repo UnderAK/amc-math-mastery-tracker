@@ -181,7 +181,7 @@ export const TestHistoryTable = ({ filterType = "all" }: TestHistoryTableProps) 
                       {incorrectCount > 0 ? (
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <button className="flex items-center gap-1 text-red-500 hover:text-red-600 transition-colors">
+                            <button className="flex items-center gap-1 text-red-500 hover:text-red-600 transition-colors" aria-label="Show missed questions">
                               <AlertCircle className="w-4 h-4" />
                               <span className="text-sm font-medium">{incorrectCount}</span>
                             </button>

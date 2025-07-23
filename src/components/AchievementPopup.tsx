@@ -35,7 +35,7 @@ export const AchievementPopup: React.FC<AchievementPopupProps> = ({ achievements
           </div>
         ))}
       </div>
-      <button onClick={onClose} className="mt-2 text-xs text-blue-600 underline">Dismiss</button>
+      <button onClick={onClose} className="mt-2 text-xs text-blue-600 underline" aria-label="Dismiss achievements popup">Dismiss</button>
     </div>
   );
 };

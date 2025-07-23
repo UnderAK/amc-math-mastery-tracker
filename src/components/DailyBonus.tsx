@@ -146,6 +146,7 @@ export const DailyBonus = () => {
           <Button 
             onClick={claimDailyBonus}
             className="w-full gradient-primary hover-bounce gap-2 animate-pulse-glow"
+            aria-label="Claim Daily Bonus"
           >
             <Star className="w-4 h-4 animate-spin" />
             Claim {20 + Math.min(bonusData.streak * 5, 50)} XP

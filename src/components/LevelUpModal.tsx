@@ -101,6 +101,7 @@ export const LevelUpModal = () => {
           <Button
             onClick={closeLevelUpModal}
             className="w-full gradient-primary hover-bounce"
+            aria-label="Continue Journey"
           >
             <Trophy className="w-4 h-4 mr-2" />
             Continue Journey

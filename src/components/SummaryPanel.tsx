@@ -74,6 +74,7 @@ export const SummaryPanel = () => {
           size="sm"
           onClick={() => navigate('/analytics')}
           className="hover-scale"
+          aria-label="View Analytics"
         >
           <BarChart3 className="w-4 h-4 mr-2" />
           View Analytics

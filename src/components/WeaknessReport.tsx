@@ -233,6 +233,7 @@ export const WeaknessReport = () => {
           onClick={generateReport}
           disabled={isGenerating}
           className="gradient-primary"
+          aria-label="Generate Weakness Report"
         >
           {isGenerating ? (
             <>

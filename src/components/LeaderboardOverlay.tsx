@@ -100,6 +100,7 @@ export const LeaderboardOverlay = ({ isOpen, onClose }: LeaderboardOverlayProps)
               size="sm"
               onClick={onClose}
               className="text-white hover:bg-white/20"
+              aria-label="Close leaderboard"
             >
               <X className="w-5 h-5" />
             </Button>
