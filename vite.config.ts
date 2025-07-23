@@ -21,7 +21,7 @@ export default defineConfig(({ mode }) => ({
       workbox: {
         globPatterns: ['**/*.{js,css,html,png,svg,ico,json}'],
         maximumFileSizeToCacheInBytes: 5000000,
-        navigateFallback: '/offline.html'
+        navigateFallback: '/index.html'
       },
       devOptions: {
         enabled: mode === 'development'

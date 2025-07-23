@@ -18,6 +18,11 @@ export default {
 			}
 		},
 		extend: {
+			boxShadow: {
+				'inner-white-sm': 'inset 0 1px 2px 0 rgba(255, 255, 255, 0.15)',
+				'inner-red-sm': 'inset 0 1px 2px 0 rgba(239, 68, 68, 0.25)',
+				'inner-blue-sm': 'inset 0 1px 2px 0 rgba(59, 130, 246, 0.25)',
+			},
 			colors: {
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
