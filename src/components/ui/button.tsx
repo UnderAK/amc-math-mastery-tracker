@@ -9,12 +9,12 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-white/20 dark:bg-white/10 border border-white/30 dark:border-white/20 backdrop-blur-md shadow-lg hover:bg-white/30 hover:dark:bg-white/20 hover:shadow-xl active:bg-white/40 active:dark:bg-white/30 hover:border-white/50 active:border-white/70 text-gray-900 dark:text-gray-100",
-        destructive: "bg-red-600/70 dark:bg-red-700/60 border border-white/30 dark:border-white/20 backdrop-blur-md shadow-lg text-white hover:bg-red-700/80 active:bg-red-800/90 hover:shadow-xl active:shadow-lg",
-        outline: "bg-white/10 dark:bg-white/5 border border-white/40 dark:border-white/20 backdrop-blur-md shadow-md hover:bg-white/20 hover:dark:bg-white/10 hover:shadow-lg active:bg-white/30 active:dark:bg-white/20 text-gray-900 dark:text-gray-100",
-        secondary: "bg-white/30 dark:bg-white/20 border border-white/30 dark:border-white/20 backdrop-blur-md shadow-lg hover:bg-white/40 hover:dark:bg-white/30 hover:shadow-xl active:bg-white/50 active:dark:bg-white/40 text-gray-900 dark:text-gray-100",
-        ghost: "bg-transparent border border-transparent hover:bg-white/10 hover:dark:bg-white/10 hover:shadow focus:bg-white/10 text-gray-900 dark:text-gray-100",
-        link: "bg-transparent border-none underline-offset-4 hover:underline text-primary hover:text-primary/80",
+        default: "bg-white/40 dark:bg-white/20 border border-white/70 dark:border-white/40 backdrop-blur-2xl shadow-2xl hover:bg-white/60 hover:dark:bg-white/40 hover:shadow-2xl active:bg-white/80 active:dark:bg-white/60 hover:border-white/90 active:border-white/100 text-black dark:text-white font-semibold",
+        destructive: "bg-red-600/80 dark:bg-red-700/70 border border-white/80 dark:border-white/50 backdrop-blur-2xl shadow-2xl text-white font-bold hover:bg-red-700/90 active:bg-red-800/100 hover:shadow-2xl active:shadow-xl hover:border-white/100 active:border-white/100",
+        outline: "bg-white/30 dark:bg-white/10 border border-white/80 dark:border-white/40 backdrop-blur-2xl shadow-xl hover:bg-white/60 hover:dark:bg-white/30 hover:shadow-2xl active:bg-white/80 active:dark:bg-white/50 text-black dark:text-white font-semibold",
+        secondary: "bg-white/50 dark:bg-white/30 border border-white/80 dark:border-white/50 backdrop-blur-2xl shadow-2xl hover:bg-white/70 hover:dark:bg-white/50 hover:shadow-2xl active:bg-white/90 active:dark:bg-white/70 text-black dark:text-white font-semibold",
+        ghost: "bg-white/20 dark:bg-white/10 border border-white/40 dark:border-white/20 backdrop-blur-2xl shadow-md hover:bg-white/40 hover:dark:bg-white/20 hover:shadow-lg active:bg-white/60 active:dark:bg-white/40 text-black dark:text-white font-semibold",
+        link: "bg-white/30 dark:bg-white/10 border-none underline-offset-4 hover:underline text-blue-700 dark:text-blue-300 hover:text-blue-900 hover:dark:text-blue-100 font-semibold backdrop-blur-lg",
       },
       size: {
         default: "h-10 px-4 py-2",
