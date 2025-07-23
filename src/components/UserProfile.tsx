@@ -102,7 +102,7 @@ export const UserProfile = () => {
           <span className="truncate max-w-[70px]">{profile.username}</span>
         </Button>
       </DialogTrigger>
-      <DialogContent className={`max-w-md ${highContrast ? "high-contrast" : ""}`}>
+      <DialogContent className={`max-w-md ${highContrast ? "high-contrast border-4 border-yellow-500 shadow-lg" : ""}`}>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <User className="w-5 h-5" />
@@ -145,19 +145,25 @@ export const UserProfile = () => {
               />
               {/* Contrast Toggle - only in edit mode */}
               <div className="flex items-center gap-3 mt-2 mb-1 border-t pt-3">
-                <input
-                  type="checkbox"
-                  id="contrast-toggle"
-                  checked={highContrast}
-                  onChange={e => {
-                    setHighContrast(e.target.checked);
-                    localStorage.setItem("profileHighContrast", e.target.checked ? "1" : "0");
-                  }}
-                  className="accent-primary w-4 h-4"
-                />
-                <label htmlFor="contrast-toggle" className="text-sm font-semibold">
-                  Increase Contrast
+                <label htmlFor="contrast-toggle" className="text-sm font-semibold mr-2">
+                  High Contrast Mode
                 </label>
+                <button
+                  id="contrast-toggle"
+                  type="button"
+                  aria-pressed={highContrast}
+                  onClick={() => {
+                    setHighContrast(!highContrast);
+                    localStorage.setItem("profileHighContrast", !highContrast ? "1" : "0");
+                  }}
+                  className={`relative w-12 h-6 rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary border ${highContrast ? 'bg-yellow-400 border-yellow-600' : 'bg-zinc-300 border-zinc-400'}`}
+                  style={{ minWidth: 48 }}
+                >
+                  <span
+                    className={`absolute left-0 top-0 h-6 w-6 rounded-full bg-white shadow transition-transform duration-200 ${highContrast ? 'translate-x-6' : ''}`}
+                    style={{ transform: highContrast ? 'translateX(24px)' : 'translateX(0)' }}
+                  />
+                </button>
               </div>
             </div>
           ) : (
