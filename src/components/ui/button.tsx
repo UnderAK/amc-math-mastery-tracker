@@ -5,19 +5,16 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90",
-        destructive:
-          "bg-destructive text-destructive-foreground hover:bg-destructive/90",
-        outline:
-          "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
-        secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/80",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
-        link: "text-primary underline-offset-4 hover:underline",
+        default: "bg-white/20 dark:bg-white/10 border border-white/30 dark:border-white/20 backdrop-blur-md shadow-lg hover:bg-white/30 hover:dark:bg-white/20 hover:shadow-xl active:bg-white/40 active:dark:bg-white/30 hover:border-white/50 active:border-white/70 text-gray-900 dark:text-gray-100",
+        destructive: "bg-red-600/70 dark:bg-red-700/60 border border-white/30 dark:border-white/20 backdrop-blur-md shadow-lg text-white hover:bg-red-700/80 active:bg-red-800/90 hover:shadow-xl active:shadow-lg",
+        outline: "bg-white/10 dark:bg-white/5 border border-white/40 dark:border-white/20 backdrop-blur-md shadow-md hover:bg-white/20 hover:dark:bg-white/10 hover:shadow-lg active:bg-white/30 active:dark:bg-white/20 text-gray-900 dark:text-gray-100",
+        secondary: "bg-white/30 dark:bg-white/20 border border-white/30 dark:border-white/20 backdrop-blur-md shadow-lg hover:bg-white/40 hover:dark:bg-white/30 hover:shadow-xl active:bg-white/50 active:dark:bg-white/40 text-gray-900 dark:text-gray-100",
+        ghost: "bg-transparent border border-transparent hover:bg-white/10 hover:dark:bg-white/10 hover:shadow focus:bg-white/10 text-gray-900 dark:text-gray-100",
+        link: "bg-transparent border-none underline-offset-4 hover:underline text-primary hover:text-primary/80",
       },
       size: {
         default: "h-10 px-4 py-2",
