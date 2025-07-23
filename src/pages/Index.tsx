@@ -330,6 +330,15 @@ const Index = () => {
 
           {/* How It Works Section (Dropdown) */}
           <Accordion title="How It Works">
+            <div className="flex items-center justify-center p-4">
+              <button className="liquid-button group relative px-7 py-3 rounded-2xl font-semibold overflow-hidden shadow-[0_0_20px_rgba(255,255,255,0.1)] transition-transform duration-300 hover:scale-[1.03]" onClick={() => console.log('Explore Now button clicked!')}>
+                <span className="relative z-10">Explore Now</span>
+                {/* Inner liquid shine */}
+                <div className="liquid-shine"></div>
+                {/* Glow ring */}
+                <div className="liquid-glow"></div>
+              </button>
+            </div>
             <ol className="text-left list-decimal list-inside text-muted-foreground space-y-2">
               <li><b>Enter a Test:</b> Click <b>Enter Test</b> to start. Choose your AMC year and type, then fill in your answers for all 25 questions. Don't worry if you skip any—just leave them blank. (Hint: You can assign topics to each question for deeper analytics!)</li>
               <li><b>Grade Instantly:</b> Hit grade to see your score, which questions you got right or wrong, and your answer breakdown. You'll also see which topics you need to review most.</li>
