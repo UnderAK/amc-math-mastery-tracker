@@ -125,17 +125,17 @@ export const UserProfile = () => {
     <Dialog>
       <DialogTrigger asChild>
         <Button variant="outline" size="sm" className="gap-2 hover-scale" aria-label="Open user profile dialog">
-          <User className="w-4 h-4" />
+          <span className="text-xl">{profile.avatar}</span>
           {profile.username}
-          <span className="ml-2 px-2 py-1 rounded-full bg-yellow-100 text-yellow-700 text-xs font-bold flex items-center gap-1">
+          <span className="ml-2 px-2 py-1 rounded-full bg-yellow-400/20 text-yellow-600 dark:text-yellow-300 text-xs font-bold flex items-center gap-1">
             <span role="img" aria-label="coin">🪙</span> {coinBalance}
           </span>
         </Button>
       </DialogTrigger>
 
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border-gray-200 dark:border-gray-700">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+          <DialogTitle className="flex items-center gap-2 text-gray-900 dark:text-gray-100">
             <User className="w-5 h-5" />
             User Profile
           </DialogTitle>
@@ -144,11 +144,8 @@ export const UserProfile = () => {
         <div className="space-y-6">
           {/* Avatar Display/Selection */}
           <div className="text-center">
-            {!isEditing && (
-              <div className="text-6xl mb-4">{profile.avatar}</div>
-            )}
-            {isEditing && (
-              <div className="grid grid-cols-6 gap-2 mb-4">
+            {isEditing ? (
+              <div className="grid grid-cols-5 sm:grid-cols-6 gap-2 mb-4 p-2 bg-gray-100 dark:bg-gray-800/50 rounded-lg">
                 {Object.keys(AVATAR_SHOP).map((avatar) => {
                   const isUnlocked = unlockedAvatars.includes(avatar);
                   const price = AVATAR_SHOP[avatar]?.price || 0;
@@ -164,24 +161,23 @@ export const UserProfile = () => {
                           setShowAvatarConfirm(true);
                         }
                       }}
-                      className={`text-2xl p-2 rounded-lg transition-colors relative ${
-                        tempAvatar === avatar ? "bg-primary/20 ring-2 ring-primary" : ""
-                      } ${!isUnlocked ? "opacity-60 cursor-pointer bg-gray-100" : "hover:bg-secondary"}`}
+                      className={`text-3xl p-2 rounded-lg transition-all duration-200 relative transform hover:scale-110 ${tempAvatar === avatar ? "bg-primary/20 ring-2 ring-primary scale-110" : "bg-gray-200 dark:bg-gray-700"} ${!isUnlocked ? "opacity-50 cursor-not-allowed" : "hover:bg-secondary"}`}
                       disabled={!isUnlocked && coinBalance < price}
                     >
                       {avatar}
                       {!isUnlocked && (
-                        <span className="absolute top-1 right-1 text-xs bg-yellow-200 text-yellow-800 rounded px-1 py-0.5 shadow">
-                          🪙 {price}
-                        </span>
-                      )}
-                      {!isUnlocked && (
-                        <span className="absolute bottom-1 left-1 text-xs bg-gray-300 text-gray-800 rounded px-1 py-0.5 shadow">Locked</span>
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-lg">
+                          <span className="text-xs bg-yellow-300 text-yellow-900 font-bold rounded px-1.5 py-0.5 shadow-md flex items-center gap-1">
+                            <span role="img" aria-label="coin">🪙</span> {price}
+                          </span>
+                        </div>
                       )}
                     </button>
                   );
                 })}
               </div>
+            ) : (
+              <div className="text-7xl mb-4 p-4 bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-800 rounded-full inline-block shadow-lg">{profile.avatar}</div>
             )}
           </div>
 
@@ -290,30 +286,25 @@ export const UserProfile = () => {
             </div>
           )}
 
-          {/* Coin Balance Display */}
-<div className="flex items-center justify-center gap-2 mb-2">
-  <span className="text-lg">🪙</span>
-  <span className="font-semibold text-yellow-700">{coinBalance} coins</span>
-</div>
-
-{/* Coin Transaction History */}
-<div className="mb-4">
-  <div className="font-semibold mb-1">Coin History</div>
-  <div className="bg-secondary/30 rounded-lg max-h-40 overflow-y-auto p-2 text-sm">
-    {coinTransactions.length === 0 ? (
-      <div className="text-muted-foreground text-center">No transactions yet</div>
-    ) : (
-      coinTransactions.map((tx, i) => (
-        <div key={i} className="flex justify-between items-center py-1 border-b last:border-b-0 border-muted-foreground/20">
-          <span className="capitalize">{tx.type === "avatar" ? "Avatar" : tx.type === "username" ? "Username" : "Earned"}</span>
-          <span className={tx.amount < 0 ? "text-red-600" : "text-green-700"}>{tx.amount > 0 ? "+" : ""}{tx.amount}</span>
-          <span className="text-xs text-muted-foreground">{new Date(tx.date).toLocaleDateString()}</span>
-          {tx.note && <span className="ml-2 text-xs text-muted-foreground">{tx.note}</span>}
-        </div>
-      ))
-    )}
-  </div>
-</div>
+          {/* Coin Transaction History */}
+          <div className="mb-4">
+            <h4 className="font-semibold mb-2 text-center text-gray-800 dark:text-gray-200">Coin History</h4>
+            <div className="bg-gray-100 dark:bg-gray-800/50 rounded-lg max-h-32 overflow-y-auto p-2 text-sm space-y-1">
+              {coinTransactions.length === 0 ? (
+                <div className="text-muted-foreground text-center py-4">No transactions yet. Complete tests to earn coins!</div>
+              ) : (
+                coinTransactions.map((tx, i) => (
+                  <div key={i} className="flex justify-between items-center py-1.5 px-2 rounded-md bg-white dark:bg-gray-900/50">
+                    <div>
+                      <span className="capitalize font-medium text-gray-800 dark:text-gray-200">{tx.type === "avatar" ? `Avatar Unlock: ${tx.note}` : tx.type === "username" ? "Username Change" : "Test Reward"}</span>
+                      <span className="ml-2 text-xs text-muted-foreground">{new Date(tx.date).toLocaleDateString()}</span>
+                    </div>
+                    <span className={`font-bold ${tx.amount < 0 ? "text-red-500" : "text-green-500"}`}>{tx.amount > 0 ? "+" : ""}{tx.amount} 🪙</span>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
 
           {/* Username */}
           <div>
@@ -358,7 +349,7 @@ export const UserProfile = () => {
                 </Button>
               </>
             ) : (
-              <Button onClick={() => setIsEditing(true)} className="w-full gap-2" variant="secondary" aria-label="Edit profile">
+              <Button onClick={handleEdit} className="w-full gap-2" variant="secondary" aria-label="Edit profile">
                 <Edit3 className="w-4 h-4" />
                 Edit Profile
               </Button>
