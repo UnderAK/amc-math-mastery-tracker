@@ -409,10 +409,7 @@ const Index = () => {
       />
       <StreakCelebrationOverlay />
       <LevelUpModal />
-      {/* Secret message (RandomWelcome) at the very bottom */}
-      <div className="mt-8 flex justify-center">
-        <RandomWelcome />
-      </div>
+
     </div>
   );
 };
