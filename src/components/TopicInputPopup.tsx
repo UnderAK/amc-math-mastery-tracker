@@ -192,7 +192,7 @@ export const TopicInputPopup: React.FC<TopicInputPopupProps> = ({
             Skip (Other)
           </Button>
           {currentQuestionIndex < totalQuestions - 1 ? (
-            <Button onClick={handleSaveAndNext} size="sm">
+            <Button onClick={handleSaveAndNext} size="sm" variant="secondary">
               Next Question →
             </Button>
           ) : (

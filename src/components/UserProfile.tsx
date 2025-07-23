@@ -358,7 +358,7 @@ export const UserProfile = () => {
                 </Button>
               </>
             ) : (
-              <Button onClick={() => setIsEditing(true)} className="w-full gap-2" aria-label="Edit profile">
+              <Button onClick={() => setIsEditing(true)} className="w-full gap-2" variant="secondary" aria-label="Edit profile">
                 <Edit3 className="w-4 h-4" />
                 Edit Profile
               </Button>

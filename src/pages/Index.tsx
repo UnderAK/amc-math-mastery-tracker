@@ -88,17 +88,18 @@ const RandomWelcome = () => {
 const Accordion = ({ title, children }: { title: string, children: React.ReactNode }) => {
   const [open, setOpen] = useState(false);
   return (
-    <div className="border rounded-lg mb-2 bg-white dark:bg-zinc-900/60">
+    <div className="mb-2">
       <Button
-        variant="ghost"
-        className="w-full px-4 py-2 flex justify-between items-center font-semibold text-left text-primary focus:outline-none focus:ring transition h-auto"
-        onClick={() => setOpen(o => !o)}
-        aria-expanded={open}
+        variant="outline"
+        className="w-full justify-between text-left h-auto py-3 px-4"
+        onClick={() => setOpen(!open)}
       >
-        {title}
-        <span className={"ml-2 transition-transform " + (open ? "rotate-90" : "rotate-0")}>▶</span>
+        <h4 className="font-semibold text-primary">{title}</h4>
+        <span className={`transform transition-transform ${open ? 'rotate-180' : ''}`}>
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-chevron-down"><path d="m6 9 6 6 6-6"/></svg>
+        </span>
       </Button>
-      {open && <div className="px-4 pb-4 pt-2 animate-fade-in">{children}</div>}
+      {open && <div className="p-4 bg-background/30 backdrop-blur-sm rounded-b-lg border-x border-b border-border">{children}</div>}
     </div>
   );
 };
