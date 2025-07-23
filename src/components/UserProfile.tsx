@@ -93,13 +93,13 @@ export const UserProfile = () => {
       <DialogTrigger asChild>
         <Button
           variant="outline"
-          size="lg"
-          className="gap-3 px-5 py-3 rounded-xl shadow focus:ring-2 focus:ring-primary focus:outline-none transition-all text-base font-semibold"
-          style={{ minWidth: 120 }}
+          size="sm"
+          className="gap-2 px-3 py-2 rounded-lg shadow focus:ring-2 focus:ring-primary focus:outline-none transition-all text-base font-semibold"
+          style={{ minWidth: 90, alignItems: 'center', display: 'flex' }}
         >
           <span className="text-2xl">{profile.avatar}</span>
-          <User className="w-5 h-5" />
-          <span className="truncate max-w-[80px]">{profile.username}</span>
+          <User className="w-4 h-4" />
+          <span className="truncate max-w-[70px]">{profile.username}</span>
         </Button>
       </DialogTrigger>
       <DialogContent className={`max-w-md ${highContrast ? "high-contrast" : ""}`}>
@@ -110,23 +110,60 @@ export const UserProfile = () => {
           </DialogTitle>
         </DialogHeader>
 
-        <div className="flex items-center gap-3 mb-4">
-          <input
-            type="checkbox"
-            id="contrast-toggle"
-            checked={highContrast}
-            onChange={e => {
-              setHighContrast(e.target.checked);
-              localStorage.setItem("profileHighContrast", e.target.checked ? "1" : "0");
-            }}
-            className="accent-primary w-4 h-4"
-          />
-          <label htmlFor="contrast-toggle" className="text-sm font-semibold">
-            Increase Contrast
-          </label>
-        </div>
-
         <div className="space-y-6">
+          {/* Avatar Display/Selection */}
+          <div className="text-center">
+            <div className="text-6xl mb-4">{isEditing ? tempAvatar : profile.avatar}</div>
+            {isEditing && (
+              <div className="grid grid-cols-6 gap-2 mb-4">
+                {AVATAR_OPTIONS.map((avatar) => (
+                  <button
+                    key={avatar}
+                    onClick={() => setTempAvatar(avatar)}
+                    className={`text-2xl p-2 rounded-lg hover:bg-secondary transition-colors ${
+                      tempAvatar === avatar ? "bg-primary/20 ring-2 ring-primary" : ""
+                    }`}
+                  >
+                    {avatar}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Username Edit */}
+          {isEditing ? (
+            <div className="space-y-2">
+              <input
+                className="input input-bordered w-full"
+                value={tempUsername}
+                onChange={e => setTempUsername(e.target.value)}
+                maxLength={24}
+                minLength={2}
+                placeholder="Enter username"
+                autoFocus
+              />
+              {/* Contrast Toggle - only in edit mode */}
+              <div className="flex items-center gap-3 mt-2 mb-1 border-t pt-3">
+                <input
+                  type="checkbox"
+                  id="contrast-toggle"
+                  checked={highContrast}
+                  onChange={e => {
+                    setHighContrast(e.target.checked);
+                    localStorage.setItem("profileHighContrast", e.target.checked ? "1" : "0");
+                  }}
+                  className="accent-primary w-4 h-4"
+                />
+                <label htmlFor="contrast-toggle" className="text-sm font-semibold">
+                  Increase Contrast
+                </label>
+              </div>
+            </div>
+          ) : (
+            <div className="text-lg font-semibold mb-2">{profile.username}</div>
+          )}
+
           {/* Avatar Display/Selection */}
           <div className="text-center">
             <div className="text-6xl mb-4">{isEditing ? tempAvatar : profile.avatar}</div>

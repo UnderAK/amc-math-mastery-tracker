@@ -221,6 +221,28 @@ export const TestEntryForm = () => {
     const lastDate = localStorage.getItem("lastPracticeDate");
     let streak = parseInt(localStorage.getItem("streak") || "0");
     let streakBonus = 0;
+
+    // --- FIXED STREAK LOGIC ---
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yStr = yesterday.toISOString().split("T")[0];
+    let prevStreak = streak;
+    if (lastDate !== today) {
+      if (lastDate === yStr) {
+        streak = prevStreak + 1;
+        window.dispatchEvent(new CustomEvent('streakCelebration', { detail: { streak } }));
+      } else {
+        if (prevStreak > 0) {
+          window.dispatchEvent(new CustomEvent('streakBroken', { detail: { prevStreak } }));
+        }
+        streak = 1;
+      }
+      localStorage.setItem("lastPracticeDate", today);
+      localStorage.setItem("streak", streak.toString());
+    }
+    if (streak >= 7) streakBonus = Math.floor(streak / 7) * 5;
+    if (streak >= 30) streakBonus += 20;
+
     let performanceBonus = 0;
     if (percent >= 90) performanceBonus = 15;
     else if (percent >= 80) performanceBonus = 10;
