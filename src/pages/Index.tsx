@@ -10,6 +10,12 @@ import { UserProfile } from "@/components/UserProfile";
 import { DailyBonus } from "@/components/DailyBonus";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom"; // Import Link for navigation
+import {
+  FacebookShareButton, FacebookIcon,
+  TwitterShareButton, TwitterIcon,
+  LinkedinShareButton, LinkedinIcon,
+  RedditShareButton, RedditIcon
+} from 'react-share';
 
 // --- Quick Stats Component ---
 const QuickStats = () => {
@@ -420,6 +426,41 @@ const Index = () => {
               </Accordion>
             </div>
           </Accordion>
+
+          {/* Social Share Section */}
+          <div className="glass p-6 rounded-2xl shadow-xl text-center hover-lift animate-slide-in-up">
+            <h2 className="text-xl font-semibold text-primary mb-3">Share the Love!</h2>
+            <p className="text-muted-foreground mb-4">If you find this tracker helpful, share it with your friends and fellow mathletes!</p>
+            <div className="flex justify-center gap-4">
+              <TwitterShareButton
+                url={"https://amc-math-mastery-tracker.vercel.app"}
+                title={"Check out this AMC Math Mastery Tracker!"}
+                hashtags={["AMC", "MathCompetition"]}
+              >
+                <TwitterIcon size={40} round />
+              </TwitterShareButton>
+              <FacebookShareButton
+                url={"https://amc-math-mastery-tracker.vercel.app"}
+                hashtag={"#MathCompetition"}
+              >
+                <FacebookIcon size={40} round />
+              </FacebookShareButton>
+              <LinkedinShareButton
+                url={"https://amc-math-mastery-tracker.vercel.app"}
+                title={"AMC Math Mastery Tracker"}
+                summary={"A free tool to track and analyze your performance on past American Mathematics Competitions (AMC)."}
+                source={"AMC Math Mastery Tracker"}
+              >
+                <LinkedinIcon size={40} round />
+              </LinkedinShareButton>
+              <RedditShareButton
+                url={"https://amc-math-mastery-tracker.vercel.app"}
+                title={"A Great Tool for AMC Prep - Math Mastery Tracker"}
+              >
+                <RedditIcon size={40} round />
+              </RedditShareButton>
+            </div>
+          </div>
 
         </main>
 
