@@ -181,13 +181,13 @@ const Index = () => {
 
               {/* Settings & Data */}
               <div className="glass p-6 rounded-lg">
-                <h2 className="text-xl font-semibold text-primary mb-3 flex items-center"><Settings className="mr-2"/>Settings & Data</h2>
-                <div className="flex flex-wrap gap-2 mb-4">
-                  <Button onClick={handleExport} size="sm" variant="secondary"><FileDown className="mr-1"/>Export</Button>
-                  <Button onClick={() => document.getElementById('import-input')?.click()} size="sm" variant="secondary"><FileUp className="mr-1"/>Import</Button>
+                <h2 className="text-xl font-semibold text-primary mb-1 flex items-center"><Settings className="mr-2"/>Settings & Data</h2>
+                <p className="text-sm text-muted-foreground mb-4">Backup or restore your progress.</p>
+                <div className="grid grid-cols-2 gap-2">
+                  <Button onClick={handleExport} variant="outline"><FileDown className="mr-2 h-4 w-4"/>Export Data</Button>
+                  <Button onClick={() => document.getElementById('import-input')?.click()} variant="outline"><FileUp className="mr-2 h-4 w-4"/>Import Data</Button>
                   <input type="file" id="import-input" accept=".json" onChange={handleImport} className="hidden" />
                 </div>
-                
               </div>
             </div>
 
@@ -205,6 +205,7 @@ const Index = () => {
                 </Accordion>
                 <Accordion title="How is my data saved?"><p className="text-muted-foreground">All your data is stored locally in your browser. It is not uploaded to any server, ensuring your data remains private. Use the export/import feature to back up or transfer your data between devices.</p></Accordion>
                 <Accordion title="Can I use this on multiple devices?"><p className="text-muted-foreground">Yes, but you need to manually transfer your data. Since all data is stored locally, you can use the <strong>Export</strong> button on one device to save your progress to a file, and then use the <strong>Import</strong> button on another device to load it.</p></Accordion>
+                <Accordion title="How are XP and Levels calculated?"><p className="text-muted-foreground">You earn XP for each test you complete, based on your score and other factors. Gaining XP increases your Level, unlocking new milestones. The goal is to make consistent practice rewarding!</p></Accordion>
               </div>
             </div>
 
