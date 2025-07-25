@@ -1,211 +1,142 @@
-import { useState, useEffect } from "react";
-import { AlertTriangle, TrendingDown, Target, BookOpen, Clock, TrendingUp } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { AlertTriangle, TrendingDown, Target, BookOpen, TrendingUp } from "lucide-react";
 import { TestScore } from "@/types/TestScore";
-import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 
-// TestScore interface is now imported from shared types
+interface WeaknessReportProps {
+  filterType?: string;
+}
 
 interface WeaknessAnalysis {
-  weakestTopics: Array<{ topic: string; mistakes: number; attempts: number }>; // Added attempts to weakest topics
+  weakestTopics: Array<{ topic: string; mistakes: number; attempts: number }>;
   problematicQuestions: Array<{ question: number; errorRate: number; attempts: number }>;
   recommendations: string[];
   overallTrend: string;
 }
 
-export const WeaknessReport = () => {
+export const WeaknessReport = ({ filterType = "all" }: WeaknessReportProps) => {
   const [analysis, setAnalysis] = useState<WeaknessAnalysis | null>(null);
-  const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
 
-
-
-  const generateReport = () => {
-    setIsGenerating(true);
+  const generateReport = useCallback(() => {
+    const allScores: TestScore[] = JSON.parse(localStorage.getItem("scores") || "[]");
+    const scores = filterType === "all" 
+      ? allScores 
+      : allScores.filter(s => s.testType && s.testType.replace(/\s+/g, '').toLowerCase() === filterType.replace(/\s+/g, '').toLowerCase());
     
-    setTimeout(() => {
-      const scores: TestScore[] = JSON.parse(localStorage.getItem("scores") || "[]");
-      
-      if (scores.length === 0) {
-        toast({
-          title: "No Data Available",
-          description: "Complete some tests first to generate a weakness report",
-          variant: "destructive",
-        });
-        setIsGenerating(false);
-        setAnalysis(null); // Clear previous analysis if no data
-        return;
-      }
+    if (scores.length === 0) {
+      setAnalysis(null);
+      return;
+    }
 
-      const topicData: { [topic: string]: { mistakes: number; attempts: number } } = {};
-      const questionData: { [question: number]: { errors: number; attempts: number } } = {};
+    const topicData: { [topic: string]: { mistakes: number; attempts: number } } = {};
+    const questionData: { [question: number]: { errors: number; attempts: number } } = {};
 
-      // Initialize questionData for all 25 questions
-      for(let i = 1; i <= 25; i++){
-          questionData[i] = { errors: 0, attempts: 0 };
-      }
+    for(let i = 1; i <= 25; i++){
+        questionData[i] = { errors: 0, attempts: 0 };
+    }
 
-      scores.forEach(score => {
-        // Process scores with the new data structure
-        if (score.questionTopics && score.questionCorrectness) {
-          for (let i = 1; i <= 25; i++) {
-            const topic = score.questionTopics[i];
-            const isCorrect = score.questionCorrectness[i];
-            const questionNum = i;
+    scores.forEach(score => {
+      if (score.questionTopics && score.questionCorrectness) {
+        for (let i = 1; i <= 25; i++) {
+          const topic = score.questionTopics[i] || 'Other';
+          const isCorrect = score.questionCorrectness[i];
+          const questionNum = i;
 
-            // Topic analysis
-            if (!topicData[topic]) topicData[topic] = { mistakes: 0, attempts: 0 };
-            topicData[topic].attempts++;
-            if (!isCorrect) {
-              topicData[topic].mistakes++;
-            }
-
-            // Question analysis
-            questionData[questionNum].attempts++;
-            if (!isCorrect) {
-              questionData[questionNum].errors++;
-            }
+          if (!topicData[topic]) topicData[topic] = { mistakes: 0, attempts: 0 };
+          topicData[topic].attempts++;
+          if (!isCorrect) {
+            topicData[topic].mistakes++;
           }
-        } else {
-          console.warn(`Skipping score from ${score.date} for weakness report due to missing data.`);
+
+          questionData[questionNum].attempts++;
+          if (!isCorrect) {
+            questionData[questionNum].errors++;
+          }
         }
-      });
-
-      // Find weakest topics (those with mistakes). Include topics from older data.
-      const weakestTopics = Object.entries(topicData)
-        .map(([topic, data]) => ({
-          topic,
-          mistakes: data.mistakes,
-          attempts: data.attempts, // Include attempts for better context
-        }))
-        .filter(t => t.mistakes > 0) // Only show topics with mistakes
-        .sort((a, b) => {
-            // Sort primarily by mistakes, then by attempts if mistakes are equal
-            if (b.mistakes !== a.mistakes) return b.mistakes - a.mistakes;
-            return b.attempts - a.attempts;
-        })
-        .slice(0, 3);
-
-      // Find problematic questions (from all data)
-      const problematicQuestions = Object.entries(questionData)
-        .map(([question, data]) => ({
-          question: parseInt(question),
-          errorRate: data.attempts > 0 ? Math.round((data.errors / data.attempts) * 100) : (data.errors > 0 ? 100 : 0), // Handle 0 attempts
-          attempts: data.attempts,
-        }))
-        .filter(q => q.attempts >= 1 && q.errorRate > 30) // Consider questions with at least 1 attempt and > 30% error rate
-        .sort((a, b) => {
-            // Sort primarily by error rate, then by attempts if error rates are equal
-            if (b.errorRate !== a.errorRate) return b.errorRate - a.errorRate;
-            return b.attempts - a.attempts;
-        })
-        .slice(0, 5);
-
-      // Generate recommendations
-      const recommendations: string[] = [];
-      
-      if (weakestTopics.length > 0) {
-        recommendations.push(`Focus on ${weakestTopics[0].topic} - your weakest area with ${weakestTopics[0].mistakes} mistakes recorded across ${weakestTopics[0].attempts} attempts.`);
-      }
-      
-      if (problematicQuestions.length > 0) {
-        recommendations.push(`Practice question types similar to Q${problematicQuestions[0].question}${problematicQuestions[0].errorRate > 0 ? ` (${problematicQuestions[0].errorRate}% error rate over ${problematicQuestions[0].attempts} attempts)` : ''}`);
-      }
-
-      // Calculate recent vs older scores for trend (using overall score, not topic specific)
-      const recentScores = scores.slice(-5);
-      const olderScores = scores.slice(0, Math.max(0, scores.length - 5)); // Ensure olderScores is not empty
-      const recentAvg = recentScores.reduce((sum, s) => sum + s.score, 0) / (recentScores.length || 1); // Handle division by zero
-      const olderAvg = olderScores.length > 0 ? olderScores.reduce((sum, s) => sum + s.score, 0) / olderScores.length : recentAvg; // Handle case with less than 5 scores
-      
-      let overallTrend = "stable";
-      if (recentAvg > olderAvg + 1) overallTrend = "improving";
-      else if (recentAvg < olderAvg - 1) overallTrend = "declining";
-
-      // Add trend-based recommendations
-      if (overallTrend === "improving") {
-        recommendations.push("Great progress! Keep up the current study routine");
-      } else if (overallTrend === "declining") {
-        recommendations.push("Consider reviewing fundamentals and taking more practice tests");
       } else {
-        recommendations.push("Try focusing on specific weak areas to break through the plateau");
+        console.warn(`Skipping score from ${score.date} for weakness report due to missing data.`);
       }
+    });
 
-      setAnalysis({
-        weakestTopics,
-        problematicQuestions,
-        recommendations,
-        overallTrend
-      });
+    const weakestTopics = Object.entries(topicData)
+      .map(([topic, data]) => ({ topic, mistakes: data.mistakes, attempts: data.attempts }))
+      .filter(t => t.mistakes > 0)
+      .sort((a, b) => b.mistakes - a.mistakes || b.attempts - a.attempts)
+      .slice(0, 3);
 
-      setIsGenerating(false);
-      
-      toast({
-        title: "Report Generated! 📊",
-        description: "Your personalized weakness analysis is ready",
-      });
-    }, 1500); // Simulate analysis time
-  };
+    const problematicQuestions = Object.entries(questionData)
+      .map(([question, data]) => ({ question: parseInt(question), errorRate: data.attempts > 0 ? Math.round((data.errors / data.attempts) * 100) : 0, attempts: data.attempts }))
+      .filter(q => q.attempts >= 1 && q.errorRate > 30)
+      .sort((a, b) => b.errorRate - a.errorRate || b.attempts - a.attempts)
+      .slice(0, 5);
+
+    const recommendations: string[] = [];
+    if (weakestTopics.length > 0) {
+      recommendations.push(`Focus on ${weakestTopics[0].topic}, where you made ${weakestTopics[0].mistakes} mistakes.`);
+    }
+    if (problematicQuestions.length > 0) {
+      recommendations.push(`Practice Question ${problematicQuestions[0].question}, which has a ${problematicQuestions[0].errorRate}% error rate.`);
+    }
+    if (recommendations.length === 0) {
+      recommendations.push("Great job! No specific weaknesses found. Keep practicing.");
+    }
+
+    let overallTrend = "Stable";
+    if (scores.length >= 5) {
+      const recentScores = scores.slice(-3).map(s => s.score);
+      const olderScores = scores.slice(0, -3).map(s => s.score);
+      const recentAvg = recentScores.reduce((a, b) => a + b, 0) / recentScores.length;
+      const olderAvg = olderScores.reduce((a, b) => a + b, 0) / olderScores.length;
+      if (recentAvg > olderAvg + 1) overallTrend = "Improving";
+      if (recentAvg < olderAvg - 1) overallTrend = "Declining";
+    }
+
+    const newAnalysis: WeaknessAnalysis = { weakestTopics, problematicQuestions, recommendations, overallTrend };
+    setAnalysis(newAnalysis);
+  }, [filterType]);
+
+  useEffect(() => {
+    generateReport();
+
+    const handleDataUpdate = () => {
+      generateReport();
+      toast({ title: "Data updated", description: "Weakness report has been refreshed." });
+    };
+
+    window.addEventListener('dataUpdate', handleDataUpdate);
+    return () => window.removeEventListener('dataUpdate', handleDataUpdate);
+  }, [generateReport, toast]);
 
   const getTrendIcon = (trend: string) => {
     switch (trend) {
-      case "improving": return "📈";
-      case "declining": return "📉";
-      default: return "➡️";
+      case "Improving":
+        return <TrendingUp className="w-4 h-4 text-green-500" />;
+      case "Declining":
+        return <TrendingDown className="w-4 h-4 text-red-500" />;
+      default:
+        return <TrendingUp className="w-4 h-4 text-yellow-500" />;
     }
   };
 
   const getTrendColor = (trend: string) => {
     switch (trend) {
-      case "improving": return "text-green-600 bg-green-50 dark:bg-green-900/20";
-      case "declining": return "text-red-600 bg-red-50 dark:bg-red-900/20";
-      default: return "text-blue-600 bg-blue-50 dark:bg-blue-900/20";
+      case "Improving":
+        return "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800";
+      case "Declining":
+        return "bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800";
+      default:
+        return "bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800";
     }
   };
-
-  // Re-generate report when data updates (after test grading or topic input)
-  useEffect(() => {
-    generateReport();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Empty dependency array means this runs once on mount
-
-  useEffect(() => {
-    const handleDataUpdate = () => {
-      generateReport();
-    };
-    window.addEventListener('dataUpdate', handleDataUpdate);
-    return () => {
-      window.removeEventListener('dataUpdate', handleDataUpdate);
-    };
-  }, [generateReport]); // Re-run effect if generateReport changes
-
 
   return (
     <section className="glass p-6 rounded-2xl shadow-xl">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-semibold text-primary flex items-center gap-2">
-          <AlertTriangle className="w-5 h-5" />
-          Weakness Report
+          <BookOpen className="w-5 h-5" />
+          Weakness Analysis
         </h2>
-        
-        <Button 
-          onClick={generateReport}
-          disabled={isGenerating}
-          className="gradient-primary"
-          aria-label="Generate Weakness Report"
-        >
-          {isGenerating ? (
-            <>
-              <Clock className="w-4 h-4 mr-2 animate-spin" />
-              Analyzing...
-            </>
-          ) : (
-            <>
-              <Target className="w-4 h-4 mr-2" />
-              Generate Report
-            </>
-          )}
-        </Button>
       </div>
 
       {analysis ? (
@@ -281,9 +212,9 @@ export const WeaknessReport = () => {
       ) : (
         <div className="text-center py-12">
           <div className="text-4xl mb-3">🎯</div>
-          <p className="text-muted-foreground mb-4">Generate a personalized weakness report</p>
-          <p className="text-sm text-muted-foreground">
-            Get insights into your problem areas and recommendations for improvement
+          <p className="text-muted-foreground">No weakness data yet</p>
+          <p className="text-sm text-muted-foreground mt-1">
+            Complete a few tests to generate your personalized report.
           </p>
         </div>
       )}

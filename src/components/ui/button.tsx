@@ -5,7 +5,7 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "relative overflow-hidden inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 active:scale-95 before:absolute before:inset-0 before:bg-[radial-gradient(400px_circle_at_var(--mouse-x)_var(--mouse-y),rgba(255,255,255,0.2),transparent)] before:opacity-0 before:transition-opacity before:duration-500 hover:before:opacity-100 bg-noise [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 active:scale-95 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
@@ -50,19 +50,13 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 
     React.useImperativeHandle(ref, () => internalRef.current!);
 
-    const handleMouseMove = (e: React.MouseEvent<HTMLButtonElement>) => {
-      const rect = e.currentTarget.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-      internalRef.current?.style.setProperty("--mouse-x", `${x}px`);
-      internalRef.current?.style.setProperty("--mouse-y", `${y}px`);
-    };
+
 
     return (
       <Comp
         className={cn(buttonVariants({ variant, size, className }))}
         ref={internalRef}
-        onMouseMove={handleMouseMove}
+
         {...props}
       />
     );

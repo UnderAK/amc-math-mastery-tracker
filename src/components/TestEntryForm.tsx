@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { TopicInputPopup } from "@/components/TopicInputPopup";
 import { useToast } from "@/hooks/use-toast";
 import { TestScore } from "@/types/TestScore";
@@ -41,6 +42,14 @@ export const TestEntryForm = () => {
   const [isTopicInputForAllOpen, setIsTopicInputForAllOpen] = useState(false);
   
   const { toast } = useToast();
+
+  const getTooltipMessage = () => {
+    if (isGrading) return "Grading is in progress...";
+    if (userAnswers.length !== 25 && answerKey.length !== 25) return "Please enter 25 answers for both fields.";
+    if (userAnswers.length !== 25) return `Your answers are incomplete (${userAnswers.length}/25).`;
+    if (answerKey.length !== 25) return `The answer key is incomplete (${answerKey.length}/25).`;
+    return "";
+  };
 
   const topicOptions = [
     "Algebra",
@@ -346,11 +355,14 @@ export const TestEntryForm = () => {
         { emoji: "🚀", title: "Math Champion", description: "Reach Level 25", earned: Math.floor(xp / 100) + 1 >= 25 },
         { emoji: "👑", title: "Math Royalty", description: "Reach Level 50", earned: Math.floor(xp / 100) + 1 >= 50 },
       ];
+
       const newlyEarned = badgeChecks.filter(b => b.earned && !prevBadges.includes(b.title));
+      
       if (newlyEarned.length > 0) {
-        setNewAchievements(newlyEarned);
+        // Accumulate new achievements instead of replacing them
+        setNewAchievements(prev => [...prev, ...newlyEarned]);
         setShowAchievementPopup(true);
-        // Save the earned badges
+        // Save all earned badges to prevent re-triggering popups
         localStorage.setItem("earnedBadges", JSON.stringify([...prevBadges, ...newlyEarned.map(b => b.title)]));
       }
     } catch (err) {
@@ -467,24 +479,37 @@ export const TestEntryForm = () => {
 
         {/* Action Buttons */}
         <div className="flex justify-end">
-          <Button
-            onClick={gradeTest}
-            variant="gradient-primary" className="hover-bounce hover-glow animate-pulse-glow"
-            disabled={userAnswers.length !== 25 || answerKey.length !== 25 || isGrading}
-            aria-label="Grade Test"
-          >
-            {isGrading ? (
-              <>
-                <div className="w-4 h-4 mr-2 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                Grading...
-              </>
-            ) : (
-              <>
-                <CheckCircle className="w-4 h-4 mr-2" />
-                Grade Test
-              </>
-            )}
-          </Button>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="inline-block">
+                  <Button
+                    onClick={gradeTest}
+                    variant="gradient-primary" className="hover-bounce hover-glow animate-pulse-glow"
+                    disabled={userAnswers.length !== 25 || answerKey.length !== 25 || isGrading}
+                    aria-label="Grade Test"
+                  >
+                    {isGrading ? (
+                      <>
+                        <div className="w-4 h-4 mr-2 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                        Grading...
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle className="w-4 h-4 mr-2" />
+                        Grade Test
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </TooltipTrigger>
+              {(userAnswers.length !== 25 || answerKey.length !== 25 || isGrading) && (
+                <TooltipContent>
+                  <p>{getTooltipMessage()}</p>
+                </TooltipContent>
+              )}
+            </Tooltip>
+          </TooltipProvider>
         </div>
 
         {/* Result */}

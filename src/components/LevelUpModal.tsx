@@ -9,34 +9,36 @@ export const LevelUpModal = () => {
 
   useEffect(() => {
     const handleLevelUp = (event: CustomEvent) => {
-      setNewLevel(event.detail.newLevel);
-      setIsOpen(true);
-      
-      // Trigger confetti celebration
-      confetti({
-        particleCount: 100,
-        spread: 70,
-        origin: { y: 0.6 }
-      });
-      
-      // Additional confetti bursts
-      setTimeout(() => {
+      if (event.detail && event.detail.newLevel) {
+        setNewLevel(event.detail.newLevel);
+        setIsOpen(true);
+
+        // Trigger confetti celebration
         confetti({
-          particleCount: 50,
-          angle: 60,
-          spread: 55,
-          origin: { x: 0, y: 0.8 }
+          particleCount: 100,
+          spread: 70,
+          origin: { y: 0.6 },
         });
-      }, 250);
-      
-      setTimeout(() => {
-        confetti({
-          particleCount: 50,
-          angle: 120,
-          spread: 55,
-          origin: { x: 1, y: 0.8 }
-        });
-      }, 500);
+
+        // Additional confetti bursts
+        setTimeout(() => {
+          confetti({
+            particleCount: 50,
+            angle: 60,
+            spread: 55,
+            origin: { x: 0, y: 0.8 },
+          });
+        }, 250);
+
+        setTimeout(() => {
+          confetti({
+            particleCount: 50,
+            angle: 120,
+            spread: 55,
+            origin: { x: 1, y: 0.8 },
+          });
+        }, 500);
+      }
     };
 
     window.addEventListener('levelUp', handleLevelUp as EventListener);

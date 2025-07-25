@@ -85,6 +85,10 @@ export const QuestionAccuracyTable = ({ filterType = "all" }: QuestionAccuracyTa
         }
       }
 
+      console.log('All Scores:', scores);
+      console.log('Filter Type:', filterType);
+      console.log('Filtered Scores:', filteredScores);
+      console.log('Final Stats:', finalStats);
       setQuestionStats(finalStats);
     };
 
@@ -128,7 +132,7 @@ export const QuestionAccuracyTable = ({ filterType = "all" }: QuestionAccuracyTa
         </h2>
       </div>
 
-      {hasImperfectQuestions ? (
+      {hasData ? (
         <div className="space-y-6">
           {/* Insights */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">

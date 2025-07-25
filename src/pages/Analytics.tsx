@@ -66,9 +66,9 @@ const Analytics = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All AMCs</SelectItem>
-                    <SelectItem value="AMC 8">AMC 8</SelectItem>
-                    <SelectItem value="AMC 10">AMC 10</SelectItem>
-                    <SelectItem value="AMC 12">AMC 12</SelectItem>
+                    <SelectItem value="amc8">AMC 8</SelectItem>
+                    <SelectItem value="amc10">AMC 10</SelectItem>
+                    <SelectItem value="amc12">AMC 12</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

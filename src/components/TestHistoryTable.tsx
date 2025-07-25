@@ -40,7 +40,7 @@ export const TestHistoryTable = ({ filterType = "all" }: TestHistoryTableProps) 
       console.log('DEBUG TestHistoryTable: Removing dataUpdate event listener');
       window.removeEventListener('dataUpdate', handleDataUpdate);
     };
-  }, []);
+  }, [filterType]);
 
   const uniqueLabels = [...new Set(scores.filter(s => s.label).map(s => s.label))];
   

@@ -140,21 +140,9 @@ export const LeaderboardOverlay = ({ isOpen, onClose }: LeaderboardOverlayProps)
     // Combine user with mock data
     const allUsers = [...mockUsers, currentUser];
 
-    // Sort by XP to find the top player
-    const sortedUsers = allUsers.sort((a, b) => b.xp - a.xp);
-
-    // Keep the top player fixed, and shuffle the rest
-    const topPlayer = sortedUsers[0];
-    const otherPlayers = sortedUsers.slice(1);
-
-    // Fisher-Yates shuffle algorithm
-    for (let i = otherPlayers.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [otherPlayers[i], otherPlayers[j]] = [otherPlayers[j], otherPlayers[i]];
-    }
-
-    // Reconstruct the leaderboard and assign ranks
-    const finalLeaderboard = [topPlayer, ...otherPlayers]
+    // Sort by XP in descending order and assign ranks
+    const finalLeaderboard = allUsers
+      .sort((a, b) => b.xp - a.xp)
       .map((user, index) => ({ ...user, rank: index + 1 }));
 
     setLeaderboard(finalLeaderboard);

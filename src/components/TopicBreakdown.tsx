@@ -18,7 +18,6 @@ interface TopicBreakdownProps {
 
 export const TopicBreakdown = ({ filterType = "all" }: TopicBreakdownProps) => {
   const [topicStats, setTopicStats] = useState<TopicStats[]>([]);
-  const [relevantStats, setRelevantStats] = useState<TopicStats[]>([]); // Declare relevantStats here
 
 
 
@@ -90,7 +89,6 @@ export const TopicBreakdown = ({ filterType = "all" }: TopicBreakdownProps) => {
       const relevantStatsData = stats.filter(stat => stat.total > 0 || stat.mistakes > 0);
 
       setTopicStats(relevantStatsData); // Update topicStats state
-      setRelevantStats(relevantStatsData); // Update relevantStats state
     };
 
     updateTopicStats();
@@ -101,25 +99,23 @@ export const TopicBreakdown = ({ filterType = "all" }: TopicBreakdownProps) => {
     return () => {
       window.removeEventListener('dataUpdate', handleDataUpdate);
     };
-  }, [filterType]);
+  }, [filterType]); 
 
   const hasData = topicStats.some(stat => stat.total > 0 || stat.mistakes > 0);
   
-  // Filter and sort topics for display
-  // Display topics that have at least one attempt OR at least one mistake
-  const displayTopics = topicStats
-    .filter(stat => stat.total > 0 || stat.mistakes > 0);
+  const displayTopics = topicStats.filter(stat => stat.total > 0 || stat.mistakes > 0);
 
-  // Weakest topics: Filter for topics with mistakes and sort by mistake count (descending)
-  const weakestTopics = displayTopics
-    .filter(stat => stat.mistakes > 0)
-    .sort((a, b) => b.mistakes - a.mistakes)
+  const sortedByAccuracy = [...displayTopics].sort((a, b) => b.accuracy - a.accuracy);
+  const sortedByMistakes = [...displayTopics].sort((a, b) => b.mistakes - a.mistakes);
+
+  const strongestTopics = sortedByAccuracy
+    .filter(t => t.accuracy >= 80 && t.total > 5)
     .slice(0, 2);
 
-  // Strongest topics: Filter for topics with at least 3 attempts and sort by accuracy (descending)
-   const strongestTopics = displayTopics
-    .filter(stat => stat.total >= 3) // Require at least 3 attempts for a topic to be considered a strength
-    .sort((a, b) => b.accuracy - a.accuracy)
+  const strongTopicNames = new Set(strongestTopics.map(t => t.topic));
+
+  const weakestTopics = sortedByMistakes
+    .filter(t => t.mistakes > 0 && t.total > 5 && !strongTopicNames.has(t.topic))
     .slice(0, 2);
 
   const getAccuracyColor = (accuracy: number) => {
@@ -198,7 +194,7 @@ export const TopicBreakdown = ({ filterType = "all" }: TopicBreakdownProps) => {
 
           {/* Detailed Topic Breakdown */}
           <div className="space-y-4">
-            {relevantStats.map((topic, index) => (
+            {topicStats.map((topic, index) => (
               <div 
                 key={topic.topic} 
                 className="bg-secondary/30 rounded-lg p-4 hover:bg-secondary/40 transition-colors"

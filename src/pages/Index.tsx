@@ -244,6 +244,35 @@ const Index = () => {
               Track your progress, earn badges, and level up your math skills!
             </p>
 
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 my-8">
+              <Link to="/test-entry">
+                <Button variant="gradient-primary" className="w-full h-24 text-lg hover-lift">
+                  <Trophy className="w-6 h-6 mr-3" />
+                  Grade a New Test
+                </Button>
+              </Link>
+              <Link to="/analytics">
+                <Button variant="gradient-primary" className="w-full h-24 text-lg hover-lift">
+                  <TrendingUp className="w-6 h-6 mr-3" />
+                  Analyze Performance
+                </Button>
+              </Link>
+              <Link to="/practice">
+                <Button variant="gradient-primary" className="w-full h-24 text-lg hover-lift">
+                  <BookOpen className="w-6 h-6 mr-3" />
+                  Practice Problems
+                </Button>
+              </Link>
+              <Button
+                variant="gradient-primary"
+                onClick={() => setIsLeaderboardOpen(true)}
+                className="w-full h-24 text-lg hover-lift"
+              >
+                <Award className="w-6 h-6 mr-3" />
+                View Leaderboard
+              </Button>
+            </div>
+
             <div className="mt-4 flex justify-center gap-3 flex-wrap">
               <Button
                 variant="secondary"

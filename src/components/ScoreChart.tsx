@@ -2,14 +2,21 @@ import { useState, useEffect, useRef } from "react";
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { TestScore } from "@/types/TestScore";
 
-export const ScoreChart = () => {
+interface ScoreChartProps {
+  filterType?: string;
+}
+
+export const ScoreChart = ({ filterType = "all" }: ScoreChartProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [scores, setScores] = useState<TestScore[]>([]);
   const [trend, setTrend] = useState<"up" | "down" | "stable">("stable");
 
   useEffect(() => {
     const updateChart = () => {
-      const savedScores: TestScore[] = JSON.parse(localStorage.getItem("scores") || "[]");
+      const allScores: TestScore[] = JSON.parse(localStorage.getItem("scores") || "[]");
+      const savedScores = filterType === "all"
+        ? allScores
+        : allScores.filter(s => s.testType === filterType);
       setScores(savedScores);
 
       const scoresWithData = savedScores.map(s => {
@@ -50,7 +57,7 @@ export const ScoreChart = () => {
     return () => {
       window.removeEventListener('dataUpdate', handleDataUpdate);
     };
-  }, []);
+  }, [filterType]);
 
   const drawChart = (data: (TestScore & { totalQuestions: number; percentage: number })[]) => {
     const canvas = canvasRef.current;
