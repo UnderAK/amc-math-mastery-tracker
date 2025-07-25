@@ -178,29 +178,29 @@ const Index = () => {
               <div className="glass p-6 rounded-lg">
                 <QuickStats />
               </div>
-            </div>
 
-            {/* Settings & Data */}
-            <div className="glass p-6 rounded-lg mt-8">
-              <h2 className="text-xl font-semibold text-primary mb-3 flex items-center"><Settings className="mr-2"/>Settings & Data</h2>
-              <div className="flex flex-wrap gap-2 mb-4">
-                <Button onClick={handleExport} size="sm" variant="secondary"><FileDown className="mr-1"/>Export</Button>
-                <Button onClick={() => fileInputRef.current?.click()} size="sm" variant="secondary"><FileUp className="mr-1"/>Import</Button>
-                <input type="file" ref={fileInputRef} onChange={handleImport} accept=".json" className="hidden" />
+              {/* Settings & Data */}
+              <div className="glass p-6 rounded-lg">
+                <h2 className="text-xl font-semibold text-primary mb-3 flex items-center"><Settings className="mr-2"/>Settings & Data</h2>
+                <div className="flex flex-wrap gap-2 mb-4">
+                  <Button onClick={handleExport} size="sm" variant="secondary"><FileDown className="mr-1"/>Export</Button>
+                  <Button onClick={() => document.getElementById('import-input')?.click()} size="sm" variant="secondary"><FileUp className="mr-1"/>Import</Button>
+                  <input type="file" id="import-input" accept=".json" onChange={handleImport} className="hidden" />
+                </div>
+                
+                <Accordion title="How to use this app?">
+                  <ol className="list-decimal list-inside text-muted-foreground space-y-1">
+                    <li>Click <strong>Enter Test</strong> to log a new AMC score.</li>
+                    <li>Fill in your score, test date, and answers.</li>
+                    <li>Use the <strong>Analytics</strong> page to see your progress.</li>
+                    <li>Use the <strong>Export/Import</strong> buttons to back up and restore your data.</li>
+                  </ol>
+                </Accordion>
+
+                <Accordion title="How is my data saved?"><p className="text-muted-foreground">All your data is stored locally in your browser. It is not uploaded to any server, ensuring your data remains private. Use the export/import feature to back up or transfer your data between devices.</p></Accordion>
+
+                <Accordion title="Can I use this on multiple devices?"><p className="text-muted-foreground">Yes, but you need to manually transfer your data. Since all data is stored locally, you can use the <strong>Export</strong> button on one device to save your progress to a file, and then use the <strong>Import</strong> button on another device to load it.</p></Accordion>
               </div>
-              
-              <Accordion title="How to use this app?">
-                <ol className="list-decimal list-inside text-muted-foreground space-y-1">
-                  <li>Click <strong>Enter Test</strong> to log a new AMC score.</li>
-                  <li>Fill in your score, test date, and answers.</li>
-                  <li>Use the <strong>Analytics</strong> page to see your progress.</li>
-                  <li>Use the <strong>Export/Import</strong> buttons to back up and restore your data.</li>
-                </ol>
-              </Accordion>
-
-              <Accordion title="How is my data saved?"><p className="text-muted-foreground">All your data is stored locally in your browser. It is not uploaded to any server, ensuring your data remains private. Use the export/import feature to back up or transfer your data between devices.</p></Accordion>
-
-              <Accordion title="Can I use this on multiple devices?"><p className="text-muted-foreground">Yes, but you need to manually transfer your data. Since all data is stored locally, you can use the <strong>Export</strong> button on one device to save your progress to a file, and then use the <strong>Import</strong> button on another device to load it.</p></Accordion>
             </div>
 
             {/* Test History Table */}
