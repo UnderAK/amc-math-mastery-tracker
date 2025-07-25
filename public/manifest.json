@@ -13,49 +13,49 @@
   "categories": ["education", "productivity", "math"],
   "prefer_related_applications": false,
   "icons": [
-    { "src": "/icons/192x192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "/icons/256x256.png", "sizes": "256x256", "type": "image/png" },
-    { "src": "/icons/384x384.png", "sizes": "384x384", "type": "image/png" },
-    { "src": "/icons/512x512.png", "sizes": "512x512", "type": "image/png" }
+    { "src": "/icons/192x192.webp", "sizes": "192x192", "type": "image/webp" },
+    { "src": "/icons/256x256.webp", "sizes": "256x256", "type": "image/webp" },
+    { "src": "/icons/384x384.webp", "sizes": "384x384", "type": "image/webp" },
+    { "src": "/icons/512x512.webp", "sizes": "512x512", "type": "image/webp" }
   ],
   "screenshots": [
     {
-      "src": "/screenshots/home.png",
+      "src": "/screenshots/home.webp",
       "sizes": "1280x720",
-      "type": "image/png",
-      "label": "Home page (replace with real screenshot)"
+      "type": "image/webp",
+      "label": "Home page of the application"
     },
     {
-      "src": "/screenshots/profile.png",
+      "src": "/screenshots/profile.webp",
       "sizes": "1280x720",
-      "type": "image/png",
-      "label": "Profile page (replace with real screenshot)"
+      "type": "image/webp",
+      "label": "User profile and achievements page"
+    },
+    {
+      "src": "/screenshots/test-entry.webp",
+      "sizes": "1280x720",
+      "type": "image/webp",
+      "label": "Entering a new test score"
     }
   ],
   "shortcuts": [
     {
       "name": "Enter Test",
       "short_name": "Enter",
-      "url": "/entry",
-      "icons": [{ "src": "/icons/192x192.png", "sizes": "192x192", "type": "image/png" }]
+      "url": "/test-entry",
+      "icons": [{ "src": "/icons/192x192.webp", "sizes": "192x192", "type": "image/webp" }]
     },
     {
-      "name": "View Scores",
-      "short_name": "Scores",
-      "url": "/scores",
-      "icons": [{ "src": "/icons/192x192.png", "sizes": "192x192", "type": "image/png" }]
+      "name": "View Analytics",
+      "short_name": "Analytics",
+      "url": "/analytics",
+      "icons": [{ "src": "/icons/192x192.webp", "sizes": "192x192", "type": "image/webp" }]
     },
     {
-      "name": "Avatar Shop",
-      "short_name": "Shop",
-      "url": "/profile#shop",
-      "icons": [{ "src": "/icons/192x192.png", "sizes": "192x192", "type": "image/png" }]
-    },
-    {
-      "name": "Import/Export Progress",
-      "short_name": "Import/Export",
-      "url": "/#import-export",
-      "icons": [{ "src": "/icons/192x192.png", "sizes": "192x192", "type": "image/png" }]
+      "name": "Practice Problems",
+      "short_name": "Practice",
+      "url": "/practice",
+      "icons": [{ "src": "/icons/192x192.webp", "sizes": "192x192", "type": "image/webp" }]
     }
   ],
   "related_applications": [

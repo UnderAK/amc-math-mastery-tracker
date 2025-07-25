@@ -19,89 +19,91 @@ interface QuestionAccuracyTableProps {
 export const QuestionAccuracyTable = ({ filterType = "all" }: QuestionAccuracyTableProps) => {
   const [questionStats, setQuestionStats] = useState<QuestionStat[]>([]);
 
-  useEffect(() => {
-    const updateQuestionStats = () => {
-      const scores: TestScore[] = JSON.parse(localStorage.getItem("scores") || "[]");
-      const filteredScores = filterType === "all" 
-        ? scores 
-        : scores.filter(s => 
-            s.testType &&
-            s.testType.replace(/\s+/g, '').toLowerCase() === filterType.replace(/\s+/g, '').toLowerCase()
-          );
+  const [allScores, setAllScores] = useState<TestScore[]>([]);
 
-      const stats: { [key: number]: QuestionStat } = {};
+  const updateQuestionStats = useCallback(() => {
+    const filteredScores = filterType === "all" 
+      ? allScores 
+      : allScores.filter(s => 
+          s.testType &&
+          s.testType.replace(/\s+/g, '').toLowerCase() === filterType.replace(/\s+/g, '').toLowerCase()
+        );
 
-      filteredScores.forEach(score => {
-        // Modern, preferred data structure
-        if (score.questionCorrectness && Object.keys(score.questionCorrectness).length > 0) {
-          Object.entries(score.questionCorrectness).forEach(([qNumStr, isCorrect]) => {
-            const qNum = parseInt(qNumStr, 10);
+    const stats: { [key: number]: QuestionStat } = {};
+
+    filteredScores.forEach(score => {
+      if (score.questionCorrectness && Object.keys(score.questionCorrectness).length > 0) {
+        Object.entries(score.questionCorrectness).forEach(([qNumStr, isCorrect]) => {
+          const qNum = parseInt(qNumStr, 10);
+          if (!stats[qNum]) {
+            stats[qNum] = { question: qNum, correct: 0, total: 0, accuracy: 0 };
+          }
+          stats[qNum].total++;
+          if (isCorrect) {
+            stats[qNum].correct++;
+          }
+        });
+      } else {
+        const input = score.input || "";
+        const key = score.key || "";
+        const questionsInTest = Math.max(input.length, key.length);
+        for (let i = 0; i < questionsInTest; i++) {
+          if (typeof key[i] !== "undefined") {
+            const qNum = i + 1;
             if (!stats[qNum]) {
               stats[qNum] = { question: qNum, correct: 0, total: 0, accuracy: 0 };
             }
             stats[qNum].total++;
-            if (isCorrect) {
+            if (input[i] && input[i] === key[i]) {
               stats[qNum].correct++;
-            }
-          });
-        } else { // Fallback for legacy data
-          const input = score.input || "";
-          const key = score.key || "";
-          const questionsInTest = Math.max(input.length, key.length);
-
-          for (let i = 0; i < questionsInTest; i++) {
-            if (typeof key[i] !== "undefined") {
-              const qNum = i + 1;
-              if (!stats[qNum]) {
-                stats[qNum] = { question: qNum, correct: 0, total: 0, accuracy: 0 };
-              }
-              stats[qNum].total++;
-              if (input[i] && input[i] === key[i]) {
-                stats[qNum].correct++;
-              }
             }
           }
         }
+      }
+    });
+
+    const sortedStats = Object.keys(stats)
+      .map(Number)
+      .sort((a, b) => a - b)
+      .map(qNum => {
+        const stat = stats[qNum];
+        stat.accuracy = stat.total > 0 ? Math.round((stat.correct / stat.total) * 100) : 0;
+        return { ...stat, question: qNum };
       });
 
-      const sortedStats = Object.keys(stats)
-        .map(Number)
-        .sort((a, b) => a - b)
-        .map(qNum => {
-          const stat = stats[qNum];
-          stat.accuracy = stat.total > 0 ? Math.round((stat.correct / stat.total) * 100) : 0;
-          return { ...stat, question: qNum };
-        });
-
-      // Create a full array for display, filling in missing questions
-      const maxQuestion = sortedStats.length > 0 ? Math.max(...sortedStats.map(s => s.question)) : 0;
-      const finalStats: QuestionStat[] = [];
-      for (let i = 1; i <= Math.max(25, maxQuestion); i++) {
-        const existingStat = sortedStats.find(s => s.question === i);
-        if (existingStat) {
-          finalStats[i - 1] = existingStat;
-        } else {
-          finalStats[i - 1] = { question: i, correct: 0, total: 0, accuracy: 0 };
-        }
+    const maxQuestion = sortedStats.length > 0 ? Math.max(...sortedStats.map(s => s.question)) : 0;
+    const finalStats: QuestionStat[] = [];
+    for (let i = 1; i <= Math.max(25, maxQuestion); i++) {
+      const existingStat = sortedStats.find(s => s.question === i);
+      if (existingStat) {
+        finalStats[i - 1] = existingStat;
+      } else {
+        finalStats[i - 1] = { question: i, correct: 0, total: 0, accuracy: 0 };
       }
+    }
 
-      console.log('All Scores:', scores);
-      console.log('Filter Type:', filterType);
-      console.log('Filtered Scores:', filteredScores);
-      console.log('Final Stats:', finalStats);
-      setQuestionStats(finalStats);
+    setQuestionStats(finalStats);
+  }, [allScores, filterType]);
+
+  // Effect to load scores and listen for updates
+  useEffect(() => {
+    const loadScores = () => {
+      const scoresFromStorage: TestScore[] = JSON.parse(localStorage.getItem("scores") || "[]");
+      setAllScores(scoresFromStorage);
     };
 
-    updateQuestionStats();
+    loadScores(); // Initial load
 
-    // Listen for data updates
-    const handleDataUpdate = () => updateQuestionStats();
-    window.addEventListener('dataUpdate', handleDataUpdate);
-
+    window.addEventListener('dataUpdate', loadScores);
     return () => {
-      window.removeEventListener('dataUpdate', handleDataUpdate);
+      window.removeEventListener('dataUpdate', loadScores);
     };
-  }, [filterType]);
+  }, []);
+
+  // Effect to recalculate stats when data or filter changes
+  useEffect(() => {
+    updateQuestionStats();
+  }, [updateQuestionStats]);
 
   const hasData = questionStats.some(stat => stat.total > 0);
   const worstQuestions = questionStats
