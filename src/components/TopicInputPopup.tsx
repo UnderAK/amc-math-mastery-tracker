@@ -187,12 +187,15 @@ export const TopicInputPopup: React.FC<TopicInputPopupProps> = ({
           </div>
         </div>
 
-        <AlertDialogFooter className="flex justify-center gap-2">
+        <AlertDialogFooter className="flex flex-row justify-center items-center gap-2 pt-4">
           <Button variant="outline" onClick={handleSkip} size="sm">
             Skip (Other)
           </Button>
+          <Button variant="outline" onClick={handleSkipAll} size="sm">
+            Skip All & Finish
+          </Button>
           {currentQuestionIndex < totalQuestions - 1 ? (
-            <Button onClick={handleSaveAndNext} size="sm" variant="secondary">
+            <Button onClick={handleSaveAndNext} variant="ghost" size="sm" className="text-primary">
               Next Question →
             </Button>
           ) : (
@@ -200,9 +203,6 @@ export const TopicInputPopup: React.FC<TopicInputPopupProps> = ({
               Complete ✅
             </Button>
           )}
-          <Button variant="outline" onClick={handleSkipAll} size="sm">
-            Skip All & Finish
-          </Button>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

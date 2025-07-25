@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { User, Edit3, Save, X } from "lucide-react";
+import { calculateLevel } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { useToast } from "@/hooks/use-toast";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import { useToast } from "@/components/ui/use-toast";
 
 // Avatar shop configuration
 const AVATAR_SHOP: { [avatar: string]: { price: number } } = {
@@ -34,13 +35,15 @@ interface UserProfile {
   username: string;
   avatar: string;
   joinDate: string;
+  xp: number;
 }
 
 export const UserProfile = () => {
   const [profile, setProfile] = useState<UserProfile>({
     username: "Math Enthusiast",
     avatar: "🧑‍🎓",
-    joinDate: new Date().toISOString().split("T")[0]
+    joinDate: new Date().toISOString().split("T")[0],
+    xp: 0
   });
   const [isEditing, setIsEditing] = useState(false);
   const [tempUsername, setTempUsername] = useState("");
@@ -57,13 +60,16 @@ export const UserProfile = () => {
   useEffect(() => {
     const savedProfile = localStorage.getItem("userProfile");
     if (savedProfile) {
-      setProfile(JSON.parse(savedProfile));
+      const parsedProfile = JSON.parse(savedProfile);
+      // Ensure xp is a number, default to 0 if not present
+      setProfile({ ...parsedProfile, xp: parsedProfile.xp || 0 });
     } else {
       // First time user, save default profile
       const defaultProfile = {
         username: "Math Enthusiast",
         avatar: "🧑‍🎓",
-        joinDate: new Date().toISOString().split("T")[0]
+        joinDate: new Date().toISOString().split("T")[0],
+        xp: 0
       };
       localStorage.setItem("userProfile", JSON.stringify(defaultProfile));
       setProfile(defaultProfile);
@@ -124,12 +130,9 @@ export const UserProfile = () => {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-2 hover-scale" aria-label="Open user profile dialog">
-          <span className="text-xl">{profile.avatar}</span>
-          {profile.username}
-          <span className="ml-2 px-2 py-1 rounded-full bg-yellow-400/20 text-yellow-600 dark:text-yellow-300 text-xs font-bold flex items-center gap-1">
-            <span role="img" aria-label="coin">🪙</span> {coinBalance}
-          </span>
+        <Button variant="ghost" size="sm" className="gap-1">
+          <User className="w-4 h-4" />
+          Profile
         </Button>
       </DialogTrigger>
 

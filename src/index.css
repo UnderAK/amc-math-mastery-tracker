@@ -172,7 +172,7 @@ All colors MUST be HSL.
 @layer components {
   /* Glass morphism effect */
   .glass {
-    @apply bg-white/70 backdrop-blur-xl border border-white/20 dark:bg-slate-800/80 dark:border-slate-700/30;
+    @apply bg-primary/5 backdrop-blur-xl border border-white/20 dark:bg-primary/10 dark:border-slate-700/30;
     box-shadow: var(--shadow-glass);
   }
 

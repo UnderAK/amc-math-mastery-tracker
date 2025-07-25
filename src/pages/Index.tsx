@@ -8,7 +8,10 @@ import {
   Settings,
   FileDown,
   FileUp,
-  BarChart
+  BarChart,
+  Target,
+  BookOpen,
+  Award
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -17,6 +20,7 @@ import { useToast } from "@/hooks/use-toast";
 // Newly created components
 import { QuickStats } from "@/components/QuickStats";
 import { RandomWelcome } from "@/components/RandomWelcome";
+import { FeatureCard } from '@/components/FeatureCard';
 
 // Existing components
 import { UserProfile } from "@/components/UserProfile";
@@ -127,23 +131,45 @@ const Index = () => {
       <div className="min-h-screen bg-background text-foreground p-4 sm:p-6">
         <div className="max-w-4xl mx-auto space-y-8">
           {/* --- Header --- */}
-          <header className="glass p-6 rounded-3xl shadow-xl relative hover-lift animate-slide-in-left">
-            <div className="absolute top-4 right-4">
+          <header className="glass p-6 rounded-3xl shadow-xl hover-lift animate-slide-in-left flex flex-col items-center gap-4 text-center">
+            {/* Title */}
+            <h1 className="text-4xl md:text-5xl font-bold gradient-primary bg-clip-text text-transparent tracking-tight animate-float">
+              AMC Mastery Tracker
+            </h1>
+
+            {/* Welcome Message */}
+            <RandomWelcome />
+
+            {/* Buttons */}
+            <div className="mt-4 flex flex-wrap justify-center items-center gap-2">
               <UserProfile />
-            </div>
-            <div className="text-center">
-              <h1 className="text-4xl md:text-5xl font-bold gradient-primary bg-clip-text text-transparent tracking-tight animate-float">
-                AMC Mastery Tracker
-              </h1>
-              <RandomWelcome />
-              <div className="mt-4 flex justify-center items-center gap-2">
-                <Button variant="ghost" size="sm" onClick={() => setIsLeaderboardOpen(true)}><TrendingUp className="w-4 h-4 mr-1"/>Leaderboard</Button>
-                <Button asChild variant="ghost" size="sm"><Link to="/analytics"><BarChart className="w-4 h-4 mr-1"/>Analytics</Link></Button>
-                <Button asChild variant="ghost" size="sm"><Link to="/test-entry"><Trophy className="w-4 h-4 mr-1"/>Enter Test</Link></Button>
-                <Button onClick={toggleDarkMode} variant="ghost" size="icon"><span className="sr-only">Toggle Theme</span>{isDarkMode ? <Sun /> : <Moon />}</Button>
-              </div>
+              <Button variant="ghost" size="sm" onClick={() => setIsLeaderboardOpen(true)}><TrendingUp className="w-4 h-4 mr-1"/>Leaderboard</Button>
+              <Button asChild variant="ghost" size="sm"><Link to="/analytics"><BarChart className="w-4 h-4 mr-1"/>Analytics</Link></Button>
+              <Button asChild variant="ghost" size="sm"><Link to="/test-entry"><Trophy className="w-4 h-4 mr-1"/>Enter Test</Link></Button>
+              <Button onClick={toggleDarkMode} variant="ghost" size="icon"><span className="sr-only">Toggle Theme</span>{isDarkMode ? <Sun /> : <Moon />}</Button>
             </div>
           </header>
+
+          {/* Features Section */}
+          <section className="py-12 px-4">
+            <div className="max-w-5xl mx-auto grid md:grid-cols-3 gap-8">
+              <FeatureCard 
+                icon={<Target className="w-8 h-8 text-primary" />} 
+                title="Track Your Progress"
+                description="Log your AMC test scores and see detailed performance analytics to identify strengths and weaknesses."
+              />
+              <FeatureCard 
+                icon={<BookOpen className="w-8 h-8 text-primary" />} 
+                title="Master Key Concepts"
+                description="Practice problems by topic to build mastery in areas like Algebra, Geometry, and Number Theory."
+              />
+              <FeatureCard 
+                icon={<Award className="w-8 h-8 text-primary" />} 
+                title="Compete & Improve"
+                description="Compare your progress on the leaderboard, earn coins, and unlock new avatars as you climb the ranks."
+              />
+            </div>
+          </section>
 
           {/* --- Main Content --- */}
           <main className="space-y-8">
