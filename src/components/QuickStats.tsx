@@ -30,7 +30,7 @@ export const QuickStats = () => {
   return (
     <div className="glass p-4 rounded-2xl shadow text-center mb-4 animate-float">
       <h3 className="text-lg font-semibold text-primary mb-2">Your Quick Stats</h3>
-      <div className="flex flex-wrap justify-center gap-6 text-sm">
+      <div className="grid grid-cols-2 gap-4 text-sm">
         <div><span className="font-bold text-xl">{stats.tests}</span><br />Tests Taken</div>
         <div><span className="font-bold text-xl">{stats.avg}</span><br />Avg Score</div>
         <div><span className="font-bold text-xl">{stats.streak}</span><br />Current Streak</div>

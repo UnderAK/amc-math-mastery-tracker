@@ -189,15 +189,6 @@ const Index = () => {
                 </div>
                 
                 <div className="space-y-2">
-                  <Accordion title="How to use this app?">
-                    <ol className="list-decimal list-inside text-muted-foreground space-y-1">
-                      <li>Click <strong>Enter Test</strong> to log a new AMC score.</li>
-                      <li>Fill in your score, test date, and answers.</li>
-                      <li>Use the <strong>Analytics</strong> page to see your progress.</li>
-                      <li>Use the <strong>Export/Import</strong> buttons to back up and restore your data.</li>
-                    </ol>
-                  </Accordion>
-
                   <Accordion title="How is my data saved?"><p className="text-muted-foreground">All your data is stored locally in your browser. It is not uploaded to any server, ensuring your data remains private. Use the export/import feature to back up or transfer your data between devices.</p></Accordion>
 
                   <Accordion title="Can I use this on multiple devices?"><p className="text-muted-foreground">Yes, but you need to manually transfer your data. Since all data is stored locally, you can use the <strong>Export</strong> button on one device to save your progress to a file, and then use the <strong>Import</strong> button on another device to load it.</p></Accordion>
@@ -205,25 +196,7 @@ const Index = () => {
               </div>
             </div>
 
-            {/* Test History Table */}
-            <div className="space-y-4">
-              <Accordion title="How to Use">
-                <div className="text-muted-foreground space-y-2">
-                  <p>1. Click <strong>'Enter Test'</strong> to log a new practice test score.</p>
-                  <p>2. View your progress and stats on the <strong>'Analytics'</strong> page.</p>
-                  <p>3. Check the <strong>'Leaderboard'</strong> to see how you stack up (coming soon!).</p>
-                  <p>4. Use the <strong>Export/Import</strong> buttons to back up and restore your data.</p>
-                </div>
-              </Accordion>
-              <Accordion title="Frequently Asked Questions (FAQ)">
-                <div className="space-y-4">
-                  <Accordion title="What is this app for?"><p className="text-muted-foreground">This app helps you track your scores on past American Mathematics Competitions (AMC 10/12). By recording your performance, you can analyze your strengths and weaknesses, see your progress over time, and stay motivated on your journey to math mastery.</p></Accordion>
-                  <Accordion title="How is my data saved?"><p className="text-muted-foreground">All your data is stored locally in your browser. It is not uploaded to any server, ensuring your data remains private. Use the export/import feature to back up or transfer your data between devices.</p></Accordion>
-                  <Accordion title="How are XP and Levels calculated?"><p className="text-muted-foreground">You earn XP for each test you complete, based on your score and other factors. Gaining XP increases your Level, unlocking new milestones. The goal is to make consistent practice rewarding!</p></Accordion>
-                  <Accordion title="Can I use this on multiple devices?"><p className="text-muted-foreground">Yes, but you need to manually transfer your data. Since all data is stored locally, you can use the <strong>Export</strong> button on one device to save your progress to a file, and then use the <strong>Import</strong> button on another device to load it.</p></Accordion>
-                </div>
-              </Accordion>
-            </div>
+
           </main>
         </div>
       </div>
