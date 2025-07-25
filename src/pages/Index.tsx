@@ -244,68 +244,42 @@ const Index = () => {
               Track your progress, earn badges, and level up your math skills!
             </p>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 my-8">
-              <Link to="/test-entry">
-                <Button variant="gradient-primary" className="w-full h-24 text-lg hover-lift">
-                  <Trophy className="w-6 h-6 mr-3" />
-                  Grade a New Test
+            <div className="mt-8 flex flex-wrap justify-center items-center gap-3 animate-slide-in-up">
+              <Link to="/entry">
+                <Button variant="gradient-primary" size="lg" className="shadow-lg hover-lift">
+                  <Trophy className="w-5 h-5 mr-2" />
+                  Enter Test
                 </Button>
               </Link>
               <Link to="/analytics">
-                <Button variant="gradient-primary" className="w-full h-24 text-lg hover-lift">
-                  <TrendingUp className="w-6 h-6 mr-3" />
-                  Analyze Performance
+                <Button variant="gradient-primary" size="lg" className="shadow-lg hover-lift">
+                  <TrendingUp className="w-5 h-5 mr-2" />
+                  Analytics
                 </Button>
               </Link>
               <Link to="/practice">
-                <Button variant="gradient-primary" className="w-full h-24 text-lg hover-lift">
-                  <BookOpen className="w-6 h-6 mr-3" />
-                  Practice Problems
+                <Button variant="gradient-primary" size="lg" className="shadow-lg hover-lift">
+                  <BookOpen className="w-5 h-5 mr-2" />
+                  Practice
                 </Button>
               </Link>
               <Button
                 variant="gradient-primary"
+                size="lg"
+                className="shadow-lg hover-lift"
                 onClick={() => setIsLeaderboardOpen(true)}
-                className="w-full h-24 text-lg hover-lift"
               >
-                <Award className="w-6 h-6 mr-3" />
-                View Leaderboard
+                <Award className="w-5 h-5 mr-2" />
+                Leaderboard
               </Button>
-            </div>
-
-            <div className="mt-4 flex justify-center gap-3 flex-wrap">
               <Button
                 variant="secondary"
-                size="sm"
+                size="lg"
                 onClick={toggleDarkMode}
-                className="hover-scale hover-glow"
+                className="hover-lift"
               >
-                {isDarkMode ? <Sun className="w-4 h-4 mr-2" /> : <Moon className="w-4 h-4 mr-2" />}
-                Toggle Theme
+                {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
               </Button>
-              
-              <Button
-                onClick={() => setIsLeaderboardOpen(true)} 
-                variant="secondary" className="hover-scale hover-glow"
-                size="sm"
-              >
-                🏆 Leaderboard
-              </Button>
-
-               {/* Link to Analytics Page */}
-               <Link to="/analytics">
-                 <Button variant="secondary" size="sm" className="hover-scale hover-glow">
-                   📊 Analytics
-                 </Button>
-               </Link>
-
-                {/* Link to Test Entry Page */}
-               <Link to="/test-entry">
-                 <Button variant="secondary" size="sm" className="hover-scale hover-glow">
-                    ✍️ Enter Test
-                 </Button>
-               </Link>
-
             </div>
           </div>
         </header>
