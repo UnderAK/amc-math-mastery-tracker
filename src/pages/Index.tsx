@@ -188,18 +188,20 @@ const Index = () => {
                   <input type="file" id="import-input" accept=".json" onChange={handleImport} className="hidden" />
                 </div>
                 
-                <Accordion title="How to use this app?">
-                  <ol className="list-decimal list-inside text-muted-foreground space-y-1">
-                    <li>Click <strong>Enter Test</strong> to log a new AMC score.</li>
-                    <li>Fill in your score, test date, and answers.</li>
-                    <li>Use the <strong>Analytics</strong> page to see your progress.</li>
-                    <li>Use the <strong>Export/Import</strong> buttons to back up and restore your data.</li>
-                  </ol>
-                </Accordion>
+                <div className="space-y-2">
+                  <Accordion title="How to use this app?">
+                    <ol className="list-decimal list-inside text-muted-foreground space-y-1">
+                      <li>Click <strong>Enter Test</strong> to log a new AMC score.</li>
+                      <li>Fill in your score, test date, and answers.</li>
+                      <li>Use the <strong>Analytics</strong> page to see your progress.</li>
+                      <li>Use the <strong>Export/Import</strong> buttons to back up and restore your data.</li>
+                    </ol>
+                  </Accordion>
 
-                <Accordion title="How is my data saved?"><p className="text-muted-foreground">All your data is stored locally in your browser. It is not uploaded to any server, ensuring your data remains private. Use the export/import feature to back up or transfer your data between devices.</p></Accordion>
+                  <Accordion title="How is my data saved?"><p className="text-muted-foreground">All your data is stored locally in your browser. It is not uploaded to any server, ensuring your data remains private. Use the export/import feature to back up or transfer your data between devices.</p></Accordion>
 
-                <Accordion title="Can I use this on multiple devices?"><p className="text-muted-foreground">Yes, but you need to manually transfer your data. Since all data is stored locally, you can use the <strong>Export</strong> button on one device to save your progress to a file, and then use the <strong>Import</strong> button on another device to load it.</p></Accordion>
+                  <Accordion title="Can I use this on multiple devices?"><p className="text-muted-foreground">Yes, but you need to manually transfer your data. Since all data is stored locally, you can use the <strong>Export</strong> button on one device to save your progress to a file, and then use the <strong>Import</strong> button on another device to load it.</p></Accordion>
+                </div>
               </div>
             </div>
 
