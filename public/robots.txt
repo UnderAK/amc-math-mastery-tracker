@@ -12,3 +12,5 @@ Allow: /
 
 User-agent: *
 Allow: /
+
+Sitemap: https://amc-math-mastery-tracker.vercel.app/sitemap.xml

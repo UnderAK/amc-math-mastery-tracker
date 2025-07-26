@@ -2,7 +2,7 @@
   "id": "/",
   "name": "AMC Math Mastery Tracker",
   "short_name": "AMC Tracker",
-  "description": "Track AMC test performance and progress offline and online.",
+  "description": "A free, open-source tool to track and analyze your performance on past American Mathematics Competitions (AMC 8, 10, and 12). Features include progress tracking, topic analysis, badges, streaks, and data import/export.",
   "lang": "en",
   "start_url": "/",
   "scope": "/",
@@ -50,24 +50,7 @@
       "short_name": "Analytics",
       "url": "/analytics",
       "icons": [{ "src": "/icons/192x192.webp", "sizes": "192x192", "type": "image/webp" }]
-    },
-    {
-      "name": "Practice Problems",
-      "short_name": "Practice",
-      "url": "/practice",
-      "icons": [{ "src": "/icons/192x192.webp", "sizes": "192x192", "type": "image/webp" }]
     }
   ],
-  "related_applications": [
-    {
-      "platform": "play",
-      "url": "https://play.google.com/store/apps/details?id=your.app.id",
-      "id": "your.app.id"
-    },
-    {
-      "platform": "itunes",
-      "url": "https://apps.apple.com/app/idYOUR_APP_ID"
-    }
-  ],
-  "iarc_rating_id": "e.g. YOUR_IARC_ID"
+  "iarc_rating_id": null
 }
