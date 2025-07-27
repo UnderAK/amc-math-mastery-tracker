@@ -11,7 +11,8 @@ import {
   BarChart,
   Target,
   BookOpen,
-  Award
+  Award,
+  Loader2
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -185,7 +186,10 @@ const Index = () => {
                 <p className="text-sm text-muted-foreground mb-4">Backup or restore your progress.</p>
                 <div className="grid grid-cols-2 gap-2">
                   <Button onClick={handleExport} variant="outline"><FileDown className="mr-2 h-4 w-4"/>Export Data</Button>
-                  <Button onClick={() => document.getElementById('import-input')?.click()} variant="outline"><FileUp className="mr-2 h-4 w-4"/>Import Data</Button>
+                  <Button onClick={() => document.getElementById('import-input')?.click()} variant="outline" disabled={importing}>
+                    {importing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileUp className="mr-2 h-4 w-4"/>}
+                    {importing ? 'Importing...' : 'Import Data'}
+                  </Button>
                   <input type="file" id="import-input" accept=".json" onChange={handleImport} className="hidden" />
                 </div>
               </div>

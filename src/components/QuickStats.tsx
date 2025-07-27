@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { BarChart, Target, Flame, Star } from 'lucide-react';
 
 export const QuickStats = () => {
   const [stats, setStats] = useState({ tests: 0, avg: 0, streak: 0, xp: 0 });
@@ -27,14 +28,22 @@ export const QuickStats = () => {
     };
   }, []);
 
+  const StatItem = ({ icon, value, label }: { icon: React.ReactNode, value: number, label: string }) => (
+    <div className="glass p-3 rounded-lg flex flex-col items-center justify-center text-center transition-all duration-300 hover:bg-primary/10 hover:shadow-md cursor-pointer">
+      {icon}
+      <span className="font-bold text-2xl text-primary mt-1">{value}</span>
+      <span className="text-xs text-muted-foreground">{label}</span>
+    </div>
+  );
+
   return (
-    <div className="glass p-4 rounded-2xl shadow text-center mb-4 animate-float">
-      <h3 className="text-lg font-semibold text-primary mb-2">Your Quick Stats</h3>
-      <div className="grid grid-cols-2 gap-4 text-sm">
-        <div><span className="font-bold text-xl">{stats.tests}</span><br />Tests Taken</div>
-        <div><span className="font-bold text-xl">{stats.avg}</span><br />Avg Score</div>
-        <div><span className="font-bold text-xl">{stats.streak}</span><br />Current Streak</div>
-        <div><span className="font-bold text-xl">{stats.xp}</span><br />XP</div>
+    <div>
+      <h3 className="text-xl font-semibold text-primary mb-3">Quick Stats</h3>
+      <div className="grid grid-cols-2 gap-3">
+        <StatItem icon={<BarChart className="w-6 h-6 text-primary/80" />} value={stats.tests} label="Tests Taken" />
+        <StatItem icon={<Target className="w-6 h-6 text-primary/80" />} value={stats.avg} label="Avg Score" />
+        <StatItem icon={<Flame className="w-6 h-6 text-primary/80" />} value={stats.streak} label="Streak" />
+        <StatItem icon={<Star className="w-6 h-6 text-primary/80" />} value={stats.xp} label="Total XP" />
       </div>
     </div>
   );

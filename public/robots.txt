@@ -1,3 +1,4 @@
+# Allow standard crawlers
 User-agent: Googlebot
 Allow: /
 
@@ -14,3 +15,13 @@ User-agent: *
 Allow: /
 
 Sitemap: https://amc-math-mastery-tracker.vercel.app/sitemap.xml
+
+# Allow AI crawlers
+User-agent: Google-Extended
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /

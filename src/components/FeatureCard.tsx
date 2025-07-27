@@ -8,7 +8,7 @@ interface FeatureCardProps {
 
 export const FeatureCard: React.FC<FeatureCardProps> = ({ icon, title, description }) => {
   return (
-    <div className="glass rounded-xl p-6 flex flex-col items-center text-center transform hover:scale-105 transition-transform duration-300">
+    <div className="glass rounded-xl p-6 flex flex-col items-center text-center transform hover:scale-105 transition-all duration-300 hover:shadow-lg hover:shadow-primary/20">
       <div className="p-3 bg-primary/10 rounded-full mb-4">
         {icon}
       </div>

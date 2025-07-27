@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { ArrowLeft, BarChart3, AlertCircle, Filter } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useNavigate } from "react-router-dom";
@@ -18,14 +19,9 @@ const Analytics = () => {
 
   // Function to clear all local storage data
   const handleResetData = () => {
-    if (window.confirm("Are you sure you want to reset all your progress data? This action cannot be undone.")) {
-      localStorage.clear();
-      // Dispatch a custom event to notify other parts of the app that data has been updated
-      window.dispatchEvent(new CustomEvent('dataUpdate'));
-      console.log("All data reset.");
-      // Optionally navigate or refresh the page to reflect the empty state
-      // navigate('/'); // Example: navigate back to home after reset
-    }
+    localStorage.clear();
+    window.dispatchEvent(new CustomEvent('storageUpdated'));
+    // Optionally, you can add a toast notification here to confirm the reset
   };
 
 
@@ -40,15 +36,14 @@ const Analytics = () => {
                 variant="outline"
                 size="sm"
                 onClick={() => navigate('/')}
-                className="hover-scale"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Tests
+                Back to Home
               </Button>
               
               <div>
                 <h1 className="text-3xl font-bold gradient-primary bg-clip-text text-transparent tracking-tight">
-                  📊 Analytics Dashboard
+                  Analytics Dashboard
                 </h1>
                 <p className="text-sm text-muted-foreground mt-1">
                   Detailed insights into your AMC performance
@@ -74,15 +69,26 @@ const Analytics = () => {
               </div>
               
               {/* Reset Data Button */}
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={handleResetData}
-                className="hover-scale"
-              >
-                <AlertCircle className="w-4 h-4 mr-2" />
-                Reset All Data
-              </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive" size="sm">
+                    <AlertCircle className="w-4 h-4 mr-2" />
+                    Reset All Data
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This action cannot be undone. This will permanently delete all your test history, progress, and badges.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleResetData}>Continue</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
           </div>
         </header>
