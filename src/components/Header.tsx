@@ -5,10 +5,12 @@ import { Button } from '@/components/ui/button';
 import { RandomWelcome } from '@/components/RandomWelcome';
 import { LeaderboardOverlay } from '@/components/LeaderboardOverlay';
 import { CoinDisplay } from '@/components/CoinDisplay';
+import { UserProfile } from '@/components/UserProfile';
 import { useToast } from '@/hooks/use-toast';
 
 export const Header = () => {
   const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const { toast } = useToast();
 
@@ -50,17 +52,16 @@ export const Header = () => {
 
         <div className="flex items-center gap-2">
           <CoinDisplay />
-          <Link to="/profile">
-            <Button variant="ghost" size="icon" className="rounded-full" aria-label="Profile">
-              <User />
-            </Button>
-          </Link>
+          <Button onClick={() => setIsProfileOpen(true)} variant="ghost" size="icon" className="rounded-full" aria-label="Profile">
+            <User />
+          </Button>
           <Button onClick={toggleDarkMode} variant="ghost" size="icon" className="rounded-full" aria-label="Toggle theme">
             {isDarkMode ? <Sun /> : <Moon />}
           </Button>
         </div>
       </header>
       <LeaderboardOverlay isOpen={isLeaderboardOpen} onClose={() => setIsLeaderboardOpen(false)} />
+      <UserProfile isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} />
     </>
   );
 };

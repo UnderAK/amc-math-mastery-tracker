@@ -128,14 +128,14 @@ export const DailyBonus = () => {
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className="max-w-sm p-0 border-0 bg-transparent shadow-none">
-        <div className="glass rounded-2xl shadow-2xl animate-fade-in-up overflow-hidden">
-          <div className="bg-primary p-8 text-center relative">
-            <div className="absolute inset-0 bg-grid-slate-100/[0.05] bg-[length:1rem_1rem] [mask-image:linear-gradient(to_bottom,white,transparent)]"></div>
+      <DialogContent className="max-w-sm p-0 border-0 bg-transparent shadow-none dark:bg-transparent">
+        <div className="bg-background/80 dark:bg-background/60 backdrop-blur-xl rounded-2xl shadow-2xl animate-fade-in-up overflow-hidden border dark:border-border/20">
+          <div className="p-8 text-center relative bg-gradient-to-br from-primary/10 to-transparent">
+            <div className="absolute inset-0 bg-grid-slate-100/[0.05] dark:bg-grid-slate-900/[0.2] bg-[length:1rem_1rem] [mask-image:linear-gradient(to_bottom,white,transparent)]"></div>
             <div className="relative z-10">
               <Gift className="w-20 h-20 mx-auto mb-4 text-amber-300 animate-trophy-glow" />
-              <h2 className="text-3xl font-bold text-primary-foreground mb-1">Daily Bonus</h2>
-              <p className="text-primary-foreground/80">Claim your daily reward!</p>
+              <h2 className="text-3xl font-bold text-primary mb-1">Daily Bonus</h2>
+              <p className="text-muted-foreground">Claim your daily reward!</p>
             </div>
           </div>
 
@@ -150,7 +150,7 @@ export const DailyBonus = () => {
               </div>
             )}
 
-            <div className="bg-primary/5 border border-primary/10 rounded-lg p-4 mb-6 animate-perk-in-2">
+            <div className="bg-primary/10 border border-primary/20 rounded-lg p-4 mb-6 animate-perk-in-2">
               <p className="text-sm text-muted-foreground">Today's Reward</p>
               <p className="text-2xl font-bold text-primary">{20 + Math.min(bonusData.streak * 5, 50)} XP</p>
             </div>

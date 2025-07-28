@@ -1,9 +1,8 @@
 import { useState, useEffect } from "react";
 import { User, Edit3, Save, X } from "lucide-react";
-import { calculateLevel } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 
 // Avatar shop configuration
@@ -31,15 +30,20 @@ function unlockAvatar(avatar: string) {
 }
 
 
-interface UserProfile {
+interface UserProfileData {
   username: string;
   avatar: string;
   joinDate: string;
   xp: number;
 }
 
-export const UserProfile = () => {
-  const [profile, setProfile] = useState<UserProfile>({
+interface UserProfilePopupProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export const UserProfile = ({ isOpen, onClose }: UserProfilePopupProps) => {
+  const [profile, setProfile] = useState<UserProfileData>({
     username: "Math Enthusiast",
     avatar: "🧑‍🎓",
     joinDate: new Date().toISOString().split("T")[0],
@@ -128,14 +132,7 @@ export const UserProfile = () => {
   };
 
   return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <Button variant="ghost" size="sm" className="gap-1">
-          <User className="w-4 h-4" />
-          Profile
-        </Button>
-      </DialogTrigger>
-
+    <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border-gray-200 dark:border-gray-700">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-gray-900 dark:text-gray-100">
