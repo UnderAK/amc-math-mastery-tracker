@@ -8,8 +8,7 @@ export const useDataMigrator = () => {
   const [migrationCompleted, setMigrationCompleted] = useState(false);
   const { toast } = useToast();
 
-  useEffect(() => {
-    const runMigration = async () => {
+  const runMigration = async () => {
 
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
@@ -67,8 +66,5 @@ export const useDataMigrator = () => {
       setMigrationCompleted(true);
     };
 
-    runMigration();
-  }, [toast]);
-
-  return { isMigrating, migrationCompleted };
+  return { isMigrating, migrationCompleted, runMigration };
 };

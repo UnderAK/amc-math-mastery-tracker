@@ -64,34 +64,36 @@ export const UserProfile = ({ isOpen, onClose }: UserProfilePopupProps) => {
   const [isGuest, setIsGuest] = useState(false);
 
   useEffect(() => {
-    const savedProfile = localStorage.getItem("userProfile");
-    if (savedProfile) {
-      const parsedProfile = JSON.parse(savedProfile);
-      // Ensure xp is a number, default to 0 if not present
-      setProfile({ ...parsedProfile, xp: parsedProfile.xp || 0 });
-    } else {
-      // First time user, save default profile
-      const defaultProfile = {
-        username: "Math Enthusiast",
-        avatar: "🧑‍🎓",
-        joinDate: new Date().toISOString().split("T")[0],
-        xp: 0
-      };
-      localStorage.setItem("userProfile", JSON.stringify(defaultProfile));
-      setProfile(defaultProfile);
-    }
-    setIsGuest(sessionStorage.getItem('isGuest') === 'true');
-    setUnlockedAvatars(getUnlockedAvatars());
-    setCoinBalance(parseInt(localStorage.getItem("coins") || "0"));
-    setCoinTransactions((JSON.parse(localStorage.getItem("coinTransactions") || "[]") as any[]).reverse());
-    // Listen for coin updates
-    const handleCoinUpdate = () => {
+    const updateData = () => {
+      const savedProfile = localStorage.getItem("userProfile");
+      const currentXp = parseInt(localStorage.getItem('xp') || '0', 10);
+
+      if (savedProfile) {
+        const parsedProfile = JSON.parse(savedProfile);
+        setProfile({ ...parsedProfile, xp: currentXp });
+      } else {
+        const defaultProfile = {
+          username: "Math Enthusiast",
+          avatar: "🧑‍🎓",
+          joinDate: new Date().toISOString().split("T")[0],
+          xp: currentXp
+        };
+        localStorage.setItem("userProfile", JSON.stringify(defaultProfile));
+        setProfile(defaultProfile);
+      }
+      
+      setIsGuest(sessionStorage.getItem('isGuest') === 'true');
+      setUnlockedAvatars(getUnlockedAvatars());
       setCoinBalance(parseInt(localStorage.getItem("coins") || "0"));
       setCoinTransactions((JSON.parse(localStorage.getItem("coinTransactions") || "[]") as any[]).reverse());
     };
-    window.addEventListener("coinUpdate", handleCoinUpdate);
+
+    updateData(); // Initial load
+
+    window.addEventListener("dataUpdate", updateData);
+
     return () => {
-      window.removeEventListener("coinUpdate", handleCoinUpdate);
+      window.removeEventListener("dataUpdate", updateData);
     };
   }, []);
 

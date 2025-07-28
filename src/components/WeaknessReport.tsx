@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import { AlertTriangle, TrendingDown, Target, BookOpen, TrendingUp } from "lucide-react";
 import { TestScore } from "@/types/TestScore";
 import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
 
 interface WeaknessReportProps {
   filterType?: string;
@@ -37,7 +38,9 @@ export const WeaknessReport = ({ filterType = "all" }: WeaknessReportProps) => {
       : allScores.filter(s => s.testType && s.testType.replace(/\s+/g, '').toLowerCase() === filterType.replace(/\s+/g, '').toLowerCase());
   }, [allScores, filterType]);
 
-  const analysis = useMemo<WeaknessAnalysis | null>(() => {
+  const [analysis, setAnalysis] = useState<WeaknessAnalysis | null>(null);
+
+  const generateReport = () => {
     if (filteredScores.length === 0) {
       return null;
     }
@@ -102,8 +105,18 @@ export const WeaknessReport = ({ filterType = "all" }: WeaknessReportProps) => {
       if (recentAvg < olderAvg - 1) overallTrend = "Declining";
     }
 
-    return { weakestTopics, problematicQuestions, recommendations, overallTrend };
-  }, [filteredScores]);
+    setAnalysis({
+      weakestTopics,
+      problematicQuestions,
+      recommendations,
+      overallTrend,
+    });
+
+    toast({
+      title: "Report Generated",
+      description: "Your weakness analysis has been updated.",
+    });
+  };
 
   const getTrendIcon = (trend: string) => {
     switch (trend) {
@@ -134,6 +147,9 @@ export const WeaknessReport = ({ filterType = "all" }: WeaknessReportProps) => {
           <BookOpen className="w-5 h-5" />
           Weakness Analysis
         </h2>
+        <Button onClick={generateReport} disabled={filteredScores.length === 0}>
+          {analysis ? "Regenerate Report" : "Generate Report"}
+        </Button>
       </div>
 
       {analysis ? (

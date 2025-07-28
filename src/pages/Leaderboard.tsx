@@ -26,11 +26,7 @@ const Leaderboard = () => {
         // Supabase returns the joined 'profiles' as an array.
         const { data, error } = await supabase
           .from('test_results')
-          .select(`
-            score,
-            test_date,
-            profiles ( username, avatar )
-          `)
+          .select('score, test_date, user_id, profiles:user_id (username, avatar)')
           .order('score', { ascending: false })
           .limit(10);
 

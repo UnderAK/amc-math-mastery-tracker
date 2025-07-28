@@ -36,8 +36,11 @@ export function useTestGrader({ debouncedUserAnswers, debouncedAnswerKey, testTy
       setIsGrading(true);
       setTimeout(() => {
         let score = 0;
+        const questionCorrectness: { [key: number]: boolean } = {};
         for (let i = 0; i < NUM_QUESTIONS; i++) {
-          if (debouncedUserAnswers[i] === debouncedAnswerKey[i]) {
+          const isCorrect = debouncedUserAnswers[i].toLowerCase() === debouncedAnswerKey[i].toLowerCase();
+          questionCorrectness[i + 1] = isCorrect;
+          if (isCorrect) {
             score++;
           }
         }
@@ -51,11 +54,44 @@ export function useTestGrader({ debouncedUserAnswers, debouncedAnswerKey, testTy
           key: debouncedAnswerKey,
           date: new Date().toISOString(),
           questionTopics: allQuestionTopics,
+          questionCorrectness,
         };
 
         const updatedTests = [...savedTests, newTestScore];
         setSavedTests(updatedTests);
         localStorage.setItem('scores', JSON.stringify(updatedTests));
+
+        // Award coins
+        const coinsEarned = score * 10;
+        const currentCoins = parseInt(localStorage.getItem('coins') || '0', 10);
+        const newTotalCoins = currentCoins + coinsEarned;
+        localStorage.setItem('coins', newTotalCoins.toString());
+
+        // Add to coin transactions
+        const transactions = JSON.parse(localStorage.getItem('coinTransactions') || '[]');
+        transactions.push({ 
+          id: `test-${newTestScore.id}`,
+          description: `Earned from ${testType.toUpperCase()} ${testYear}`,
+          amount: coinsEarned,
+          date: new Date().toISOString(),
+        });
+        localStorage.setItem('coinTransactions', JSON.stringify(transactions));
+
+        toast({
+          title: 'Coins Earned! 💰',
+          description: `You earned ${coinsEarned} coins for your performance.`,
+        });
+
+        // Award XP
+        const xpEarned = score * 100;
+        const currentXp = parseInt(localStorage.getItem('xp') || '0', 10);
+        const newTotalXp = currentXp + xpEarned;
+        localStorage.setItem('xp', newTotalXp.toString());
+
+        toast({
+          title: 'XP Gained! ✨',
+          description: `You gained ${xpEarned} XP.`,
+        });
 
         const resultText = `🎉 Graded! Score: ${score}/${NUM_QUESTIONS}`;
         setIsGrading(false);

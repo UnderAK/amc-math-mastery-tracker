@@ -113,16 +113,16 @@ const Analytics = () => {
           {/* Topic Performance and Weakness Analysis */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div>
-              <TopicBreakdown filterType={globalFilter} />
+              <TopicBreakdown key={`topic-${globalFilter}`} filterType={globalFilter} />
             </div>
             <div>
-              <WeaknessReport filterType={globalFilter} />
+              <WeaknessReport key={`weakness-${globalFilter}`} filterType={globalFilter} />
             </div>
           </div>
 
           {/* Test History */}
           <div>
-            <TestHistoryTable filterType={globalFilter} />
+            <TestHistoryTable key={`history-${globalFilter}`} filterType={globalFilter} />
           </div>
 
           {/* Score Progress Chart */}
@@ -132,13 +132,13 @@ const Analytics = () => {
                 <BarChart3 className="w-5 h-5" />
                 Score Progress Over Time
               </h2>
-              <ScoreChart filterType={globalFilter} />
+              <ScoreChart key={`score-chart-${globalFilter}`} filterType={globalFilter} />
             </div>
           </div>
 
           {/* Question Accuracy Analysis */}
           <div>
-            <QuestionAccuracyTable filterType={globalFilter} />
+            <QuestionAccuracyTable key={`accuracy-${globalFilter}`} filterType={globalFilter} />
           </div>
         </main>
       </div>

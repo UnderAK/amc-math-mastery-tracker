@@ -43,8 +43,15 @@ const Index = () => {
 
   // Show intro popup on first visit
   useEffect(() => {
-    if (!localStorage.getItem("scores")) setShowIntro(true);
+    if (!localStorage.getItem("hasSeenIntro")) {
+      setShowIntro(true);
+    }
   }, []);
+
+  const handleCloseIntro = () => {
+    setShowIntro(false);
+    localStorage.setItem('hasSeenIntro', 'true');
+  };
 
 
 
@@ -166,7 +173,7 @@ const Index = () => {
           <div className="bg-background p-8 rounded-2xl shadow-2xl max-w-md text-center">
             <h2 className="text-2xl font-bold text-primary mb-3">Welcome to the AMC Tracker!</h2>
             <p className="text-muted-foreground mb-6">It looks like you're new here. Take a practice test to start your journey. Your progress is saved automatically in your browser.</p>
-            <Button onClick={() => setShowIntro(false)}>Let's Go!</Button>
+            <Button onClick={handleCloseIntro}>Let's Go!</Button>
           </div>
         </div>
       )}

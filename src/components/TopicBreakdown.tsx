@@ -59,11 +59,6 @@ export const TopicBreakdown = ({ filterType = "all" }: TopicBreakdownProps) => {
             topicData[topic].mistakes++;
           }
         }
-      } else {
-        for (let i = 1; i <= 25; i++) {
-          const topic = "Other";
-          topicData[topic].total++;
-        }
       }
     });
 

@@ -138,7 +138,7 @@ export const TestHistoryTable = ({ filterType = "all" }: TestHistoryTableProps) 
             <tbody className="divide-y divide-border">
               {processedScores.map((test) => (
                 <tr key={test.id} className="border-b last:border-none hover:bg-muted/50 transition-colors">
-                  <td className="px-4 py-3">{test.date}</td>
+                  <td className="px-4 py-3 text-muted-foreground">{new Date(test.date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</td>
                   <td className={`px-4 py-3 ${getScoreColor(test.score)}`}>
                     {test.score} / {test.totalQuestions}
                   </td>

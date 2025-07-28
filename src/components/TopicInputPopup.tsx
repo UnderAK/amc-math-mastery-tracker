@@ -127,14 +127,9 @@ export const TopicInputPopup: React.FC<TopicInputPopupProps> = ({
       
       console.log('DEBUG: Final updatedTopics before saving:', updatedTopics);
       
-      // Update state and save
-      setTopics(updatedTopics);
-      // Use a timeout to allow state to update before saving
-      setTimeout(() => {
-          console.log('DEBUG: About to call onSaveTopics with:', updatedTopics);
-          onSaveTopics(updatedTopics);
-          onClose();
-      }, 0);
+      // Save the topics and close the dialog
+      onSaveTopics(updatedTopics);
+      onClose();
     } catch (error) {
       console.error('ERROR in handleSaveAllAndClose:', error);
     }

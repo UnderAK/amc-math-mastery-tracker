@@ -28,7 +28,7 @@ const queryClient = new QueryClient();
 const App = () => {
   const isOnline = useOnlineStatus();
   useKonamiCode();
-  useDataMigrator();
+  const { runMigration } = useDataMigrator();
   const [session, setSession] = useState<Session | null>(null);
   // Default to guest unless explicitly logged out
   const [isGuest, setIsGuest] = useState(sessionStorage.getItem('isGuest') !== 'false');
@@ -40,6 +40,7 @@ const App = () => {
         // If a user logs in, they are no longer a guest.
         sessionStorage.setItem('isGuest', 'false');
         setIsGuest(false);
+        runMigration();
       }
     };
 
@@ -52,7 +53,7 @@ const App = () => {
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [runMigration]);
 
   const handleContinueAsGuest = () => {
     sessionStorage.setItem('isGuest', 'true');
