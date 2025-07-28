@@ -48,8 +48,8 @@ All colors MUST be HSL.
     --radius: 1rem;
 
     /* Glass morphism */
-    --glass-bg: 0 0% 100% / 0.7;
-    --glass-border: 217 50% 88% / 0.2;
+    --glass-bg: 217 91% 60% / 0.1;
+    --glass-border: 0 0% 100% / 0.2;
 
     /* Gradients */
     --gradient-primary: linear-gradient(135deg, hsl(188 85% 50%), hsl(217 91% 60%), hsl(250 91% 67%), hsl(310 91% 60%));
@@ -123,8 +123,8 @@ All colors MUST be HSL.
     --btn-colored-foreground: 217 32% 17%; /* dark text in dark mode */
 
     /* Dark Glass */
-    --glass-bg: 217 32% 12% / 0.8;
-    --glass-border: 217 50% 50% / 0.1;
+    --glass-bg: 217 91% 70% / 0.15;
+    --glass-border: 217 19% 35% / 0.3;
 
     /* Dark Gradients */
     --gradient-primary: linear-gradient(135deg, hsl(188 85% 60%), hsl(217 91% 70%), hsl(250 91% 75%), hsl(310 91% 70%));
@@ -172,7 +172,10 @@ All colors MUST be HSL.
 @layer components {
   /* Glass morphism effect */
   .glass {
-    @apply bg-primary/5 backdrop-blur-xl border border-white/20 dark:bg-primary/10 dark:border-slate-700/30;
+    background-color: hsl(var(--glass-bg));
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid hsl(var(--glass-border));
     box-shadow: var(--shadow-glass);
   }
 

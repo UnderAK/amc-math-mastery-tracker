@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
-import { Gift, Flame, Calendar, Star, X } from "lucide-react";
+import { Gift, Flame, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
 interface DailyBonusData {
   lastClaimed: string;
@@ -18,7 +19,6 @@ export const DailyBonus = () => {
   });
   const [isOpen, setIsOpen] = useState(false);
   const [canClaim, setCanClaim] = useState(false);
-  const [timeUntilNext, setTimeUntilNext] = useState("");
   const { toast } = useToast();
 
   useEffect(() => {
@@ -36,20 +36,6 @@ export const DailyBonus = () => {
       const canClaimToday = data.lastClaimed !== today;
       setCanClaim(canClaimToday);
       setIsOpen(canClaimToday); // Show popup when can claim
-
-      if (!canClaimToday) {
-        // Calculate time until next claim
-        const tomorrow = new Date();
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        tomorrow.setHours(0, 0, 0, 0);
-        
-        const now = new Date();
-        const timeDiff = tomorrow.getTime() - now.getTime();
-        const hours = Math.floor(timeDiff / (1000 * 60 * 60));
-        const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
-        
-        setTimeUntilNext(`${hours}h ${minutes}m`);
-      }
     };
 
     updateBonusStatus();
@@ -111,59 +97,49 @@ export const DailyBonus = () => {
   };
 
   const getStreakColor = (streak: number) => {
-    if (streak >= 30) return "text-purple-500";
     if (streak >= 14) return "text-orange-500";
     if (streak >= 7) return "text-blue-500";
     if (streak >= 3) return "text-green-500";
-    return "text-gray-500";
-  };
-
-  const getStreakEmoji = (streak: number) => {
-    if (streak >= 30) return "👑";
-    if (streak >= 14) return "🔥";
-    if (streak >= 7) return "⚡";
-    if (streak >= 3) return "🌟";
-    return "✨";
+    return "text-muted-foreground";
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className="max-w-sm p-0 border-0 bg-transparent shadow-none dark:bg-transparent">
-        <div className="bg-background/80 dark:bg-background/60 backdrop-blur-xl rounded-2xl shadow-2xl animate-fade-in-up overflow-hidden border dark:border-border/20">
-          <div className="p-8 text-center relative bg-gradient-to-br from-primary/10 to-transparent">
-            <div className="absolute inset-0 bg-grid-slate-100/[0.05] dark:bg-grid-slate-900/[0.2] bg-[length:1rem_1rem] [mask-image:linear-gradient(to_bottom,white,transparent)]"></div>
-            <div className="relative z-10">
-              <Gift className="w-20 h-20 mx-auto mb-4 text-amber-300 animate-trophy-glow" />
-              <h2 className="text-3xl font-bold text-primary mb-1">Daily Bonus</h2>
-              <p className="text-muted-foreground">Claim your daily reward!</p>
-            </div>
+      <DialogContent className="glass max-w-sm p-6 border-0 shadow-lg">
+        <VisuallyHidden>
+          <DialogTitle>Daily Bonus</DialogTitle>
+        </VisuallyHidden>
+        <div className="text-center space-y-4 animate-fade-in-up">
+          <Gift className="w-16 h-16 mx-auto text-primary" />
+          <div>
+            <h2 className="text-2xl font-bold text-primary">Daily Bonus</h2>
+            <p className="text-muted-foreground">Claim your daily reward to maintain your streak!</p>
           </div>
 
-          <div className="p-6 text-center">
+          <div className="flex justify-around items-center">
             {bonusData.streak > 0 && (
-              <div className={`mb-4 animate-perk-in-1`}>
-                <p className="font-semibold text-lg flex items-center justify-center gap-2">
-                  <Flame className={`w-6 h-6 ${getStreakColor(bonusData.streak)}`} />
-                  {bonusData.streak} Day Streak!
+              <div className={`text-center`}>
+                <p className={`font-bold text-2xl ${getStreakColor(bonusData.streak)} flex items-center justify-center gap-2`}>
+                  <Flame className={`w-6 h-6`} />
+                  {bonusData.streak}
                 </p>
-                <p className="text-sm text-muted-foreground">Your consistency is paying off!</p>
+                <p className="text-sm text-muted-foreground">Day Streak</p>
               </div>
             )}
-
-            <div className="bg-primary/10 border border-primary/20 rounded-lg p-4 mb-6 animate-perk-in-2">
-              <p className="text-sm text-muted-foreground">Today's Reward</p>
-              <p className="text-2xl font-bold text-primary">{20 + Math.min(bonusData.streak * 5, 50)} XP</p>
+            <div className="text-center">
+              <p className="font-bold text-2xl text-primary">{20 + Math.min(bonusData.streak * 5, 50)}</p>
+              <p className="text-sm text-muted-foreground">XP Reward</p>
             </div>
-
-            <Button 
-              onClick={claimDailyBonus}
-              className="w-full transition-transform hover:scale-105 animate-perk-in-3"
-              aria-label="Claim Daily Bonus"
-            >
-              <Star className="w-4 h-4 mr-2" />
-              Claim Reward
-            </Button>
           </div>
+
+          <Button 
+            onClick={claimDailyBonus}
+            className="w-full transition-transform hover:scale-105"
+            aria-label="Claim Daily Bonus"
+          >
+            <Star className="w-4 h-4 mr-2" />
+            Claim Reward
+          </Button>
         </div>
       </DialogContent>
     </Dialog>
