@@ -9,9 +9,10 @@ interface Profile {
 
 interface LeaderboardEntry {
   rank: number;
-  score: number;
-  test_date: string;
-  profiles: Profile[] | null;
+  user_id: string;
+  username: string;
+  avatar: string;
+  xp: number;
 }
 
 const Leaderboard = () => {
@@ -23,12 +24,7 @@ const Leaderboard = () => {
     const fetchLeaderboard = async () => {
       try {
         setLoading(true);
-        // Supabase returns the joined 'profiles' as an array.
-        const { data, error } = await supabase
-          .from('test_results')
-          .select('score, test_date, profiles!inner(username, avatar)')
-          .order('score', { ascending: false })
-          .limit(10);
+        const { data, error } = await supabase.rpc('get_leaderboard');
 
         if (error) {
           throw error;
@@ -57,7 +53,7 @@ const Leaderboard = () => {
         <div className="text-center mb-8">
           <Trophy className="mx-auto h-12 w-12 text-yellow-400 animate-float" />
           <h1 className="text-4xl font-bold tracking-tight text-primary sm:text-5xl mt-4">Leaderboard</h1>
-          <p className="text-muted-foreground mt-2">Top 10 High Scores</p>
+          <p className="text-muted-foreground mt-2">Top 10 XP</p>
         </div>
 
         {loading && (
@@ -81,8 +77,7 @@ const Leaderboard = () => {
                 <tr>
                   <th className="p-4 font-semibold text-center">Rank</th>
                   <th className="p-4 font-semibold">Player</th>
-                  <th className="p-4 font-semibold text-center">Score</th>
-                  <th className="p-4 font-semibold text-right">Date</th>
+                  <th className="p-4 font-semibold text-right">XP</th>
                 </tr>
               </thead>
               <tbody>
@@ -90,13 +85,10 @@ const Leaderboard = () => {
                   <tr key={entry.rank} className="border-t border-border/20 hover:bg-muted/20 transition-colors">
                     <td className="p-4 font-bold text-lg text-center">{entry.rank}</td>
                     <td className="p-4 flex items-center gap-3">
-                      <span className="text-2xl">{entry.profiles?.[0]?.avatar || '👤'}</span>
-                      <span className="font-medium">{entry.profiles?.[0]?.username || 'Anonymous'}</span>
+                      <span className="text-2xl">{entry.avatar || '👤'}</span>
+                      <span className="font-medium">{entry.username || 'Anonymous'}</span>
                     </td>
-                    <td className="p-4 text-center font-semibold text-primary">{entry.score}</td>
-                    <td className="p-4 text-right text-sm text-muted-foreground">
-                      {new Date(entry.test_date).toLocaleDateString()}
-                    </td>
+                    <td className="p-4 align-middle text-right font-semibold text-lg">{entry.xp} XP</td>
                   </tr>
                 ))}
               </tbody>
