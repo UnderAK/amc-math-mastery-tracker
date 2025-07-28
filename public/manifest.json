@@ -9,7 +9,7 @@
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#317EFB",
-  "orientation": "any",
+  "orientation": "natural",
   "categories": ["education", "productivity", "math"],
   "prefer_related_applications": false,
   "icons": [
@@ -51,6 +51,5 @@
       "url": "/analytics",
       "icons": [{ "src": "/icons/192x192.webp", "sizes": "192x192", "type": "image/webp" }]
     }
-  ],
-  "iarc_rating_id": null
+  ]
 }

@@ -1,6 +1,6 @@
-/// <reference types="vitest/globals" />
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+
 import { TestEntryForm } from './TestEntryForm';
 import { Toaster } from '@/components/ui/toaster';
 
@@ -35,16 +35,22 @@ vi.mock('./inputs/McqInput', () => ({
 }));
 
 vi.mock('./inputs/AnswerInput', () => ({
-    AnswerInput: ({ value, onChange, label }: any) => (
-        <div>
-            <label>{label}</label>
-            <input value={value} onChange={onChange} />
-        </div>
-    )
+  AnswerInput: (props: any) => (
+    <div>
+      <label htmlFor="user-answers">Your Answers</label>
+      <input id="user-answers" value={props.userAnswers} onChange={e => props.onUserAnswersChange(e.target.value)} />
+      <label htmlFor="answer-key">Answer Key</label>
+      <input id="answer-key" value={props.answerKey} onChange={e => props.onAnswerKeyChange(e.target.value)} />
+    </div>
+  ),
+  InputMode: {
+    TYPING: 'typing',
+    MCQ: 'mcq',
+  }
 }));
 
 describe('TestEntryForm', () => {
-  const renderComponent = (mode: 'mcq' | 'text') => {
+  const renderComponent = (mode: 'mcq' | 'typing') => {
     render(
       <>
         <TestEntryForm inputMode={mode} />
@@ -54,29 +60,25 @@ describe('TestEntryForm', () => {
   };
 
   it('should render the form with the correct title', () => {
-    renderComponent('text');
-    expect(screen.getByText('Enter New Test Score')).toBeInTheDocument();
+    renderComponent('typing');
+    expect(screen.getByText('New Test Entry')).toBeInTheDocument();
   });
 
   it('should show topic input popup when grade button is clicked with valid inputs', async () => {
-    renderComponent('text');
+    renderComponent('typing');
 
     // Fill out the form
-    fireEvent.change(screen.getByLabelText(/Your Answers/i), { target: { value: 'A'.repeat(25) } });
-    fireEvent.change(screen.getByLabelText(/Answer Key/i), { target: { value: 'B'.repeat(25) } });
+        await userEvent.type(screen.getByLabelText(/Your Answers/i), 'A'.repeat(25));
+    await userEvent.type(screen.getByLabelText(/Answer Key/i), 'B'.repeat(25));
     
-    const selects = screen.getAllByRole('combobox');
-    fireEvent.mouseDown(selects[0]);
-    fireEvent.click(await screen.findByText('AMC 10'));
+    await userEvent.click(screen.getByRole('combobox', { name: /Select AMC test type/i }));
+    await userEvent.click(await screen.findByText('AMC 10'));
 
-    fireEvent.mouseDown(selects[1]);
-    fireEvent.click(await screen.findByText('2022'));
+    await userEvent.type(screen.getByPlaceholderText(/Enter Year/i), '2022');
 
-    await waitFor(() => {
-      fireEvent.click(screen.getByRole('button', { name: /Grade Test/i }));
-    });
+    await userEvent.click(screen.getByRole('button', { name: /Grade Test/i }));
 
-    expect(screen.getByText('Topic Input')).toBeInTheDocument();
+    expect(await screen.findByText('Topic Input')).toBeInTheDocument();
   });
 
   it('should call the grading hook when topics are submitted', async () => {
@@ -84,22 +86,20 @@ describe('TestEntryForm', () => {
     const gradeTestMock = vi.fn().mockResolvedValue('🎉 Graded! Score: 20/25');
     (useTestGrader as vi.Mock).mockReturnValue({ isGrading: false, gradeTest: gradeTestMock });
 
-    renderComponent('text');
+    renderComponent('typing');
 
     // Fill out the form
-    fireEvent.change(screen.getByLabelText(/Your Answers/i), { target: { value: 'A'.repeat(25) } });
-    fireEvent.change(screen.getByLabelText(/Answer Key/i), { target: { value: 'B'.repeat(25) } });
-    const selects = screen.getAllByRole('combobox');
-    fireEvent.mouseDown(selects[0]);
-    fireEvent.click(await screen.findByText('AMC 12'));
-    fireEvent.mouseDown(selects[1]);
-    fireEvent.click(await screen.findByText('2021'));
+        await userEvent.type(screen.getByLabelText(/Your Answers/i), 'A'.repeat(25));
+    await userEvent.type(screen.getByLabelText(/Answer Key/i), 'B'.repeat(25));
+
+    await userEvent.click(screen.getByRole('combobox', { name: /Select AMC test type/i }));
+    await userEvent.click(await screen.findByText('AMC 12'));
+
+    await userEvent.type(screen.getByPlaceholderText(/Enter Year/i), '2021');
 
     // Open and submit topic input
-    await waitFor(() => {
-      fireEvent.click(screen.getByRole('button', { name: /Grade Test/i }));
-    });
-    fireEvent.click(screen.getByRole('button', { name: /Submit Topics/i }));
+    await userEvent.click(screen.getByRole('button', { name: /Grade Test/i }));
+    await userEvent.click(await screen.findByRole('button', { name: /Submit Topics/i }));
 
     await waitFor(() => {
       expect(gradeTestMock).toHaveBeenCalled();
