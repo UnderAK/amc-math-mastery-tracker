@@ -30,9 +30,6 @@ const Leaderboard = () => {
           .order('score', { ascending: false })
           .limit(10);
 
-        console.log('Leaderboard data:', data);
-        console.log('Leaderboard error:', error);
-
         if (error) {
           throw error;
         }
