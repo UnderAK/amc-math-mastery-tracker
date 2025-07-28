@@ -51,7 +51,9 @@ export const Header = () => {
             <Button variant="outline" className="transition-transform hover:scale-105"><BookOpen className="mr-2 h-4 w-4"/>History</Button>
           </Link>
           {(session || isGuest) && (
-            <Button variant="outline" onClick={() => setIsLeaderboardOpen(true)} className="transition-transform hover:scale-105"><Award className="mr-2 h-4 w-4"/>Leaderboard</Button>
+            <Link to="/leaderboard">
+              <Button variant="outline" className="transition-transform hover:scale-105"><Award className="mr-2 h-4 w-4"/>Leaderboard</Button>
+            </Link>
           )}
         </nav>
 
@@ -72,7 +74,7 @@ export const Header = () => {
           </Button>
         </div>
       </header>
-      <LeaderboardOverlay isOpen={isLeaderboardOpen} onClose={() => setIsLeaderboardOpen(false)} />
+
       <UserProfile isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} />
     </>
   );

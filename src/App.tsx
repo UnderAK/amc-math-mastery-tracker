@@ -61,7 +61,6 @@ const App = () => {
   const handleContinueAsGuest = () => {
     sessionStorage.setItem('isGuest', 'true');
     setIsGuest(true);
-    window.location.reload(); // Reload to enter guest mode
   };
 
   const handleLogout = async () => {
@@ -71,7 +70,6 @@ const App = () => {
     } else {
       sessionStorage.setItem('isGuest', 'false');
       setIsGuest(false);
-      window.location.reload();
     }
   };
 
