@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useDebounce } from "@/hooks/use-debounce";
 import { BookOpen, Sparkles, CheckCircle } from "lucide-react";
 import { AchievementPopup } from "@/components/AchievementPopup";
 import { Button } from "@/components/ui/button";
@@ -9,15 +10,12 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { TopicInputPopup } from "@/components/TopicInputPopup";
 import { AnswerInput, InputMode } from "@/components/inputs/AnswerInput";
 import { useToast } from "@/hooks/use-toast";
+import { useTestGrader } from '@/hooks/use-test-grader';
 import { TestScore } from "@/types/TestScore";
-import { calculateLevel } from "@/lib/utils";
+import { TestType } from "@/types/amc";
+import { NUM_QUESTIONS, TOPIC_OPTIONS, TEST_TYPES, MIN_YEAR, MAX_YEAR } from "@/config/test-config";
 
-// TestScore interface is now imported from shared types
-
-
-// Function to determine default topic for question initialization - all questions default to "Other"
 const getTopicForQuestion = (questionNum: number): string => {
-  // All questions default to "Other" as per requirements
   return "Other";
 };
 
@@ -28,397 +26,108 @@ interface TestEntryFormProps {
 
 export const TestEntryForm = ({ inputMode, initialAnswerKey }: TestEntryFormProps) => {
   const [showAchievementPopup, setShowAchievementPopup] = useState(false);
-  const [newAchievements, setNewAchievements] = useState<{
-    emoji: string;
-    title: string;
-    description: string;
-  }[]>([]);
+  const [newAchievements, setNewAchievements] = useState<any[]>([]);
   const [savedTests, setSavedTests] = useState<TestScore[]>(() => {
     const saved = localStorage.getItem("scores");
     return saved ? JSON.parse(saved) : [];
   });
-  const [testType, setTestType] = useState("amc8");
+  const [testType, setTestType] = useState<TestType>("amc8");
   const [testYear, setTestYear] = useState(new Date().getFullYear().toString());
   const [userAnswers, setUserAnswers] = useState("");
   const [answerKey, setAnswerKey] = useState("");
+  const [label, setLabel] = useState("");
+  const [allQuestionTopics, setAllQuestionTopics] = useState<{ [key: number]: string }>({});
+  const [isTopicInputForAllOpen, setIsTopicInputForAllOpen] = useState(false);
+  const [isGrading, setIsGrading] = useState(false);
+  const [result, setResult] = useState("");
+
+  const debouncedUserAnswers = useDebounce(userAnswers, 300);
+  const debouncedAnswerKey = useDebounce(answerKey, 300);
 
   useEffect(() => {
     if (initialAnswerKey) {
       setAnswerKey(initialAnswerKey);
     }
   }, [initialAnswerKey]);
-  const [label, setLabel] = useState("");
-  const [result, setResult] = useState("");
-  // We will now store topics for ALL questions
-  const [allQuestionTopics, setAllQuestionTopics] = useState<{ [key: number]: string }>({});
 
   useEffect(() => {
     const initialTopics: { [key: number]: string } = {};
-    for (let i = 1; i <= 25; i++) {
+    for (let i = 1; i <= NUM_QUESTIONS; i++) {
       initialTopics[i] = getTopicForQuestion(i);
     }
     setAllQuestionTopics(initialTopics);
   }, []);
-  const [isGrading, setIsGrading] = useState(false);
 
-  const [isTopicInputForAllOpen, setIsTopicInputForAllOpen] = useState(false);
-  
   const { toast } = useToast();
+
+  const { gradeTest: performGrading } = useTestGrader({
+    debouncedUserAnswers,
+    debouncedAnswerKey,
+    testType,
+    testYear,
+    allQuestionTopics,
+    savedTests,
+    setSavedTests,
+    setNewAchievements,
+    setShowAchievementPopup
+  });
 
   const getTooltipMessage = () => {
     if (isGrading) return "Grading is in progress...";
-    if (userAnswers.length !== 25 && answerKey.length !== 25) return "Please enter 25 answers for both fields.";
-    if (userAnswers.length !== 25) return `Your answers are incomplete (${userAnswers.length}/25).`;
-    if (answerKey.length !== 25) return `The answer key is incomplete (${answerKey.length}/25).`;
+    if (debouncedUserAnswers.length !== NUM_QUESTIONS || debouncedAnswerKey.length !== NUM_QUESTIONS) return `Please enter ${NUM_QUESTIONS} answers for both fields.`;
+    if (debouncedUserAnswers.length !== NUM_QUESTIONS) return `Your answers are incomplete (${debouncedUserAnswers.length}/${NUM_QUESTIONS}).`;
+    if (debouncedAnswerKey.length !== NUM_QUESTIONS) return `The answer key is incomplete (${debouncedAnswerKey.length}/${NUM_QUESTIONS}).`;
     return "";
   };
 
-  const topicOptions = [
-    "Algebra",
-    "Geometry",
-    "Number Theory",
-    "Combinatorics",
-    "Other"
-  ];
-
-
-
   const gradeTest = () => {
-    // Validate input lengths
-    if (userAnswers.length !== 25 || answerKey.length !== 25) {
-      setResult("❌ You must enter exactly 25 characters in both fields (A–E only).");
+    if (debouncedUserAnswers.length !== NUM_QUESTIONS || debouncedAnswerKey.length !== NUM_QUESTIONS) {
       toast({
         title: "Invalid Input",
-        description: `User answers: ${userAnswers.length}/25, Answer key: ${answerKey.length}/25 characters`,
+        description: `User answers: ${debouncedUserAnswers.length}/25, Answer key: ${debouncedAnswerKey.length}/25 characters`,
         variant: "destructive",
       });
       return;
     }
     
-    // Validate that test type and year are selected
     if (!testType || !testYear) {
-      setResult("❌ Please select a test type and enter a year.");
       toast({
         title: "Missing Information",
-        description: "Test type and year are required",
+        description: "Please select a test type and enter a year.",
         variant: "destructive",
       });
       return;
     }
     
-    // Validate year is reasonable
     const year = parseInt(testYear);
-    if (isNaN(year) || year < 2000 || year > 2030) {
-      setResult("❌ Please enter a valid year between 2000 and 2030.");
+    if (isNaN(year) || year < MIN_YEAR || year > MAX_YEAR) {
       toast({
         title: "Invalid Year",
-        description: "Year must be between 2000 and 2030",
+        description: `Year must be between ${MIN_YEAR} and ${MAX_YEAR}`,
         variant: "destructive",
       });
       return;
     }
 
-    setIsGrading(true);
-    setResult("📝 Please assign topics to each question to complete grading...");
-    
-    // Show initial feedback
     toast({
       title: "Starting Test Grading 📝",
       description: "Please assign topics to each question in the popup that will appear",
     });
 
-    // Initialize allQuestionTopics with default topics for all 25 questions
-    const initialTopics: { [key: number]: string } = {};
-    // Pre-fill all questions with default topics using the dedicated function
-    for (let i = 1; i <= 25; i++) {
-      initialTopics[i] = getTopicForQuestion(i);
-    }
-    console.log('DEBUG TestEntryForm: Setting initial topics:', initialTopics);
-    setAllQuestionTopics(initialTopics);
-    setIsTopicInputForAllOpen(true); // Open the popup to get topics for all questions
-
-    // The rest of the grading and saving will happen after the topic popup is closed
+    setIsTopicInputForAllOpen(true);
   };
 
   const handleSaveAllTopics = (topics: { [key: number]: string }) => {
-    try {
-      console.log('DEBUG TestEntryForm: handleSaveAllTopics called with:', topics);
-      
-      // Validate topics object
-      if (!topics || typeof topics !== 'object') {
-        console.error('ERROR: Invalid topics object received');
-        setIsGrading(false);
-        toast({
-          title: "Error Saving Topics",
-          description: "Invalid topic data received. Please try again.",
-          variant: "destructive",
-        });
-        return;
-      }
-      
-      // Validate we have exactly 25 topics
-      const topicKeys = Object.keys(topics).map(k => parseInt(k)).sort((a, b) => a - b);
-      if (topicKeys.length !== 25) {
-        console.error('ERROR: Expected 25 topics, got:', topicKeys.length);
-        setIsGrading(false);
-        toast({
-          title: "Error Saving Topics",
-          description: `Expected 25 topics, but received ${topicKeys.length}. Please try again.`,
-          variant: "destructive",
-        });
-        return;
-      }
-      
-      setAllQuestionTopics(topics);
-      setIsTopicInputForAllOpen(false);
-
-      // Now that we have topics for all questions, finalize grading and save the score
-    let correct = 0;
-    const questionCorrectness: { [questionNum: number]: boolean } = {};
-
-    for (let i = 0; i < 25; i++) {
-      const questionNum = i + 1;
-      const userAnswer = userAnswers[i];
-      const correctAnswer = answerKey[i];
-      
-      // Treat space as always wrong (no answer provided)
-      const isCorrect = userAnswer !== ' ' && userAnswer === correctAnswer;
-      questionCorrectness[questionNum] = isCorrect;
-      
-      if (isCorrect) {
-        correct++;
-      }
-      
-      console.log(`DEBUG: Q${questionNum}: User='${userAnswer}' Correct='${correctAnswer}' Match=${isCorrect}`);
-    }
-
-    const incorrect = 25 - correct;
-    const percent = Math.round((correct / 25) * 100);
-    const date = new Date().toISOString().split("T")[0];
-
-   
-    console.log('DEBUG TestEntryForm: allQuestionTopics at save time:', allQuestionTopics);
-    console.log('DEBUG TestEntryForm: topics parameter:', topics);
-    
-    const newScore: TestScore = {
-      id: `${new Date().toISOString()}-${Math.random()}`,
-      date,
-      score: correct,
-      testType,
-      year: parseInt(testYear),
-      input: userAnswers,
-      key: answerKey,
-      label: label.trim() || undefined,
-      questionTopics: topics, // Use the topics parameter directly instead of allQuestionTopics
-      questionCorrectness: questionCorrectness, // Store correctness for all questions
-    };
-    
-    console.log('DEBUG TestEntryForm: newScore being saved:', {
-      questionTopics: newScore.questionTopics,
-      questionCorrectness: newScore.questionCorrectness
-    });
-    const updatedTests = [...savedTests, newScore];
-    setSavedTests(updatedTests);
-    localStorage.setItem("scores", JSON.stringify(updatedTests));
-    
-    console.log('DEBUG TestEntryForm: Saved to localStorage. Total scores:', updatedTests.length);
-    console.log('DEBUG TestEntryForm: New score object:', newScore);
-    console.log('DEBUG TestEntryForm: All saved tests:', updatedTests);
-    
-    // Verify the data was actually saved
-    const verifyData = localStorage.getItem("scores");
-    console.log('DEBUG TestEntryForm: Verification - localStorage "scores":', verifyData);
-    
-    if (verifyData) {
-      const parsedData = JSON.parse(verifyData);
-      console.log('DEBUG TestEntryForm: Verification - Parsed data length:', parsedData.length);
-      console.log('DEBUG TestEntryForm: Verification - Last saved test:', parsedData[parsedData.length - 1]);
-    }
-    
-    const currentXp = parseInt(localStorage.getItem("xp") || "0");
-    let xpEarned = 10 + correct;
-
-    const today = new Date().toISOString().split("T")[0];
-    const lastDate = localStorage.getItem("lastPracticeDate");
-    let streak = parseInt(localStorage.getItem("streak") || "0");
-    let streakBonus = 0;
-
-    // --- FIXED STREAK LOGIC ---
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-    const yStr = yesterday.toISOString().split("T")[0];
-    let prevStreak = streak;
-    if (lastDate !== today) {
-      if (lastDate === yStr) {
-        streak = prevStreak + 1;
-        window.dispatchEvent(new CustomEvent('streakCelebration', { detail: { streak } }));
-      } else {
-        if (prevStreak > 0) {
-          window.dispatchEvent(new CustomEvent('streakBroken', { detail: { prevStreak } }));
-        }
-        streak = 1;
-      }
-      localStorage.setItem("lastPracticeDate", today);
-      localStorage.setItem("streak", streak.toString());
-    }
-    if (streak >= 7) streakBonus = Math.floor(streak / 7) * 5;
-    if (streak >= 30) streakBonus += 20;
-
-    let performanceBonus = 0;
-    if (percent >= 90) performanceBonus = 15;
-    else if (percent >= 80) performanceBonus = 10;
-    else if (percent >= 70) performanceBonus = 5;
-
-    xpEarned += streakBonus + performanceBonus;
-    const newXp = currentXp + xpEarned;
-    localStorage.setItem("xp", newXp.toString());
-
-    let resultText = `✅ You scored ${correct} out of 25. ✔️ Correct: ${correct} | ❌ Incorrect: ${incorrect} | 📈 ${percent}%`;
-    if (streakBonus > 0) resultText += ` | 🔥 Streak Bonus: +${streakBonus} XP`;
-    if (performanceBonus > 0) resultText += ` | ⭐ Performance Bonus: +${performanceBonus} XP`;
-    
-    setResult(resultText);
-    
-    // Award coins for completing the test
-    const coinsEarned = Math.floor(Math.random() * 11) + 5; // 5-15 coins
-    const currentCoins = parseInt(localStorage.getItem("coins") || "0");
-    const newCoins = currentCoins + coinsEarned;
-    localStorage.setItem("coins", newCoins.toString());
-    
-    toast({
-      title: "Test Graded Successfully! 🎉",
-      description: `Score: ${correct}/25 (${percent}%) | +${xpEarned} XP | +${coinsEarned} coins`,
-    });
-    
-    // Show additional success feedback
-    setTimeout(() => {
-      toast({
-        title: "Test Saved! ✅",
-        description: "Your test results have been saved to your progress history",
-      });
-    }, 1500);
-
-    const { level: newLevel } = calculateLevel(newXp);
-    const currentLevel = Math.floor(currentXp / 250) + 1;
-    if (newLevel > currentLevel) {
-      setTimeout(() => {
-        window.dispatchEvent(new CustomEvent('levelUp', { detail: { newLevel } }));
-      }, 1000);
-    }
-
-    setIsGrading(false);
-    setUserAnswers("");
-    setAnswerKey("");
-    setLabel("");
-    setAllQuestionTopics({}); // Clear topics for the next test
-    
-    console.log('DEBUG TestEntryForm: About to dispatch dataUpdate event');
-    window.dispatchEvent(new CustomEvent('dataUpdate'));
-    console.log('DEBUG TestEntryForm: dataUpdate event dispatched');
-    
-    // Dispatch coin update event
-    console.log('DEBUG TestEntryForm: About to dispatch coinUpdate event');
-    window.dispatchEvent(new CustomEvent('coinUpdate'));
-    console.log('DEBUG TestEntryForm: coinUpdate event dispatched');
-    
-    // Add a small delay and then verify the data is still there
-    setTimeout(() => {
-      const finalVerification = localStorage.getItem("scores");
-      console.log('DEBUG TestEntryForm: Final verification after events - localStorage "scores":', finalVerification);
-      if (finalVerification) {
-        const finalParsed = JSON.parse(finalVerification);
-        console.log('DEBUG TestEntryForm: Final verification - Data length:', finalParsed.length);
-      }
-    }, 100);
-    } catch (error) {
-      console.error('ERROR in handleSaveAllTopics:', error);
+    setAllQuestionTopics(topics);
+    setIsTopicInputForAllOpen(false);
+    setIsGrading(true);
+    performGrading().then((result) => {
       setIsGrading(false);
-      toast({
-        title: "Error Grading Test",
-        description: "An error occurred while grading your test. Please try again.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // --- Achievement check logic (AFTER all updates) ---
-    try {
-      const scores: TestScore[] = JSON.parse(localStorage.getItem("scores") || "[]");
-      const streak = parseInt(localStorage.getItem("streak") || "0");
-      const xp = parseInt(localStorage.getItem("xp") || "0");
-      const dailyBonus = JSON.parse(localStorage.getItem("dailyBonus") || '{"streak": 0, "totalBonusClaimed": 0}');
-      const latestScore = scores.length > 0 ? scores[scores.length - 1].score : 0;
-      const bestScore = scores.length > 0 ? Math.max(...scores.map(s => s.score)) : 0;
-      const totalTests = scores.length;
-      const prevBadges = JSON.parse(localStorage.getItem("earnedBadges") || "[]");
-      const badgeChecks = [
-        { emoji: "🌟", title: "First Steps", description: "Take your first test", earned: totalTests >= 1 },
-        { emoji: "🎯", title: "Sharp Shooter", description: "Score 15+ on any test", earned: bestScore >= 15 },
-        { emoji: "🧠", title: "High Achiever", description: "Score 20+ on any test", earned: bestScore >= 20 },
-        { emoji: "💯", title: "Perfect Score", description: "Score 25/25 on any test", earned: bestScore === 25 },
-        { emoji: "⏫", title: "New Personal Best", description: "Beat your previous best score", earned: scores.length > 1 && latestScore === bestScore && bestScore > 0 },
-        { emoji: "📚", title: "Dedicated Student", description: "Complete 5 tests", earned: totalTests >= 5 },
-        { emoji: "📝", title: "Test Master", description: "Complete 10 tests", earned: totalTests >= 10 },
-        { emoji: "🧪", title: "Research Scholar", description: "Complete 25 tests", earned: totalTests >= 25 },
-        { emoji: "🎓", title: "Graduate", description: "Complete 50 tests", earned: totalTests >= 50 },
-        { emoji: "🏛️", title: "Professor", description: "Complete 100 tests", earned: totalTests >= 100 },
-        { emoji: "⚡", title: "Power User", description: "Reach 500 XP", earned: xp >= 500 },
-        { emoji: "🌟", title: "Rising Star", description: "Reach Level 10", earned: Math.floor(xp / 100) + 1 >= 10 },
-        { emoji: "🚀", title: "Math Champion", description: "Reach Level 25", earned: Math.floor(xp / 100) + 1 >= 25 },
-        { emoji: "👑", title: "Math Royalty", description: "Reach Level 50", earned: Math.floor(xp / 100) + 1 >= 50 },
-      ];
-
-      const newlyEarned = badgeChecks.filter(b => b.earned && !prevBadges.includes(b.title));
-      
-      if (newlyEarned.length > 0) {
-        // Accumulate new achievements instead of replacing them
-        setNewAchievements(prev => [...prev, ...newlyEarned]);
-        setShowAchievementPopup(true);
-        // Save all earned badges to prevent re-triggering popups
-        localStorage.setItem("earnedBadges", JSON.stringify([...prevBadges, ...newlyEarned.map(b => b.title)]));
-      }
-    } catch (err) {
-      console.error('ERROR in achievement popup logic:', err);
-    }
-    // --- End achievement check logic ---
+      setResult(result);
+    });
   };
 
-  // This handler is no longer needed in this form, as we get topics for all questions
-  // const handleSaveTopic = (questionNum: number, topic: string) => {
-  //   setTopicsForIncorrect(prevTopics => ({
-  //     ...prevTopics,
-  //     [questionNum]: topic.trim(),
-  //   }));
-  // };
 
-  // This handler is no longer needed in this form
-  // const handleCloseTopicPopup = () => {
-  //   setIsTopicPopupOpen(false);
-
-
-  //   const scores: TestScore[] = JSON.parse(localStorage.getItem("scores") || "[]");
-  //   if (scores.length > 0) {
-  //     const latestScoreIndex = scores.length - 1;
-  //     const latestScore = scores[latestScoreIndex];
-      
-  //     const topicMistakes: { [topic: string]: number } = {};
-  //     latestScore.incorrectQuestions?.forEach(qNum => {
-  //       const topic = topicsForIncorrect[qNum];
-  //       if (topic) {
-  //         topicMistakes[topic] = (topicMistakes[topic] || 0) + 1;
-  //       } else {
-  //          topicMistakes['Other'] = (topicMistakes['Other'] || 0) + 1;
-  //       }
-  //     });
-  //     latestScore.topicMistakes = topicMistakes;
-  //     scores[latestScoreIndex] = latestScore;
-  //     localStorage.setItem("scores", JSON.stringify(scores));
-      
-  //     window.dispatchEvent(new CustomEvent('dataUpdate'));
-  //   }
-    
-  //   setTopicsForIncorrect({});
-  // };
 
 
   return (
@@ -430,22 +139,22 @@ export const TestEntryForm = ({ inputMode, initialAnswerKey }: TestEntryFormProp
       
       <div className="space-y-4">
         {/* Test Type Selection */}
-        <Select value={testType} onValueChange={setTestType}>
+        <Select value={testType} onValueChange={(value) => setTestType(value as TestType)}>
           <SelectTrigger aria-label="Select AMC test type">
             <SelectValue placeholder="Select test type" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="amc8">AMC 8</SelectItem>
-            <SelectItem value="amc10">AMC 10</SelectItem>
-            <SelectItem value="amc12">AMC 12</SelectItem>
+            {TEST_TYPES.map(type => (
+              <SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>
+            ))}
           </SelectContent>
         </Select>
 
         {/* Test Year */}
         <Input
           type="number"
-          min="2000"
-          max="2099"
+          min={MIN_YEAR}
+          max={MAX_YEAR}
           value={testYear}
           onChange={(e) => setTestYear(e.target.value)}
           placeholder="Enter Year (e.g., 2025)"
@@ -476,7 +185,7 @@ export const TestEntryForm = ({ inputMode, initialAnswerKey }: TestEntryFormProp
                   <Button
                     onClick={gradeTest}
                     variant="gradient-primary" className="hover-bounce hover-glow animate-pulse-glow"
-                    disabled={userAnswers.length !== 25 || answerKey.length !== 25 || isGrading}
+                    disabled={debouncedUserAnswers.length !== 25 || debouncedAnswerKey.length !== 25 || isGrading}
                     aria-label="Grade Test"
                   >
                     {isGrading ? (
@@ -493,7 +202,7 @@ export const TestEntryForm = ({ inputMode, initialAnswerKey }: TestEntryFormProp
                   </Button>
                 </div>
               </TooltipTrigger>
-              {(userAnswers.length !== 25 || answerKey.length !== 25 || isGrading) && (
+              {(debouncedUserAnswers.length !== 25 || debouncedAnswerKey.length !== 25 || isGrading) && (
                 <TooltipContent>
                   <p>{getTooltipMessage()}</p>
                 </TooltipContent>
@@ -516,10 +225,10 @@ export const TestEntryForm = ({ inputMode, initialAnswerKey }: TestEntryFormProp
         isOpen={isTopicInputForAllOpen}
         onClose={() => setIsTopicInputForAllOpen(false)}
         // Pass all questions (1-25) and their initial topics
-        questionsToTopic={Array.from({length: 25}, (_, i) => i + 1)} // Always pass questions 1-25
+        questionsToTopic={Array.from({length: NUM_QUESTIONS}, (_, i) => i + 1)} // Always pass questions 1-25
         initialTopics={allQuestionTopics}
         onSaveTopics={handleSaveAllTopics}
-        topicOptions={topicOptions}
+        topicOptions={TOPIC_OPTIONS}
       />
 
     {/* Achievement Popup */}

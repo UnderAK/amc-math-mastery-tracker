@@ -1,13 +1,12 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useDebounce } from '@/hooks/use-debounce';
+import React, { useCallback, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 interface McqInputProps {
   userAnswers: string;
   answerKey: string;
-  onUserAnswersChange: (value: string) => void;
-  onAnswerKeyChange: (value: string) => void;
+  onUserAnswersChange: React.Dispatch<React.SetStateAction<string>>;
+  onAnswerKeyChange: React.Dispatch<React.SetStateAction<string>>;
 }
 
 const AnswerButton = React.memo(({ option, isSelected, onSelect }: { option: string; isSelected: boolean; onSelect: (option: string) => void; }) => {
@@ -56,7 +55,7 @@ const AnswerGrid = React.memo(({ title, answers, onAnswerChange }: { title: stri
   return (
     <div className="bg-muted/30 p-4 rounded-lg border">
       <h3 className="text-lg font-semibold mb-4 text-center">{title}</h3>
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+      <div role="grid" className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
         {answers.map((answer, i) => (
           <QuestionRow
             key={i}
@@ -71,52 +70,29 @@ const AnswerGrid = React.memo(({ title, answers, onAnswerChange }: { title: stri
 });
 
 export const McqInput = ({ userAnswers, answerKey, onUserAnswersChange, onAnswerKeyChange }: McqInputProps) => {
-  const [localUserAnswers, setLocalUserAnswers] = useState(() => userAnswers.padEnd(25, ' ').split('').slice(0, 25));
-  const [localAnswerKey, setLocalAnswerKey] = useState(() => answerKey.padEnd(25, ' ').split('').slice(0, 25));
-
-  useEffect(() => {
-    setLocalUserAnswers(userAnswers.padEnd(25, ' ').split('').slice(0, 25));
-  }, [userAnswers]);
-
-  useEffect(() => {
-    setLocalAnswerKey(answerKey.padEnd(25, ' ').split('').slice(0, 25));
-  }, [answerKey]);
-
-  const debouncedUserAnswers = useDebounce(localUserAnswers.join(''), 300);
-  const debouncedAnswerKey = useDebounce(localAnswerKey.join(''), 300);
-
-  useEffect(() => {
-    if (debouncedUserAnswers !== userAnswers) {
-      onUserAnswersChange(debouncedUserAnswers.trimEnd());
-    }
-  }, [debouncedUserAnswers, onUserAnswersChange, userAnswers]);
-
-  useEffect(() => {
-    if (debouncedAnswerKey !== answerKey) {
-      onAnswerKeyChange(debouncedAnswerKey.trimEnd());
-    }
-  }, [debouncedAnswerKey, onAnswerKeyChange, answerKey]);
+  const userAnswersArray = useMemo(() => userAnswers.padEnd(25, ' ').split('').slice(0, 25), [userAnswers]);
+  const answerKeyArray = useMemo(() => answerKey.padEnd(25, ' ').split('').slice(0, 25), [answerKey]);
 
   const handleUserAnswerChange = useCallback((index: number, value: string) => {
-    setLocalUserAnswers(prev => {
-      const newAnswers = [...prev];
-      if (index < newAnswers.length) newAnswers[index] = value;
-      return newAnswers;
+    onUserAnswersChange(prevAnswers => {
+      const newAnswers = prevAnswers.padEnd(25, ' ').split('').slice(0, 25);
+      newAnswers[index] = value;
+      return newAnswers.join('').trimEnd();
     });
-  }, []);
+  }, [onUserAnswersChange]);
 
   const handleAnswerKeyChange = useCallback((index: number, value: string) => {
-    setLocalAnswerKey(prev => {
-      const newKey = [...prev];
-      if (index < newKey.length) newKey[index] = value;
-      return newKey;
+    onAnswerKeyChange(prevKey => {
+      const newKey = prevKey.padEnd(25, ' ').split('').slice(0, 25);
+      newKey[index] = value;
+      return newKey.join('').trimEnd();
     });
-  }, []);
+  }, [onAnswerKeyChange]);
 
   return (
     <div className="space-y-8">
-      <AnswerGrid title="Your Answers" answers={localUserAnswers} onAnswerChange={handleUserAnswerChange} />
-      <AnswerGrid title="Official Answer Key" answers={localAnswerKey} onAnswerChange={handleAnswerKeyChange} />
+      <AnswerGrid title="Your Answers" answers={userAnswersArray} onAnswerChange={handleUserAnswerChange} />
+      <AnswerGrid title="Official Answer Key" answers={answerKeyArray} onAnswerChange={handleAnswerKeyChange} />
     </div>
   );
 };

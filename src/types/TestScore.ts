@@ -1,8 +1,10 @@
+import { TestType } from "./amc";
+
 export interface TestScore {
   id: string;
   date: string;
   score: number;
-  testType: string;
+  testType: TestType;
   year: number;
   input?: string;
   key?: string;

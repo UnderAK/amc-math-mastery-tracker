@@ -1,25 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://amc-math-mastery.vercel.app/</loc>
+    <loc>https://amc-math-mastery-tracker.vercel.app/</loc>
     <lastmod>2025-07-28</lastmod>
     <changefreq>monthly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://amc-math-mastery.vercel.app/analytics</loc>
+    <loc>https://amc-math-mastery-tracker.vercel.app/analytics</loc>
     <lastmod>2025-07-28</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://amc-math-mastery.vercel.app/test-entry</loc>
+    <loc>https://amc-math-mastery-tracker.vercel.app/test-entry</loc>
     <lastmod>2025-07-28</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://amc-math-mastery.vercel.app/history</loc>
+    <loc>https://amc-math-mastery-tracker.vercel.app/history</loc>
     <lastmod>2025-07-28</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
