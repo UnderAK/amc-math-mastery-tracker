@@ -14,6 +14,8 @@ import { useTestGrader } from '@/hooks/use-test-grader';
 import { TestScore } from "@/types/TestScore";
 import { TestType } from "@/types/amc";
 import { NUM_QUESTIONS, TOPIC_OPTIONS, TEST_TYPES, MIN_YEAR, MAX_YEAR } from "@/config/test-config";
+import { preloadedTests } from '@/data/tests';
+import { Test } from '@/types/Question';
 
 const getTopicForQuestion = (questionNum: number): string => {
   return "Other";
@@ -40,6 +42,7 @@ export const TestEntryForm = ({ inputMode, initialAnswerKey }: TestEntryFormProp
   const [isTopicInputForAllOpen, setIsTopicInputForAllOpen] = useState(false);
   const [isGrading, setIsGrading] = useState(false);
   const [result, setResult] = useState("");
+  const [selectedTestId, setSelectedTestId] = useState<string>('manual');
 
   const debouncedUserAnswers = useDebounce(userAnswers, 300);
   const debouncedAnswerKey = useDebounce(answerKey, 300);
@@ -57,6 +60,33 @@ export const TestEntryForm = ({ inputMode, initialAnswerKey }: TestEntryFormProp
     }
     setAllQuestionTopics(initialTopics);
   }, []);
+
+  const handlePreloadedTestSelect = (testId: string) => {
+    setSelectedTestId(testId);
+    const test = preloadedTests.find(t => t.id === testId);
+
+    if (test) {
+      setTestType(test.competition as TestType);
+      setTestYear(test.year.toString());
+      const newAnswerKey = test.questions.map(q => q.answer).join('');
+      setAnswerKey(newAnswerKey);
+
+      const newTopics = Object.fromEntries(
+        test.questions.map(q => [q.questionNumber, q.topic])
+      );
+      setAllQuestionTopics(newTopics);
+    } else {
+      // Reset to manual entry
+      setAnswerKey('');
+      setTestType('amc8');
+      setTestYear(new Date().getFullYear().toString());
+      const initialTopics: { [key: number]: string } = {};
+      for (let i = 1; i <= NUM_QUESTIONS; i++) {
+        initialTopics[i] = getTopicForQuestion(i);
+      }
+      setAllQuestionTopics(initialTopics);
+    }
+  };
 
   const { toast } = useToast();
 
@@ -138,8 +168,26 @@ export const TestEntryForm = ({ inputMode, initialAnswerKey }: TestEntryFormProp
       </h2>
       
       <div className="space-y-4">
+        {/* Preloaded Test Selection */}
+        <Select value={selectedTestId} onValueChange={handlePreloadedTestSelect}>
+          <SelectTrigger aria-label="Select preloaded test">
+            <SelectValue placeholder="Select a preloaded test" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="manual">Manual Entry</SelectItem>
+            {preloadedTests.map(test => (
+              <SelectItem key={test.id} value={test.id}>{test.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <div className="relative flex items-center">
+          <div className="flex-grow border-t border-border/50"></div>
+          <span className="flex-shrink mx-4 text-xs text-muted-foreground uppercase">Or Enter Manually</span>
+          <div className="flex-grow border-t border-border/50"></div>
+        </div>
         {/* Test Type Selection */}
-        <Select value={testType} onValueChange={(value) => setTestType(value as TestType)}>
+        <Select value={testType} onValueChange={(value) => setTestType(value as TestType)} disabled={selectedTestId !== 'manual'}>
           <SelectTrigger aria-label="Select AMC test type">
             <SelectValue placeholder="Select test type" />
           </SelectTrigger>
@@ -158,6 +206,7 @@ export const TestEntryForm = ({ inputMode, initialAnswerKey }: TestEntryFormProp
           value={testYear}
           onChange={(e) => setTestYear(e.target.value)}
           placeholder="Enter Year (e.g., 2025)"
+          disabled={selectedTestId !== 'manual'}
         />
 
         {/* Label Input */}
@@ -173,7 +222,7 @@ export const TestEntryForm = ({ inputMode, initialAnswerKey }: TestEntryFormProp
           userAnswers={userAnswers}
           answerKey={answerKey}
           onUserAnswersChange={setUserAnswers}
-          onAnswerKeyChange={setAnswerKey}
+          onAnswerKeyChange={selectedTestId === 'manual' ? setAnswerKey : () => {}}
         />
 
         {/* Action Buttons */}

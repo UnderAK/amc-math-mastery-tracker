@@ -69,6 +69,14 @@ export const getBadges = (stats: UserStats): Badge[] => {
     { emoji: "📐", title: "Geometry Genius", description: "Correctly answer 20 Geometry questions" },
     { emoji: "🎲", title: "Combinatorics Captain", description: "Correctly answer 20 Combinatorics questions" },
     { emoji: "🔢", title: "Number Theory Nerd", description: "Correctly answer 20 Number Theory questions" },
+    { emoji: "🧑‍🏫", title: "Algebra Master", description: "Correctly answer 50 Algebra questions" },
+    { emoji: "🏛️", title: "Geometry Guru", description: "Correctly answer 50 Geometry questions" },
+    { emoji: "👑", title: "Combinatorics Commander", description: "Correctly answer 50 Combinatorics questions" },
+    { emoji: "🧙", title: "Number Theory Ninja", description: "Correctly answer 50 Number Theory questions" },
+    { emoji: "🌠", title: "Comet Sighted", description: "Reach a 150-day streak" },
+    { emoji: "🌌", title: "Galactic Legend", description: "Reach a 365-day streak" },
+    { emoji: "💎", title: "Diamond Hands", description: "Accumulate 10,000 XP" },
+    { emoji: "🏆", title: "Level 50 Legend", description: "Reach Level 50" },
   ];
 
   const earnedStatus = {
@@ -92,6 +100,14 @@ export const getBadges = (stats: UserStats): Badge[] => {
     "Geometry Genius": (stats.topicCorrectCounts['Geometry'] || 0) >= 20,
     "Combinatorics Captain": (stats.topicCorrectCounts['Combinatorics'] || 0) >= 20,
     "Number Theory Nerd": (stats.topicCorrectCounts['Number Theory'] || 0) >= 20,
+    "Algebra Master": (stats.topicCorrectCounts['Algebra'] || 0) >= 50,
+    "Geometry Guru": (stats.topicCorrectCounts['Geometry'] || 0) >= 50,
+    "Combinatorics Commander": (stats.topicCorrectCounts['Combinatorics'] || 0) >= 50,
+    "Number Theory Ninja": (stats.topicCorrectCounts['Number Theory'] || 0) >= 50,
+    "Comet Sighted": stats.streak >= 150,
+    "Galactic Legend": stats.streak >= 365,
+    "Diamond Hands": stats.xp >= 10000,
+    "Level 50 Legend": stats.level >= 50,
   };
 
   const processedBadges = allBadges.map(badge => ({ ...badge, earned: earnedStatus[badge.title] || false }));
