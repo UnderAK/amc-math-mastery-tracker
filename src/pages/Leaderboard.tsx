@@ -11,7 +11,7 @@ interface LeaderboardEntry {
   rank: number;
   score: number;
   test_date: string;
-  profiles: Profile[] | null;
+  profiles: Profile | null;
 }
 
 const Leaderboard = () => {
@@ -26,7 +26,7 @@ const Leaderboard = () => {
         // Supabase returns the joined 'profiles' as an array.
         const { data, error } = await supabase
           .from('test_results')
-          .select('score, test_date, user_id, profiles:user_id (username, avatar)')
+          .select('score, test_date, profiles(username, avatar)')
           .order('score', { ascending: false })
           .limit(10);
 
@@ -90,9 +90,8 @@ const Leaderboard = () => {
                   <tr key={entry.rank} className="border-t border-border/20 hover:bg-muted/20 transition-colors">
                     <td className="p-4 font-bold text-lg text-center">{entry.rank}</td>
                     <td className="p-4 flex items-center gap-3">
-                      {/* Safely access the first profile in the array */}
-                      <span className="text-2xl">{entry.profiles?.[0]?.avatar || '👤'}</span>
-                      <span className="font-medium">{entry.profiles?.[0]?.username || 'Anonymous'}</span>
+                      <span className="text-2xl">{entry.profiles?.avatar || '👤'}</span>
+                      <span className="font-medium">{entry.profiles?.username || 'Anonymous'}</span>
                     </td>
                     <td className="p-4 text-center font-semibold text-primary">{entry.score}</td>
                     <td className="p-4 text-right text-sm text-muted-foreground">

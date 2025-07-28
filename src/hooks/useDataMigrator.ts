@@ -29,10 +29,7 @@ export const useDataMigrator = () => {
       }
 
       setIsMigrating(true);
-      toast({
-        title: 'Syncing Your Data... ☁️',
-        description: `Found ${unsyncedScores.length} unsynced tests. Saving them to your account.`,
-      });
+
 
       const recordsToInsert = unsyncedScores.map(score => ({
         user_id: user.id,
@@ -47,19 +44,12 @@ export const useDataMigrator = () => {
       const { error } = await supabase.from('test_results').insert(recordsToInsert);
 
       if (error) {
-        toast({
-          title: 'Migration Failed 😟',
-          description: 'Could not move your old data. Please try again later.',
-          variant: 'destructive',
-        });
+
         console.error('Migration error:', error);
       } else {
         const updatedLocalScores = localScores.map(score => ({ ...score, synced: true }));
         localStorage.setItem('scores', JSON.stringify(updatedLocalScores));
-        toast({
-          title: 'Sync Complete! ✨',
-          description: 'All your test results are now saved to your account.',
-        });
+
       }
 
       setIsMigrating(false);
