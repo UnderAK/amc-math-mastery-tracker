@@ -27,14 +27,19 @@ export default defineConfig(({ mode }) => ({
         orientation: 'natural',
         icons: [
           {
-            src: 'icons/192x192.webp',
+            src: 'icons/192x192.png',
             sizes: '192x192',
-            type: 'image/webp'
+            type: 'image/png'
           },
           {
-            src: 'icons/512x512.webp',
+            src: 'icons/256x256.png',
+            sizes: '256x256',
+            type: 'image/png'
+          },
+          {
+            src: 'icons/512x512.png',
             sizes: '512x512',
-            type: 'image/webp'
+            type: 'image/png'
           },
           {
             src: 'icons/512x512.png',

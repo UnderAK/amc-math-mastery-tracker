@@ -14,12 +14,33 @@ export const Header = () => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [session, setSession] = useState<any>(null);
+  const [isGuest, setIsGuest] = useState(sessionStorage.getItem('isGuest') === 'true');
   const { toast } = useToast();
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    const updateSession = () => {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        setSession(session);
+      });
+      setIsGuest(sessionStorage.getItem('isGuest') === 'true');
+    }
+
+    updateSession();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
+      // If user logs in or out, guest status should be cleared
+      sessionStorage.removeItem('isGuest');
+      setIsGuest(false);
     });
+
+    // Listen for guest status changes
+    window.addEventListener('storage', updateSession);
+
+    return () => {
+      subscription.unsubscribe();
+      window.removeEventListener('storage', updateSession);
+    };
   }, []);
 
   useEffect(() => {
@@ -34,6 +55,23 @@ export const Header = () => {
     document.documentElement.classList.toggle('dark', newMode);
     localStorage.setItem('theme', newMode ? 'dark' : 'light');
     toast({ title: newMode ? '🌙 Dark mode on' : '☀️ Light mode on' });
+  };
+
+  const handleLogout = async () => {
+    if (isGuest) {
+      sessionStorage.removeItem('isGuest');
+      setIsGuest(false);
+      // Force a re-render of App.tsx to show Auth page
+      window.location.href = '/';
+    } else {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        toast({ title: 'Logout failed', description: error.message, variant: 'destructive' });
+      } else {
+        toast({ title: 'Logged out successfully' });
+        window.location.href = '/'; // Redirect to home to show Auth page
+      }
+    }
   };
 
   return (
@@ -61,16 +99,17 @@ export const Header = () => {
         </nav>
 
         <div className="flex items-center gap-2">
-          {session ? (
+          {(session || isGuest) ? (
             <>
               <CoinDisplay />
               <Button onClick={() => setIsProfileOpen(true)} variant="ghost" size="icon" className="rounded-full" aria-label="Profile">
                 <User />
               </Button>
+              <Button onClick={handleLogout} variant="outline">{isGuest ? 'Exit Guest' : 'Logout'}</Button>
             </>
           ) : (
             <Link to="/">
-              <Button onClick={() => sessionStorage.removeItem('isGuest')}>Login</Button>
+              <Button>Login</Button>
             </Link>
           )}
           <Button onClick={toggleDarkMode} variant="ghost" size="icon" className="rounded-full" aria-label="Toggle theme">

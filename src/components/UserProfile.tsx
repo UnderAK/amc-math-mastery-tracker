@@ -61,6 +61,7 @@ export const UserProfile = ({ isOpen, onClose }: UserProfilePopupProps) => {
   const [showUsernameConfirm, setShowUsernameConfirm] = useState(false);
   const [pendingUsername, setPendingUsername] = useState("");
   const { toast } = useToast();
+  const [isGuest, setIsGuest] = useState(false);
 
   useEffect(() => {
     const savedProfile = localStorage.getItem("userProfile");
@@ -79,6 +80,7 @@ export const UserProfile = ({ isOpen, onClose }: UserProfilePopupProps) => {
       localStorage.setItem("userProfile", JSON.stringify(defaultProfile));
       setProfile(defaultProfile);
     }
+    setIsGuest(sessionStorage.getItem('isGuest') === 'true');
     setUnlockedAvatars(getUnlockedAvatars());
     setCoinBalance(parseInt(localStorage.getItem("coins") || "0"));
     setCoinTransactions((JSON.parse(localStorage.getItem("coinTransactions") || "[]") as any[]).reverse());
@@ -355,6 +357,19 @@ export const UserProfile = ({ isOpen, onClose }: UserProfilePopupProps) => {
                 <Button onClick={handleEdit} className="w-full gap-2 transition-transform hover:scale-105" variant="secondary">
                   <Edit3 className="w-4 h-4" />
                   Edit Profile
+                </Button>
+              )}
+              {isGuest && (
+                <Button
+                  onClick={() => {
+                    sessionStorage.removeItem('isGuest');
+                    window.location.href = '/';
+                  }}
+                  className="w-full gap-2 transition-transform hover:scale-105 mt-2"
+                  variant="default"
+                >
+                  <User className="w-4 h-4" />
+                  Login / Sign Up
                 </Button>
               )}
             </div>
