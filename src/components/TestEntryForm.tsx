@@ -23,9 +23,10 @@ const getTopicForQuestion = (questionNum: number): string => {
 
 interface TestEntryFormProps {
   inputMode: InputMode;
+  initialAnswerKey?: string;
 }
 
-export const TestEntryForm = ({ inputMode }: TestEntryFormProps) => {
+export const TestEntryForm = ({ inputMode, initialAnswerKey }: TestEntryFormProps) => {
   const [showAchievementPopup, setShowAchievementPopup] = useState(false);
   const [newAchievements, setNewAchievements] = useState<{
     emoji: string;
@@ -40,6 +41,12 @@ export const TestEntryForm = ({ inputMode }: TestEntryFormProps) => {
   const [testYear, setTestYear] = useState(new Date().getFullYear().toString());
   const [userAnswers, setUserAnswers] = useState("");
   const [answerKey, setAnswerKey] = useState("");
+
+  useEffect(() => {
+    if (initialAnswerKey) {
+      setAnswerKey(initialAnswerKey);
+    }
+  }, [initialAnswerKey]);
   const [label, setLabel] = useState("");
   const [result, setResult] = useState("");
   // We will now store topics for ALL questions
