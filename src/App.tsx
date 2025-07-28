@@ -21,6 +21,7 @@ import { supabase } from './lib/supabaseClient';
 import Auth from './components/Auth';
 import { Session } from '@supabase/supabase-js';
 import { AuthProvider } from './contexts/AuthContext';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 
 const queryClient = new QueryClient();
 
@@ -101,6 +102,7 @@ const App = () => {
           {/* Konami code toast */}
           <KonamiToast />
           <VercelAnalytics />
+          <SpeedInsights />
         </TooltipProvider>
       </QueryClientProvider>
     </AuthProvider>
