@@ -81,6 +81,7 @@ const Auth = ({ onContinueAsGuest }: { onContinueAsGuest: () => void }) => {
             theme={theme}
             providers={['google', 'github']}
             socialLayout="horizontal"
+            redirectTo={import.meta.env.VITE_SITE_URL || 'http://localhost:8080'}
           />
         </div>
         <div className="relative my-6">
