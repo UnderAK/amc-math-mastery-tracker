@@ -80,19 +80,17 @@ const App = () => {
           <Toaster />
           <Sonner />
           {!isOnline && <OfflineBanner />}
-          <BrowserRouter>
-            <Routes>
-              <Route element={<MainLayout />}>
-                <Route path="/" element={<Index />} />
-                <Route path="/analytics" element={<Analytics />} />
-                <Route path="/test-entry" element={<TestEntryPage />} />
-                <Route path="/history" element={<History />} />
-                <Route path="/leaderboard" element={<Leaderboard />} />
-              </Route>
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
+          <Routes>
+            <Route element={<MainLayout />}>
+              <Route path="/" element={<Index />} />
+              <Route path="/analytics" element={<Analytics />} />
+              <Route path="/test-entry" element={<TestEntryPage />} />
+              <Route path="/history" element={<History />} />
+              <Route path="/leaderboard" element={<Leaderboard />} />
+            </Route>
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
           {/* Konami code toast */}
           <KonamiToast />
           <VercelAnalytics />
