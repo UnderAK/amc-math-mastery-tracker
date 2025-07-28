@@ -7,12 +7,20 @@ import { LeaderboardOverlay } from '@/components/LeaderboardOverlay';
 import { CoinDisplay } from '@/components/CoinDisplay';
 import { UserProfile } from '@/components/UserProfile';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/lib/supabaseClient';
 
 export const Header = () => {
   const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [session, setSession] = useState<any>(null);
   const { toast } = useToast();
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
+  }, []);
 
   useEffect(() => {
     const shouldBeDark = localStorage.getItem('theme') === 'dark';
@@ -47,14 +55,24 @@ export const Header = () => {
           <Link to="/history">
             <Button variant="outline" className="transition-transform hover:scale-105"><BookOpen className="mr-2 h-4 w-4"/>History</Button>
           </Link>
-          <Button variant="outline" onClick={() => setIsLeaderboardOpen(true)} className="transition-transform hover:scale-105"><Award className="mr-2 h-4 w-4"/>Leaderboard</Button>
+          {session && (
+            <Button variant="outline" onClick={() => setIsLeaderboardOpen(true)} className="transition-transform hover:scale-105"><Award className="mr-2 h-4 w-4"/>Leaderboard</Button>
+          )}
         </nav>
 
         <div className="flex items-center gap-2">
-          <CoinDisplay />
-          <Button onClick={() => setIsProfileOpen(true)} variant="ghost" size="icon" className="rounded-full" aria-label="Profile">
-            <User />
-          </Button>
+          {session ? (
+            <>
+              <CoinDisplay />
+              <Button onClick={() => setIsProfileOpen(true)} variant="ghost" size="icon" className="rounded-full" aria-label="Profile">
+                <User />
+              </Button>
+            </>
+          ) : (
+            <Link to="/">
+              <Button onClick={() => sessionStorage.removeItem('isGuest')}>Login</Button>
+            </Link>
+          )}
           <Button onClick={toggleDarkMode} variant="ghost" size="icon" className="rounded-full" aria-label="Toggle theme">
             {isDarkMode ? <Sun /> : <Moon />}
           </Button>

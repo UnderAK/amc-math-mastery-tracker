@@ -15,14 +15,51 @@ import { KonamiToast } from "@/components/KonamiToast";
 import { OfflineBanner } from "@/components/OfflineBanner";
 import { useOnlineStatus } from "@/hooks/use-online-status";
 import { useKonamiCode } from "@/hooks/use-konami-code";
+import { useDataMigrator } from '@/hooks/useDataMigrator';
+import { useState, useEffect } from 'react';
+import { supabase } from './lib/supabaseClient';
+import Auth from './components/Auth';
+import { Session } from '@supabase/supabase-js';
 
 const queryClient = new QueryClient();
 
 const App = () => {
   const isOnline = useOnlineStatus();
   useKonamiCode();
+  useDataMigrator();
+  const [session, setSession] = useState<Session | null>(null);
+  const [isGuest, setIsGuest] = useState(sessionStorage.getItem('isGuest') === 'true');
 
-  return (
+  useEffect(() => {
+    const handleAuthChange = (session: Session | null) => {
+      setSession(session);
+      if (session) {
+        // If a user logs in, they are no longer a guest.
+        sessionStorage.removeItem('isGuest');
+        setIsGuest(false);
+      }
+    };
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      handleAuthChange(session);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      handleAuthChange(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleContinueAsGuest = () => {
+    sessionStorage.setItem('isGuest', 'true');
+    setIsGuest(true);
+  };
+
+  if (!session && !isGuest) {
+    return <Auth onContinueAsGuest={handleContinueAsGuest} />;
+  } else {
+    return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
@@ -46,7 +83,8 @@ const App = () => {
         <VercelAnalytics />
       </TooltipProvider>
     </QueryClientProvider>
-  );
+    );
+  }
 };
 
 

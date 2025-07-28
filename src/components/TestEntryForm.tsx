@@ -1,10 +1,9 @@
 import { useState, useEffect } from "react";
 import { useDebounce } from "@/hooks/use-debounce";
-import { BookOpen, Sparkles, CheckCircle } from "lucide-react";
+import { BookOpen, CheckCircle } from "lucide-react";
 import { AchievementPopup } from "@/components/AchievementPopup";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { TopicInputPopup } from "@/components/TopicInputPopup";
@@ -15,9 +14,9 @@ import { TestScore } from "@/types/TestScore";
 import { TestType } from "@/types/amc";
 import { NUM_QUESTIONS, TOPIC_OPTIONS, TEST_TYPES, MIN_YEAR, MAX_YEAR } from "@/config/test-config";
 import { preloadedTests } from '@/data/tests';
-import { Test } from '@/types/Question';
+import { supabase } from '@/lib/supabaseClient';
 
-const getTopicForQuestion = (questionNum: number): string => {
+const getTopicForQuestion = (): string => {
   return "Other";
 };
 
@@ -43,9 +42,23 @@ export const TestEntryForm = ({ inputMode, initialAnswerKey }: TestEntryFormProp
   const [isGrading, setIsGrading] = useState(false);
   const [result, setResult] = useState("");
   const [selectedTestId, setSelectedTestId] = useState<string>('manual');
+  const [isSyncing, setIsSyncing] = useState(false);
+  const { toast } = useToast();
 
   const debouncedUserAnswers = useDebounce(userAnswers, 300);
   const debouncedAnswerKey = useDebounce(answerKey, 300);
+
+  const { gradeTest: performGrading } = useTestGrader({
+    debouncedUserAnswers,
+    debouncedAnswerKey,
+    testType,
+    testYear,
+    allQuestionTopics,
+    savedTests,
+    setSavedTests,
+    setNewAchievements,
+    setShowAchievementPopup
+  });
 
   useEffect(() => {
     if (initialAnswerKey) {
@@ -54,9 +67,51 @@ export const TestEntryForm = ({ inputMode, initialAnswerKey }: TestEntryFormProp
   }, [initialAnswerKey]);
 
   useEffect(() => {
+    const syncLatestTest = async () => {
+      if (savedTests.length === 0) return;
+
+      const latestTest = savedTests[savedTests.length - 1];
+      if (latestTest.synced) return;
+
+      setIsSyncing(true);
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (user) {
+        const { error } = await supabase.from('test_results').insert({
+          user_id: user.id,
+          score: latestTest.score,
+          time_taken: null, // timeTaken is not available in TestScore type
+          test_date: latestTest.date,
+          topics: latestTest.questionTopics,
+        });
+
+        if (error) {
+          toast({
+            title: "Sync Failed 😟",
+            description: "Could not save test result to the cloud. It's saved on your device.",
+            variant: "destructive",
+          });
+          console.error('Error syncing test result:', error);
+        } else {
+          toast({
+            title: "Sync Complete ☁️",
+            description: "Your test result has been saved to the cloud.",
+          });
+          const updatedTests = [...savedTests];
+          updatedTests[updatedTests.length - 1].synced = true;
+          localStorage.setItem("scores", JSON.stringify(updatedTests));
+        }
+      }
+      setIsSyncing(false);
+    };
+
+    syncLatestTest();
+  }, [savedTests, toast]);
+
+  useEffect(() => {
     const initialTopics: { [key: number]: string } = {};
     for (let i = 1; i <= NUM_QUESTIONS; i++) {
-      initialTopics[i] = getTopicForQuestion(i);
+      initialTopics[i] = getTopicForQuestion();
     }
     setAllQuestionTopics(initialTopics);
   }, []);
@@ -76,31 +131,16 @@ export const TestEntryForm = ({ inputMode, initialAnswerKey }: TestEntryFormProp
       );
       setAllQuestionTopics(newTopics);
     } else {
-      // Reset to manual entry
       setAnswerKey('');
       setTestType('amc8');
       setTestYear(new Date().getFullYear().toString());
       const initialTopics: { [key: number]: string } = {};
       for (let i = 1; i <= NUM_QUESTIONS; i++) {
-        initialTopics[i] = getTopicForQuestion(i);
+        initialTopics[i] = getTopicForQuestion();
       }
       setAllQuestionTopics(initialTopics);
     }
   };
-
-  const { toast } = useToast();
-
-  const { gradeTest: performGrading } = useTestGrader({
-    debouncedUserAnswers,
-    debouncedAnswerKey,
-    testType,
-    testYear,
-    allQuestionTopics,
-    savedTests,
-    setSavedTests,
-    setNewAchievements,
-    setShowAchievementPopup
-  });
 
   const getTooltipMessage = () => {
     if (isGrading) return "Grading is in progress...";
@@ -157,9 +197,6 @@ export const TestEntryForm = ({ inputMode, initialAnswerKey }: TestEntryFormProp
     });
   };
 
-
-
-
   return (
     <section className="glass p-6 rounded-2xl shadow-xl hover-lift animate-slide-in-left">
       <h2 className="text-xl font-semibold text-primary mb-4 flex items-center gap-2">
@@ -168,7 +205,6 @@ export const TestEntryForm = ({ inputMode, initialAnswerKey }: TestEntryFormProp
       </h2>
       
       <div className="space-y-4">
-        {/* Preloaded Test Selection */}
         <Select value={selectedTestId} onValueChange={handlePreloadedTestSelect}>
           <SelectTrigger aria-label="Select preloaded test">
             <SelectValue placeholder="Select a preloaded test" />
@@ -186,7 +222,6 @@ export const TestEntryForm = ({ inputMode, initialAnswerKey }: TestEntryFormProp
           <span className="flex-shrink mx-4 text-xs text-muted-foreground uppercase">Or Enter Manually</span>
           <div className="flex-grow border-t border-border/50"></div>
         </div>
-        {/* Test Type Selection */}
         <Select value={testType} onValueChange={(value) => setTestType(value as TestType)} disabled={selectedTestId !== 'manual'}>
           <SelectTrigger aria-label="Select AMC test type">
             <SelectValue placeholder="Select test type" />
@@ -198,7 +233,6 @@ export const TestEntryForm = ({ inputMode, initialAnswerKey }: TestEntryFormProp
           </SelectContent>
         </Select>
 
-        {/* Test Year */}
         <Input
           type="number"
           min={MIN_YEAR}
@@ -209,7 +243,6 @@ export const TestEntryForm = ({ inputMode, initialAnswerKey }: TestEntryFormProp
           disabled={selectedTestId !== 'manual'}
         />
 
-        {/* Label Input */}
         <Input
           type="text"
           value={label}
@@ -225,7 +258,6 @@ export const TestEntryForm = ({ inputMode, initialAnswerKey }: TestEntryFormProp
           onAnswerKeyChange={selectedTestId === 'manual' ? setAnswerKey : () => {}}
         />
 
-        {/* Action Buttons */}
         <div className="flex justify-end">
           <TooltipProvider>
             <Tooltip>
@@ -260,7 +292,6 @@ export const TestEntryForm = ({ inputMode, initialAnswerKey }: TestEntryFormProp
           </TooltipProvider>
         </div>
 
-        {/* Result */}
         {result && (
           <div className="mt-4 p-3 bg-accent/10 border border-accent/20 rounded-lg">
             <p className="text-sm font-medium text-accent">{result}</p>
@@ -268,19 +299,15 @@ export const TestEntryForm = ({ inputMode, initialAnswerKey }: TestEntryFormProp
         )}
       </div>
 
-      {/* Topic Input Popup (Modify or Replace) */}
-      {/* We will pass all 25 questions to the popup */}
       <TopicInputPopup
         isOpen={isTopicInputForAllOpen}
         onClose={() => setIsTopicInputForAllOpen(false)}
-        // Pass all questions (1-25) and their initial topics
-        questionsToTopic={Array.from({length: NUM_QUESTIONS}, (_, i) => i + 1)} // Always pass questions 1-25
+        questionsToTopic={Array.from({length: NUM_QUESTIONS}, (_, i) => i + 1)}
         initialTopics={allQuestionTopics}
         onSaveTopics={handleSaveAllTopics}
         topicOptions={TOPIC_OPTIONS}
       />
 
-    {/* Achievement Popup */}
     <AchievementPopup
       achievements={newAchievements}
       visible={showAchievementPopup}
