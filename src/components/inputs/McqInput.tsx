@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useDebounce } from '@/hooks/use-debounce';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 interface McqInputProps {
   userAnswers: string;
@@ -9,28 +10,49 @@ interface McqInputProps {
   onAnswerKeyChange: (value: string) => void;
 }
 
-const QuestionRow = React.memo(({ qNum, selected, onSelect }: { qNum: number, selected: string, onSelect: (index: number, option: string) => void }) => {
+const AnswerButton = React.memo(({ option, isSelected, onSelect }: { option: string; isSelected: boolean; onSelect: (option: string) => void; }) => {
+  return (
+    <Button
+      size="sm"
+      variant="outline"
+      onClick={() => onSelect(option)}
+      className={cn(
+        'w-7 h-7 p-0 text-xs transition-all duration-150 ease-in-out transform hover:scale-110',
+        isSelected && 'bg-primary text-primary-foreground hover:bg-primary/90'
+      )}
+    >
+      {option}
+    </Button>
+  );
+});
+
+const QuestionRow = React.memo(({ qNum, selectedAnswer, onSelect }: { qNum: number; selectedAnswer: string; onSelect: (qNum: number, option: string) => void; }) => {
+  const handleSelect = useCallback((option: string) => {
+    onSelect(qNum, option);
+  }, [onSelect, qNum]);
+
   return (
     <div className="p-2 rounded-md bg-background/60 border flex flex-col items-center space-y-2">
       <span className="font-bold text-sm text-muted-foreground">{qNum}</span>
       <div className="flex justify-center gap-1 w-full">
         {['A', 'B', 'C', 'D', 'E'].map(option => (
-          <Button
+          <AnswerButton
             key={option}
-            size="sm"
-            variant={selected === option ? 'default' : 'outline'}
-            onClick={() => onSelect(qNum - 1, option)}
-            className="w-7 h-7 p-0 text-xs transition-all duration-150 ease-in-out transform hover:scale-110"
-          >
-            {option}
-          </Button>
+            option={option}
+            isSelected={selectedAnswer === option}
+            onSelect={handleSelect}
+          />
         ))}
       </div>
     </div>
   );
 });
 
-const AnswerGrid = React.memo(({ title, answers, onAnswerChange }: { title: string, answers: string[], onAnswerChange: (index: number, value: string) => void }) => {
+const AnswerGrid = React.memo(({ title, answers, onAnswerChange }: { title: string; answers: string[]; onAnswerChange: (index: number, value: string) => void; }) => {
+  const handleAnswerChange = useCallback((qNum: number, option: string) => {
+    onAnswerChange(qNum - 1, option);
+  }, [onAnswerChange]);
+
   return (
     <div className="bg-muted/30 p-4 rounded-lg border">
       <h3 className="text-lg font-semibold mb-4 text-center">{title}</h3>
@@ -39,8 +61,8 @@ const AnswerGrid = React.memo(({ title, answers, onAnswerChange }: { title: stri
           <QuestionRow
             key={i}
             qNum={i + 1}
-            selected={answer}
-            onSelect={onAnswerChange}
+            selectedAnswer={answer}
+            onSelect={handleAnswerChange}
           />
         ))}
       </div>
@@ -60,29 +82,33 @@ export const McqInput = ({ userAnswers, answerKey, onUserAnswersChange, onAnswer
     setLocalAnswerKey(answerKey.padEnd(25, ' ').split('').slice(0, 25));
   }, [answerKey]);
 
-      const debouncedUserAnswers = useDebounce(localUserAnswers.join(''), 200);
-  const debouncedAnswerKey = useDebounce(localAnswerKey.join(''), 200);
+  const debouncedUserAnswers = useDebounce(localUserAnswers.join(''), 300);
+  const debouncedAnswerKey = useDebounce(localAnswerKey.join(''), 300);
 
   useEffect(() => {
-    onUserAnswersChange(debouncedUserAnswers.trimEnd());
-  }, [debouncedUserAnswers, onUserAnswersChange]);
+    if (debouncedUserAnswers !== userAnswers) {
+      onUserAnswersChange(debouncedUserAnswers.trimEnd());
+    }
+  }, [debouncedUserAnswers, onUserAnswersChange, userAnswers]);
 
   useEffect(() => {
-    onAnswerKeyChange(debouncedAnswerKey.trimEnd());
-  }, [debouncedAnswerKey, onAnswerKeyChange]);
+    if (debouncedAnswerKey !== answerKey) {
+      onAnswerKeyChange(debouncedAnswerKey.trimEnd());
+    }
+  }, [debouncedAnswerKey, onAnswerKeyChange, answerKey]);
 
   const handleUserAnswerChange = useCallback((index: number, value: string) => {
-    setLocalUserAnswers(prevAnswers => {
-      const newAnswers = [...prevAnswers];
-      newAnswers[index] = value;
+    setLocalUserAnswers(prev => {
+      const newAnswers = [...prev];
+      if (index < newAnswers.length) newAnswers[index] = value;
       return newAnswers;
     });
   }, []);
 
   const handleAnswerKeyChange = useCallback((index: number, value: string) => {
-    setLocalAnswerKey(prevKey => {
-      const newKey = [...prevKey];
-      newKey[index] = value;
+    setLocalAnswerKey(prev => {
+      const newKey = [...prev];
+      if (index < newKey.length) newKey[index] = value;
       return newKey;
     });
   }, []);
