@@ -35,7 +35,6 @@ export const useDataMigrator = () => {
         user_id: user.id,
         score: score.score,
         test_date: score.date,
-        year: score.year,
         topics: score.questionTopics,
         time_taken: null, // Not tracked in local data
       }));
