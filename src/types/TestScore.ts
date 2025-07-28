@@ -1,4 +1,5 @@
 export interface TestScore {
+  id: string;
   date: string;
   score: number;
   testType: string;

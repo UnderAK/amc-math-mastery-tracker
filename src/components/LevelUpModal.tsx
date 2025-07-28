@@ -55,10 +55,10 @@ export const LevelUpModal = () => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="glass max-w-sm w-full rounded-3xl shadow-2xl animate-bounce-in">
         {/* Animated Background */}
-        <div className="gradient-primary p-8 rounded-t-3xl text-center relative overflow-hidden animate-pulse-glow">
+                <div className="bg-primary p-8 rounded-t-3xl text-center relative overflow-hidden">
           <div className="absolute inset-0 opacity-30">
             <div className="absolute top-2 left-4 animate-bounce">⭐</div>
             <div className="absolute top-4 right-6 animate-bounce delay-200">✨</div>
@@ -68,9 +68,9 @@ export const LevelUpModal = () => {
           </div>
           
           <div className="relative z-10">
-            <Trophy className="w-16 h-16 mx-auto mb-4 text-white trophy-glow animate-bounce" />
-            <h2 className="text-2xl font-bold text-white mb-2">🎉 Level Up!</h2>
-            <div className="flex items-center justify-center gap-2 text-white/90">
+                        <Trophy className="w-16 h-16 mx-auto mb-4 text-primary-foreground trophy-glow animate-bounce" />
+                        <h2 className="text-2xl font-bold text-primary-foreground mb-2">🎉 Level Up!</h2>
+                        <div className="flex items-center justify-center gap-2 text-primary-foreground/90">
               <Zap className="w-5 h-5" />
               <span className="text-lg">You reached Level {newLevel}!</span>
             </div>
@@ -78,7 +78,7 @@ export const LevelUpModal = () => {
         </div>
 
         {/* Content */}
-        <div className="p-6 text-center">
+                <div className="p-6 text-center bg-card text-card-foreground rounded-b-3xl">
           <div className="mb-6">
             <div className="text-6xl mb-3 animate-pulse">{newLevel}</div>
             <p className="text-muted-foreground">

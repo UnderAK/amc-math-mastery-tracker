@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { BookOpen, Filter, Calendar, AlertCircle } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -14,41 +14,58 @@ export const TestHistoryTable = ({ filterType = "all" }: TestHistoryTableProps) 
   const [scores, setScores] = useState<TestScore[]>([]);
   const [filterLabel, setFilterLabel] = useState("all");
 
-  useEffect(() => {
-    const updateScores = () => {
-      console.log('DEBUG TestHistoryTable: updateScores called');
-      const savedScores: TestScore[] = JSON.parse(localStorage.getItem("scores") || "[]");
-      console.log('DEBUG TestHistoryTable: Retrieved scores from localStorage:', savedScores);
-      console.log('DEBUG TestHistoryTable: Number of scores:', savedScores.length);
-      setScores(savedScores);
-      console.log('DEBUG TestHistoryTable: State updated with scores');
-    };
+  const updateScores = useCallback(() => {
+    const savedScores: Omit<TestScore, 'id'>[] = JSON.parse(localStorage.getItem("scores") || "[]");
+    const scoresWithIds = savedScores.map((score, index) => ({...score, id: `${score.date}-${index}`}));
+    setScores(scoresWithIds);
+  }, []);
 
-    console.log('DEBUG TestHistoryTable: Component mounted, calling initial updateScores');
+  useEffect(() => {
     updateScores();
 
-    // Listen for data updates
-    const handleDataUpdate = () => {
-      console.log('DEBUG TestHistoryTable: dataUpdate event received!');
-      updateScores();
-    };
-    
-    console.log('DEBUG TestHistoryTable: Adding dataUpdate event listener');
-    window.addEventListener('dataUpdate', handleDataUpdate);
+    window.addEventListener('dataUpdate', updateScores);
 
     return () => {
-      console.log('DEBUG TestHistoryTable: Removing dataUpdate event listener');
-      window.removeEventListener('dataUpdate', handleDataUpdate);
+      window.removeEventListener('dataUpdate', updateScores);
     };
-  }, [filterType]);
+  }, [updateScores]);
 
-  const uniqueLabels = [...new Set(scores.filter(s => s.label).map(s => s.label))];
+  const uniqueLabels = useMemo(() => 
+    [...new Set(scores.filter(s => s.label).map(s => s.label))]
+  , [scores]);
   
-  const filteredScores = scores.filter(s => {
-    const typeMatch = filterType === "all" || s.testType === filterType;
-    const labelMatch = filterLabel === "all" || s.label === filterLabel || (filterLabel === "unlabeled" && !s.label);
-    return typeMatch && labelMatch;
-  });
+  const filteredScores = useMemo(() => 
+    scores.filter(s => {
+      const typeMatch = filterType === "all" || s.testType === filterType;
+      const labelMatch = filterLabel === "all" || s.label === filterLabel || (filterLabel === "unlabeled" && !s.label);
+      return typeMatch && labelMatch;
+    })
+  , [scores, filterType, filterLabel]);
+
+  const processedScores = useMemo(() => {
+    return filteredScores.map(test => {
+      const totalQuestions = 25; // Both AMC 10 and 12 have 25 questions
+      const percent = Math.round((test.score / totalQuestions) * 100);
+      
+      let incorrectQuestions: number[] = [];
+      if (test.questionCorrectness) {
+        incorrectQuestions = Object.entries(test.questionCorrectness)
+          .filter(([, isCorrect]) => !isCorrect)
+          .map(([qNum]) => parseInt(qNum));
+      } else if (test.incorrectQuestions) {
+        incorrectQuestions = test.incorrectQuestions;
+      }
+      const incorrectCount = incorrectQuestions.length;
+
+      return {
+        ...test,
+        totalQuestions,
+        percent,
+        incorrectCount,
+        incorrectQuestions,
+      };
+    });
+  }, [filteredScores]);
 
   const getScoreColor = (score: number) => {
     if (score >= 23) return "text-green-600 font-semibold";
@@ -115,110 +132,86 @@ export const TestHistoryTable = ({ filterType = "all" }: TestHistoryTableProps) 
                 <th className="px-4 py-3 text-left font-medium">Test Type</th>
                 <th className="px-4 py-3 text-left font-medium">Year</th>
                 <th className="px-4 py-3 text-left font-medium">Label</th>
-                <th className="px-4 py-3 text-left font-medium">Mistakes</th>
+                <th className="px-4 py-3 text-left font-medium">Missed</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {filteredScores.map((test, index) => {
-                const totalQuestions = 
-                  (test.questionCorrectness && Object.keys(test.questionCorrectness).length > 0) 
-                  ? Object.keys(test.questionCorrectness).length 
-                  : (test.key && test.key.length > 0) ? test.key.length : 25;
-
-                const percent = totalQuestions > 0 ? Math.round((test.score / totalQuestions) * 100) : 0;
-                
-                let incorrectQuestions: number[] = [];
-                if (test.questionCorrectness) {
-                  incorrectQuestions = Object.entries(test.questionCorrectness)
-                    .filter(([, isCorrect]) => !isCorrect)
-                    .map(([qNum]) => parseInt(qNum));
-                } else if (test.input && test.key) {
-                  incorrectQuestions = Array.from({ length: totalQuestions }, (_, i) => i + 1)
-                    .filter((qNum, i) => test.input[i] && test.key[i] && test.input[i] !== test.key[i]);
-                }
-                const incorrectCount = incorrectQuestions.length;
-
-                return (
-                  <tr 
-                    key={index} 
-                    className="hover:bg-secondary/30 transition-colors fade-in-up"
-                    style={{ animationDelay: `${index * 0.05}s` }}
-                  >
-                    <td className="px-4 py-3">{test.date}</td>
-                    <td className={`px-4 py-3 ${getScoreColor(test.score)}`}>
-                      {test.score} / {totalQuestions}
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <span className={getScoreColor(test.score)}>{percent}%</span>
-                        <div className="w-16 h-2 bg-secondary rounded-full overflow-hidden">
-                          <div 
-                            className={`h-full transition-all duration-500 ${
-                              percent >= 90 ? 'bg-green-500' :
-                              percent >= 75 ? 'bg-blue-500' :
-                              percent >= 60 ? 'bg-yellow-500' : 'bg-red-500'
-                            }`}
-                            style={{ width: `${percent}%` }}
-                          />
-                        </div>
+              {processedScores.map((test) => (
+                <tr key={test.id} className="border-b last:border-none hover:bg-muted/50 transition-colors">
+                  <td className="px-4 py-3">{test.date}</td>
+                  <td className={`px-4 py-3 ${getScoreColor(test.score)}`}>
+                    {test.score} / {test.totalQuestions}
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-2">
+                      <span className={getScoreColor(test.score)}>{test.percent}%</span>
+                      <div className="w-16 h-2 bg-secondary rounded-full overflow-hidden">
+                        <div
+                          className={`h-full transition-all duration-500 ${
+                            test.percent >= 90 ? 'bg-green-500' :
+                            test.percent >= 75 ? 'bg-blue-500' :
+                            test.percent >= 60 ? 'bg-yellow-500' : 'bg-red-500'
+                          }`}
+                          style={{ width: `${test.percent}%` }}
+                        />
                       </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary">
-                        {test.testType.toUpperCase()}
+                    </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary">
+                      {test.testType.toUpperCase()}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-muted-foreground">{test.year}</td>
+                  <td className="px-4 py-3">
+                    {test.label ? (
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-secondary text-secondary-foreground">
+                        {test.label}
                       </span>
-                    </td>
-                    <td className="px-4 py-3 text-muted-foreground">{test.year}</td>
-                    <td className="px-4 py-3">
-                      {test.label ? (
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-secondary text-secondary-foreground">
-                          {test.label}
-                        </span>
-                      ) : (
-                        <span className="text-muted-foreground text-xs">—</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3">
-                      {incorrectCount > 0 ? (
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <button className="flex items-center gap-1 text-red-500 hover:text-red-600 transition-colors" aria-label="Show missed questions">
-                              <AlertCircle className="w-4 h-4" />
-                              <span className="text-sm font-medium">{incorrectCount}</span>
-                            </button>
-                          </TooltipTrigger>
-                          <TooltipContent className="max-w-xs">
-                            <div className="text-center">
-                              <div className="font-medium mb-2">Missed Questions:</div>
-                              <div className="grid grid-cols-5 gap-1 text-xs">
-                                {incorrectQuestions.length > 0 ? (
-                                  incorrectQuestions.map((q) => (
-                                    <span key={q} className="bg-red-100 text-red-800 px-1 py-0.5 rounded">
-                                      {q}
-                                    </span>
-                                  ))
-                                ) : (
-                                  <span className="col-span-5 text-muted-foreground">
-                                    Question details not available
+                    ) : (
+                      <span className="text-muted-foreground text-xs">—</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3">
+                    {test.incorrectCount > 0 ? (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button className="flex items-center gap-1 text-red-500 hover:text-red-600 transition-colors" aria-label="Show missed questions">
+                            <AlertCircle className="w-4 h-4" />
+                            <span className="text-sm font-medium">{test.incorrectCount}</span>
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-xs">
+                          <div className="text-center">
+                            <div className="font-medium mb-2">Missed Questions:</div>
+                            <div className="grid grid-cols-5 gap-1 text-xs">
+                              {test.incorrectQuestions.length > 0 ? (
+                                test.incorrectQuestions.map((q) => (
+                                  <span key={q} className="bg-red-100 text-red-800 px-1 py-0.5 rounded">
+                                    {q}
                                   </span>
-                                )}
-                              </div>
+                                ))
+                              ) : (
+                                <span className="col-span-5 text-muted-foreground">
+                                  Question details not available
+                                </span>
+                              )}
                             </div>
-                          </TooltipContent>
-                        </Tooltip>
-                      ) : (
-                        <span className="text-green-500 font-medium">Perfect!</span>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
+                          </div>
+                        </TooltipContent>
+                      </Tooltip>
+                    ) : (
+                      <span className="text-green-500 font-medium">Perfect!</span>
+                    )}
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
       </TooltipProvider>
 
-      {filteredScores.length === 0 && (filterType !== "all" || filterLabel !== "all") && (
+      {processedScores.length === 0 && (filterType !== "all" || filterLabel !== "all") && (
         <div className="text-center py-8 text-muted-foreground">
           <p>No tests found matching the selected filters</p>
         </div>

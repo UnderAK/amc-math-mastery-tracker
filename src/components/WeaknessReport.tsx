@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { AlertTriangle, TrendingDown, Target, BookOpen, TrendingUp } from "lucide-react";
 import { TestScore } from "@/types/TestScore";
 import { useToast } from "@/hooks/use-toast";
@@ -15,33 +15,45 @@ interface WeaknessAnalysis {
 }
 
 export const WeaknessReport = ({ filterType = "all" }: WeaknessReportProps) => {
-  const [analysis, setAnalysis] = useState<WeaknessAnalysis | null>(null);
+  const [allScores, setAllScores] = useState<TestScore[]>([]);
   const { toast } = useToast();
 
-  const generateReport = useCallback(() => {
-    const allScores: TestScore[] = JSON.parse(localStorage.getItem("scores") || "[]");
-    const scores = filterType === "all" 
-      ? allScores 
+  const updateScores = useCallback(() => {
+    const savedScores: TestScore[] = JSON.parse(localStorage.getItem("scores") || "[]");
+    setAllScores(savedScores);
+  }, []);
+
+  useEffect(() => {
+    updateScores();
+    window.addEventListener('dataUpdate', updateScores);
+    return () => {
+      window.removeEventListener('dataUpdate', updateScores);
+    };
+  }, [updateScores]);
+
+  const filteredScores = useMemo(() => {
+    return filterType === "all"
+      ? allScores
       : allScores.filter(s => s.testType && s.testType.replace(/\s+/g, '').toLowerCase() === filterType.replace(/\s+/g, '').toLowerCase());
-    
-    if (scores.length === 0) {
-      setAnalysis(null);
-      return;
+  }, [allScores, filterType]);
+
+  const analysis = useMemo<WeaknessAnalysis | null>(() => {
+    if (filteredScores.length === 0) {
+      return null;
     }
 
     const topicData: { [topic: string]: { mistakes: number; attempts: number } } = {};
     const questionData: { [question: number]: { errors: number; attempts: number } } = {};
 
-    for(let i = 1; i <= 25; i++){
-        questionData[i] = { errors: 0, attempts: 0 };
+    for (let i = 1; i <= 25; i++) {
+      questionData[i] = { errors: 0, attempts: 0 };
     }
 
-    scores.forEach(score => {
+    filteredScores.forEach(score => {
       if (score.questionTopics && score.questionCorrectness) {
         for (let i = 1; i <= 25; i++) {
           const topic = score.questionTopics[i] || 'Other';
           const isCorrect = score.questionCorrectness[i];
-          const questionNum = i;
 
           if (!topicData[topic]) topicData[topic] = { mistakes: 0, attempts: 0 };
           topicData[topic].attempts++;
@@ -49,13 +61,11 @@ export const WeaknessReport = ({ filterType = "all" }: WeaknessReportProps) => {
             topicData[topic].mistakes++;
           }
 
-          questionData[questionNum].attempts++;
+          questionData[i].attempts++;
           if (!isCorrect) {
-            questionData[questionNum].errors++;
+            questionData[i].errors++;
           }
         }
-      } else {
-        console.warn(`Skipping score from ${score.date} for weakness report due to missing data.`);
       }
     });
 
@@ -83,30 +93,17 @@ export const WeaknessReport = ({ filterType = "all" }: WeaknessReportProps) => {
     }
 
     let overallTrend = "Stable";
-    if (scores.length >= 5) {
-      const recentScores = scores.slice(-3).map(s => s.score);
-      const olderScores = scores.slice(0, -3).map(s => s.score);
+    if (filteredScores.length >= 5) {
+      const recentScores = filteredScores.slice(-3).map(s => s.score);
+      const olderScores = filteredScores.slice(0, -3).map(s => s.score);
       const recentAvg = recentScores.reduce((a, b) => a + b, 0) / recentScores.length;
       const olderAvg = olderScores.reduce((a, b) => a + b, 0) / olderScores.length;
       if (recentAvg > olderAvg + 1) overallTrend = "Improving";
       if (recentAvg < olderAvg - 1) overallTrend = "Declining";
     }
 
-    const newAnalysis: WeaknessAnalysis = { weakestTopics, problematicQuestions, recommendations, overallTrend };
-    setAnalysis(newAnalysis);
-  }, [filterType]);
-
-  useEffect(() => {
-    generateReport();
-
-    const handleDataUpdate = () => {
-      generateReport();
-      toast({ title: "Data updated", description: "Weakness report has been refreshed." });
-    };
-
-    window.addEventListener('dataUpdate', handleDataUpdate);
-    return () => window.removeEventListener('dataUpdate', handleDataUpdate);
-  }, [generateReport, toast]);
+    return { weakestTopics, problematicQuestions, recommendations, overallTrend };
+  }, [filteredScores]);
 
   const getTrendIcon = (trend: string) => {
     switch (trend) {

@@ -1,14 +1,16 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { BookOpen, Sparkles, CheckCircle } from "lucide-react";
 import { AchievementPopup } from "@/components/AchievementPopup";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { TopicInputPopup } from "@/components/TopicInputPopup";
+import { AnswerInput, InputMode } from "@/components/inputs/AnswerInput";
 import { useToast } from "@/hooks/use-toast";
 import { TestScore } from "@/types/TestScore";
+import { calculateLevel } from "@/lib/utils";
 
 // TestScore interface is now imported from shared types
 
@@ -19,7 +21,11 @@ const getTopicForQuestion = (questionNum: number): string => {
   return "Other";
 };
 
-export const TestEntryForm = () => {
+interface TestEntryFormProps {
+  inputMode: InputMode;
+}
+
+export const TestEntryForm = ({ inputMode }: TestEntryFormProps) => {
   const [showAchievementPopup, setShowAchievementPopup] = useState(false);
   const [newAchievements, setNewAchievements] = useState<{
     emoji: string;
@@ -38,7 +44,16 @@ export const TestEntryForm = () => {
   const [result, setResult] = useState("");
   // We will now store topics for ALL questions
   const [allQuestionTopics, setAllQuestionTopics] = useState<{ [key: number]: string }>({});
+
+  useEffect(() => {
+    const initialTopics: { [key: number]: string } = {};
+    for (let i = 1; i <= 25; i++) {
+      initialTopics[i] = getTopicForQuestion(i);
+    }
+    setAllQuestionTopics(initialTopics);
+  }, []);
   const [isGrading, setIsGrading] = useState(false);
+
   const [isTopicInputForAllOpen, setIsTopicInputForAllOpen] = useState(false);
   
   const { toast } = useToast();
@@ -59,18 +74,7 @@ export const TestEntryForm = () => {
     "Other"
   ];
 
-  const sanitizeInput = (value: string) => {
-    // Allow space to count as wrong answer, then remove it and replace with empty string for processing
-    return value.toUpperCase().replace(/[^ABCDE ]/g, '').slice(0, 25);
-  };
 
-  const handleUserAnswersChange = (value: string) => {
-    setUserAnswers(sanitizeInput(value));
-  };
-
-  const handleAnswerKeyChange = (value: string) => {
-    setAnswerKey(sanitizeInput(value));
-  };
 
   const gradeTest = () => {
     // Validate input lengths
@@ -190,6 +194,7 @@ export const TestEntryForm = () => {
     console.log('DEBUG TestEntryForm: topics parameter:', topics);
     
     const newScore: TestScore = {
+      id: `${new Date().toISOString()}-${Math.random()}`,
       date,
       score: correct,
       testType,
@@ -286,7 +291,7 @@ export const TestEntryForm = () => {
       });
     }, 1500);
 
-    const newLevel = Math.floor(newXp / 250) + 1;
+    const { level: newLevel } = calculateLevel(newXp);
     const currentLevel = Math.floor(currentXp / 250) + 1;
     if (newLevel > currentLevel) {
       setTimeout(() => {
@@ -447,35 +452,13 @@ export const TestEntryForm = () => {
           placeholder="Label (optional) - e.g., Practice Test, Competition, Review"
         />
 
-        {/* User Answers */}
-        <div>
-          <label className="text-sm font-medium mb-2 block">Your Answers</label>
-          <Textarea
-            value={userAnswers}
-            onChange={(e) => handleUserAnswersChange(e.target.value)}
-            placeholder="Enter Your Answers (25 letters A–E only)"
-            className="font-mono"
-            rows={2}
-          />
-          <div className="text-xs text-muted-foreground mt-1">
-            {userAnswers.length}/25 characters
-          </div>
-        </div>
-
-        {/* Answer Key */}
-        <div>
-          <label className="text-sm font-medium mb-2 block">Official Answer Key</label>
-          <Textarea
-            value={answerKey}
-            onChange={(e) => handleAnswerKeyChange(e.target.value)}
-            placeholder="Enter Official Answer Key (25 letters A–E only)"
-            className="font-mono"
-            rows={2}
-          />
-          <div className="text-xs text-muted-foreground mt-1">
-            {answerKey.length}/25 characters
-          </div>
-        </div>
+        <AnswerInput
+          mode={inputMode}
+          userAnswers={userAnswers}
+          answerKey={answerKey}
+          onUserAnswersChange={setUserAnswers}
+          onAnswerKeyChange={setAnswerKey}
+        />
 
         {/* Action Buttons */}
         <div className="flex justify-end">

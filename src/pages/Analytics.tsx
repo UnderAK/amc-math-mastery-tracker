@@ -20,7 +20,7 @@ const Analytics = () => {
   // Function to clear all local storage data
   const handleResetData = () => {
     localStorage.clear();
-    window.dispatchEvent(new CustomEvent('storageUpdated'));
+    window.dispatchEvent(new CustomEvent('dataUpdate'));
     // Optionally, you can add a toast notification here to confirm the reset
   };
 

@@ -29,25 +29,11 @@ import { LevelUpModal } from "@/components/LevelUpModal";
 import { StreakCelebrationOverlay } from "@/components/StreakCelebrationOverlay";
 import { DailyBonus } from "@/components/DailyBonus";
 import { LeaderboardOverlay } from "@/components/LeaderboardOverlay";
+import { Accordion } from "@/components/Accordion";
 
-// --- Simple Accordion Component for FAQ ---
-const Accordion = ({ title, children }: { title: string, children: React.ReactNode }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  return (
-    <div className="border-b border-border/50">
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-full text-left py-4 px-2 flex justify-between items-center hover:bg-muted/50 transition-colors"
-      >
-        <span className="font-semibold">{title}</span>
-        <span className={`transform transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}>▼</span>
-      </button>
-      {isOpen && <div className="p-4 pt-0 text-muted-foreground">{children}</div>}
-    </div>
-  );
-};
 
-const KONAMI = [38, 38, 40, 40, 37, 39, 37, 39, 66, 65];
+
+
 
 const Index = () => {
   const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false);
@@ -57,21 +43,7 @@ const Index = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
-  // Konami code effect
-  useEffect(() => {
-    let seq: number[] = [];
-    const handler = (e: KeyboardEvent) => {
-      seq.push(e.keyCode);
-      if (seq.length > KONAMI.length) seq.shift();
-      if (KONAMI.every((v, i) => seq[i] === v)) {
-        confetti({ particleCount: 200, spread: 120, origin: { y: 0.6 } });
-        toast({ title: "Konami code unlocked! 🎉", description: "You found the secret!" });
-        seq = [];
-      }
-    };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
-  }, [toast]);
+
 
   // Show intro popup on first visit
   useEffect(() => {
@@ -116,7 +88,7 @@ const Index = () => {
       try {
         const json = JSON.parse(evt.target?.result as string);
         Object.entries(json).forEach(([k, v]) => localStorage.setItem(k, typeof v === "string" ? v : JSON.stringify(v)));
-        window.dispatchEvent(new CustomEvent('storageUpdated')); // Notify components
+        window.dispatchEvent(new CustomEvent('dataUpdate')); // Notify components
         toast({ title: "Import Successful!", description: "Your progress is restored." });
       } catch {
         toast({ title: "Import Failed", description: "Invalid file format.", variant: "destructive" });
@@ -225,7 +197,7 @@ const Index = () => {
       <LevelUpModal />
 
       {showIntro && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 animate-fade-in">
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
           <div className="bg-background p-8 rounded-2xl shadow-2xl max-w-md text-center">
             <h2 className="text-2xl font-bold text-primary mb-3">Welcome to the AMC Tracker!</h2>
             <p className="text-muted-foreground mb-6">It looks like you're new here. Take a practice test to start your journey. Your progress is saved automatically in your browser.</p>

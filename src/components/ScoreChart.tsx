@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { TestScore } from "@/types/TestScore";
 
@@ -8,58 +8,60 @@ interface ScoreChartProps {
 
 export const ScoreChart = ({ filterType = "all" }: ScoreChartProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [scores, setScores] = useState<TestScore[]>([]);
-  const [trend, setTrend] = useState<"up" | "down" | "stable">("stable");
+  const [allScores, setAllScores] = useState<TestScore[]>([]);
+
+  const updateScores = useCallback(() => {
+    const savedScores: TestScore[] = JSON.parse(localStorage.getItem("scores") || "[]");
+    setAllScores(savedScores);
+  }, []);
 
   useEffect(() => {
-    const updateChart = () => {
-      const allScores: TestScore[] = JSON.parse(localStorage.getItem("scores") || "[]");
-      const savedScores = filterType === "all"
-        ? allScores
-        : allScores.filter(s => s.testType === filterType);
-      setScores(savedScores);
-
-      const scoresWithData = savedScores.map(s => {
-        const totalQuestions = 
-          (s.questionCorrectness && Object.keys(s.questionCorrectness).length > 0) 
-          ? Object.keys(s.questionCorrectness).length 
-          : (s.key && s.key.length > 0) ? s.key.length : 25;
-        const percentage = totalQuestions > 0 ? (s.score / totalQuestions) * 100 : 0;
-        return { ...s, totalQuestions, percentage };
-      });
-
-      drawChart(scoresWithData);
-      
-      // Calculate trend based on percentage
-      if (scoresWithData.length >= 2) {
-        const recent = scoresWithData.slice(-5).map(s => s.percentage);
-        const average = recent.reduce((a, b) => a + b, 0) / recent.length;
-        const firstHalf = recent.slice(0, Math.ceil(recent.length / 2));
-        const secondHalf = recent.slice(Math.floor(recent.length / 2));
-        
-        if (firstHalf.length > 0 && secondHalf.length > 0) {
-          const firstAvg = firstHalf.reduce((a, b) => a + b, 0) / firstHalf.length;
-          const secondAvg = secondHalf.reduce((a, b) => a + b, 0) / secondHalf.length;
-          
-          if (secondAvg > firstAvg + 2) setTrend("up");
-          else if (secondAvg < firstAvg - 2) setTrend("down");
-          else setTrend("stable");
-        }
-      }
-    };
-
-    updateChart();
-
-    // Listen for data updates
-    const handleDataUpdate = () => updateChart();
-    window.addEventListener('dataUpdate', handleDataUpdate);
-
+    updateScores();
+    window.addEventListener('dataUpdate', updateScores);
     return () => {
-      window.removeEventListener('dataUpdate', handleDataUpdate);
+      window.removeEventListener('dataUpdate', updateScores);
     };
-  }, [filterType]);
+  }, [updateScores]);
 
-  const drawChart = (data: (TestScore & { totalQuestions: number; percentage: number })[]) => {
+  const filteredScores = useMemo(() => {
+    return filterType === "all"
+      ? allScores
+      : allScores.filter(s => s.testType === filterType);
+  }, [allScores, filterType]);
+
+  const scoresWithData = useMemo(() => {
+    return filteredScores.map(s => {
+      const totalQuestions = 
+        (s.questionCorrectness && Object.keys(s.questionCorrectness).length > 0) 
+        ? Object.keys(s.questionCorrectness).length 
+        : (s.key && s.key.length > 0) ? s.key.length : 25;
+      const percentage = totalQuestions > 0 ? (s.score / totalQuestions) * 100 : 0;
+      return { ...s, totalQuestions, percentage };
+    });
+  }, [filteredScores]);
+
+  const trend = useMemo(() => {
+    if (scoresWithData.length < 2) return "stable";
+    
+    const recent = scoresWithData.slice(-5).map(s => s.percentage);
+    const firstHalf = recent.slice(0, Math.ceil(recent.length / 2));
+    const secondHalf = recent.slice(Math.floor(recent.length / 2));
+    
+    if (firstHalf.length > 0 && secondHalf.length > 0) {
+      const firstAvg = firstHalf.reduce((a, b) => a + b, 0) / firstHalf.length;
+      const secondAvg = secondHalf.reduce((a, b) => a + b, 0) / secondHalf.length;
+      
+      if (secondAvg > firstAvg + 2) return "up";
+      if (secondAvg < firstAvg - 2) return "down";
+    }
+    return "stable";
+  }, [scoresWithData]);
+
+  useEffect(() => {
+    drawChart(scoresWithData);
+  }, [scoresWithData]);
+
+  const drawChart = useCallback((data: (TestScore & { totalQuestions: number; percentage: number })[]) => {
     const canvas = canvasRef.current;
     if (!canvas || data.length === 0) return;
 
@@ -183,7 +185,7 @@ export const ScoreChart = ({ filterType = "all" }: ScoreChartProps) => {
         ctx.fillText(shortDate, x, height - 10);
       }
     });
-  };
+  }, []);
 
   const getTrendIcon = () => {
     switch (trend) {
@@ -203,7 +205,7 @@ export const ScoreChart = ({ filterType = "all" }: ScoreChartProps) => {
 
   return (
     <div className="relative">
-      {scores.length > 0 && (
+      {scoresWithData.length > 0 && (
         <div className="absolute top-2 right-2 flex items-center gap-2 text-sm text-muted-foreground bg-background/80 px-2 py-1 rounded-lg">
           {getTrendIcon()}
           <span>{getTrendText()}</span>
@@ -216,7 +218,7 @@ export const ScoreChart = ({ filterType = "all" }: ScoreChartProps) => {
         style={{ background: 'transparent' }}
       />
       
-      {scores.length === 0 && (
+      {scoresWithData.length === 0 && (
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-center text-muted-foreground">
             <div className="text-4xl mb-2">📊</div>

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Target, TrendingUp, AlertTriangle } from "lucide-react";
 import { TestScore } from "@/types/TestScore";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -17,18 +17,31 @@ interface QuestionAccuracyTableProps {
 }
 
 export const QuestionAccuracyTable = ({ filterType = "all" }: QuestionAccuracyTableProps) => {
-  const [questionStats, setQuestionStats] = useState<QuestionStat[]>([]);
-
   const [allScores, setAllScores] = useState<TestScore[]>([]);
 
-  const updateQuestionStats = useCallback(() => {
-    const filteredScores = filterType === "all" 
-      ? allScores 
-      : allScores.filter(s => 
+  useEffect(() => {
+    const loadScores = () => {
+      const scoresFromStorage: TestScore[] = JSON.parse(localStorage.getItem("scores") || "[]");
+      setAllScores(scoresFromStorage);
+    };
+
+    loadScores();
+    window.addEventListener('dataUpdate', loadScores);
+    return () => {
+      window.removeEventListener('dataUpdate', loadScores);
+    };
+  }, []);
+
+  const filteredScores = useMemo(() => {
+    return filterType === "all"
+      ? allScores
+      : allScores.filter(s =>
           s.testType &&
           s.testType.replace(/\s+/g, '').toLowerCase() === filterType.replace(/\s+/g, '').toLowerCase()
         );
+  }, [allScores, filterType]);
 
+  const questionStats = useMemo(() => {
     const stats: { [key: number]: QuestionStat } = {};
 
     filteredScores.forEach(score => {
@@ -81,40 +94,24 @@ export const QuestionAccuracyTable = ({ filterType = "all" }: QuestionAccuracyTa
         finalStats[i - 1] = { question: i, correct: 0, total: 0, accuracy: 0 };
       }
     }
+    return finalStats;
+  }, [filteredScores]);
 
-    setQuestionStats(finalStats);
-  }, [allScores, filterType]);
+  const hasData = useMemo(() => questionStats.some(stat => stat.total > 0), [questionStats]);
 
-  // Effect to load scores and listen for updates
-  useEffect(() => {
-    const loadScores = () => {
-      const scoresFromStorage: TestScore[] = JSON.parse(localStorage.getItem("scores") || "[]");
-      setAllScores(scoresFromStorage);
-    };
+  const { worstQuestions, bestQuestions } = useMemo(() => {
+    const worst = questionStats
+      .filter(stat => stat.total >= 3 && stat.accuracy < 100)
+      .sort((a, b) => a.accuracy - b.accuracy)
+      .slice(0, 3);
 
-    loadScores(); // Initial load
+    const best = questionStats
+      .filter(stat => stat.total >= 3)
+      .sort((a, b) => b.accuracy - a.accuracy)
+      .slice(0, 3);
 
-    window.addEventListener('dataUpdate', loadScores);
-    return () => {
-      window.removeEventListener('dataUpdate', loadScores);
-    };
-  }, []);
-
-  // Effect to recalculate stats when data or filter changes
-  useEffect(() => {
-    updateQuestionStats();
-  }, [updateQuestionStats]);
-
-  const hasData = questionStats.some(stat => stat.total > 0);
-  const worstQuestions = questionStats
-    .filter(stat => stat.total >= 3 && stat.accuracy < 100) // Only questions attempted at least 3 times and not perfect
-    .sort((a, b) => a.accuracy - b.accuracy)
-    .slice(0, 3);
-
-  const bestQuestions = questionStats
-    .filter(stat => stat.total >= 3)
-    .sort((a, b) => b.accuracy - a.accuracy)
-    .slice(0, 3);
+    return { worstQuestions: worst, bestQuestions: best };
+  }, [questionStats]);
 
   const hasImperfectQuestions = worstQuestions.length > 0;
 

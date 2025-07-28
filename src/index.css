@@ -228,7 +228,7 @@ All colors MUST be HSL.
 
   /* Trophy glow effect */
   .trophy-glow {
-    animation: tropyhGlow 2s ease-in-out infinite alternate;
+    animation: trophyGlow 2s ease-in-out infinite alternate;
   }
 }
 
@@ -256,7 +256,7 @@ All colors MUST be HSL.
     }
   }
 
-  @keyframes tropyhGlow {
+  @keyframes trophyGlow {
     from {
       filter: drop-shadow(0 0 8px hsl(var(--primary) / 0.5));
     }

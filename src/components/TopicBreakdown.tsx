@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { BarChart3, TrendingUp, TrendingDown, AlertTriangle, BookOpen, Target } from "lucide-react";
 import { TestScore } from "@/types/TestScore";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -17,106 +17,85 @@ interface TopicBreakdownProps {
 }
 
 export const TopicBreakdown = ({ filterType = "all" }: TopicBreakdownProps) => {
-  const [topicStats, setTopicStats] = useState<TopicStats[]>([]);
+  const [allScores, setAllScores] = useState<TestScore[]>([]);
 
-
+  const updateScores = useCallback(() => {
+    const savedScores: TestScore[] = JSON.parse(localStorage.getItem("scores") || "[]");
+    setAllScores(savedScores);
+  }, []);
 
   useEffect(() => {
-    const updateTopicStats = () => {
-      const scores: TestScore[] = JSON.parse(localStorage.getItem("scores") || "[]");
-      const filteredScores = filterType === "all" 
-        ? scores 
-        : scores.filter(s => s.testType === filterType);
-
-      const topicData: { [topic: string]: { correct: number; total: number; mistakes: number } } = {};
-      
-       // Define all possible topics to ensure they are initialized (exactly 5 topics)
-      const possibleTopics = ["Algebra", "Geometry", "Number Theory", "Combinatorics", "Other"];
-      possibleTopics.forEach(topic => {
-        topicData[topic] = { correct: 0, total: 0, mistakes: 0 };
-      });
-
-      console.log('DEBUG TopicBreakdown: Processing scores:', filteredScores.length);
-      
-      filteredScores.forEach((score, scoreIndex) => {
-        console.log(`DEBUG TopicBreakdown: Processing score ${scoreIndex}:`, {
-          date: score.date,
-          hasQuestionTopics: !!score.questionTopics,
-          hasQuestionCorrectness: !!score.questionCorrectness,
-          questionTopics: score.questionTopics
-        });
-        
-        // Prioritize new data structure
-        if (score.questionTopics && score.questionCorrectness) {
-            console.log('DEBUG TopicBreakdown: Using new data structure');
-            for (let i = 1; i <= 25; i++) {
-                const rawTopic = score.questionTopics[i] || "Other";
-                const topic = possibleTopics.includes(rawTopic) ? rawTopic : "Other"; // Only allow standard topics
-                const isCorrect = score.questionCorrectness[i];
-                
-                if (i <= 5) { // Only log first 5 questions to avoid spam
-                  console.log(`DEBUG TopicBreakdown: Q${i} - Topic: ${topic}, Correct: ${isCorrect}`);
-                }
-
-                topicData[topic].total++;
-                if (isCorrect) {
-                    topicData[topic].correct++;
-                } else {
-                    topicData[topic].mistakes++;
-                }
-            }
-        } else {
-              console.warn(`Skipping score from ${score.date} for topic breakdown due to missing data.`);
-               // Handle scores with completely missing topic data by assigning them to 'Other'
-               for (let i = 1; i <= 25; i++) {
-                   const topic = "Other";
-                    topicData[topic].total++;
-                    // We don't know correctness, so we can't increment correct or mistakes based on question number
-               }
-        }
-      });
-
-      // Only use the five standard topics for stats
-      const stats: TopicStats[] = possibleTopics.map(topic => ({
-        topic,
-        correct: topicData[topic].correct,
-        total: topicData[topic].total,
-        accuracy: topicData[topic].total > 0 ? Math.round(((topicData[topic].correct) / topicData[topic].total) * 100) : 0,
-        mistakes: topicData[topic].mistakes
-      }));
-
-      // Filter out topics with no attempts and no mistakes
-      const relevantStatsData = stats.filter(stat => stat.total > 0 || stat.mistakes > 0);
-
-      setTopicStats(relevantStatsData); // Update topicStats state
-    };
-
-    updateTopicStats();
-
-    const handleDataUpdate = () => updateTopicStats();
-    window.addEventListener('dataUpdate', handleDataUpdate);
-
+    updateScores();
+    window.addEventListener('dataUpdate', updateScores);
     return () => {
-      window.removeEventListener('dataUpdate', handleDataUpdate);
+      window.removeEventListener('dataUpdate', updateScores);
     };
-  }, [filterType]); 
+  }, [updateScores]);
 
-  const hasData = topicStats.some(stat => stat.total > 0 || stat.mistakes > 0);
-  
-  const displayTopics = topicStats.filter(stat => stat.total > 0 || stat.mistakes > 0);
+  const filteredScores = useMemo(() => {
+    return filterType === "all"
+      ? allScores
+      : allScores.filter(s => s.testType === filterType);
+  }, [allScores, filterType]);
 
-  const sortedByAccuracy = [...displayTopics].sort((a, b) => b.accuracy - a.accuracy);
-  const sortedByMistakes = [...displayTopics].sort((a, b) => b.mistakes - a.mistakes);
+  const topicStats = useMemo(() => {
+    const topicData: { [topic: string]: { correct: number; total: number; mistakes: number } } = {};
+    const possibleTopics = ["Algebra", "Geometry", "Number Theory", "Combinatorics", "Other"];
+    possibleTopics.forEach(topic => {
+      topicData[topic] = { correct: 0, total: 0, mistakes: 0 };
+    });
 
-  const strongestTopics = sortedByAccuracy
-    .filter(t => t.accuracy >= 80 && t.total > 5)
-    .slice(0, 2);
+    filteredScores.forEach(score => {
+      if (score.questionTopics && score.questionCorrectness) {
+        for (let i = 1; i <= 25; i++) {
+          const rawTopic = score.questionTopics[i] || "Other";
+          const topic = possibleTopics.includes(rawTopic) ? rawTopic : "Other";
+          const isCorrect = score.questionCorrectness[i];
 
-  const strongTopicNames = new Set(strongestTopics.map(t => t.topic));
+          topicData[topic].total++;
+          if (isCorrect) {
+            topicData[topic].correct++;
+          } else {
+            topicData[topic].mistakes++;
+          }
+        }
+      } else {
+        for (let i = 1; i <= 25; i++) {
+          const topic = "Other";
+          topicData[topic].total++;
+        }
+      }
+    });
 
-  const weakestTopics = sortedByMistakes
-    .filter(t => t.mistakes > 0 && t.total > 5 && !strongTopicNames.has(t.topic))
-    .slice(0, 2);
+    const stats: TopicStats[] = possibleTopics.map(topic => ({
+      topic,
+      correct: topicData[topic].correct,
+      total: topicData[topic].total,
+      accuracy: topicData[topic].total > 0 ? Math.round(((topicData[topic].correct) / topicData[topic].total) * 100) : 0,
+      mistakes: topicData[topic].mistakes
+    }));
+
+    return stats.filter(stat => stat.total > 0 || stat.mistakes > 0);
+  }, [filteredScores]);
+
+  const hasData = useMemo(() => topicStats.some(stat => stat.total > 0 || stat.mistakes > 0), [topicStats]);
+
+  const { strongestTopics, weakestTopics } = useMemo(() => {
+    const sortedByAccuracy = [...topicStats].sort((a, b) => b.accuracy - a.accuracy);
+    const sortedByMistakes = [...topicStats].sort((a, b) => b.mistakes - a.mistakes);
+
+    const strongest = sortedByAccuracy
+      .filter(t => t.accuracy >= 80 && t.total > 5)
+      .slice(0, 2);
+
+    const strongTopicNames = new Set(strongest.map(t => t.topic));
+
+    const weakest = sortedByMistakes
+      .filter(t => t.mistakes > 0 && t.total > 5 && !strongTopicNames.has(t.topic))
+      .slice(0, 2);
+
+    return { strongestTopics: strongest, weakestTopics: weakest };
+  }, [topicStats]);
 
   const getAccuracyColor = (accuracy: number) => {
     if (accuracy >= 90) return "text-green-600 bg-green-50 dark:bg-green-900/20";
