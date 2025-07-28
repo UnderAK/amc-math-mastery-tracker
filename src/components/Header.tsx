@@ -59,10 +59,10 @@ export const Header = () => {
 
   const handleLogout = async () => {
     if (isGuest) {
-      sessionStorage.removeItem('isGuest');
+      sessionStorage.setItem('isGuest', 'false');
       setIsGuest(false);
       // Force a re-render of App.tsx to show Auth page
-      window.location.href = '/';
+      window.location.reload();
     } else {
       const { error } = await supabase.auth.signOut();
       if (error) {
