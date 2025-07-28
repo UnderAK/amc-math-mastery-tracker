@@ -56,56 +56,39 @@ export const LevelUpModal = () => {
 
   return (
     <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="glass max-w-sm w-full rounded-3xl shadow-2xl animate-bounce-in">
-        {/* Animated Background */}
-                <div className="bg-primary p-8 rounded-t-3xl text-center relative overflow-hidden">
-          <div className="absolute inset-0 opacity-30">
-            <div className="absolute top-2 left-4 animate-bounce">⭐</div>
-            <div className="absolute top-4 right-6 animate-bounce delay-200">✨</div>
-            <div className="absolute bottom-3 left-6 animate-bounce delay-300">🎉</div>
-            <div className="absolute bottom-2 right-4 animate-bounce delay-100">🌟</div>
-            <div className="absolute top-6 left-1/2 transform -translate-x-1/2 animate-bounce delay-500">🌠</div>
-          </div>
-          
+      <div className="glass max-w-sm w-full rounded-3xl shadow-2xl animate-fade-in-up">
+        <div className="bg-primary p-8 rounded-t-3xl text-center relative overflow-hidden">
+          <div className="absolute inset-0 bg-grid-slate-100/[0.05] bg-[length:1rem_1rem] [mask-image:linear-gradient(to_bottom,white,transparent)]"></div>
           <div className="relative z-10">
-                        <Trophy className="w-16 h-16 mx-auto mb-4 text-primary-foreground trophy-glow animate-bounce" />
-                        <h2 className="text-2xl font-bold text-primary-foreground mb-2">🎉 Level Up!</h2>
-                        <div className="flex items-center justify-center gap-2 text-primary-foreground/90">
-              <Zap className="w-5 h-5" />
-              <span className="text-lg">You reached Level {newLevel}!</span>
-            </div>
+            <Trophy className="w-20 h-20 mx-auto mb-4 text-amber-300 animate-trophy-glow" />
+            <h2 className="text-3xl font-bold text-primary-foreground mb-2">LEVEL UP!</h2>
+            <p className="text-lg text-primary-foreground/80">You've reached Level {newLevel}!</p>
           </div>
         </div>
 
-        {/* Content */}
-                <div className="p-6 text-center bg-card text-card-foreground rounded-b-3xl">
-          <div className="mb-6">
-            <div className="text-6xl mb-3 animate-pulse">{newLevel}</div>
-            <p className="text-muted-foreground">
-              Keep up the excellent work! Your dedication to mathematics is paying off.
-            </p>
-          </div>
+        <div className="p-6 text-center bg-card text-card-foreground rounded-b-3xl">
+          <p className="text-muted-foreground mb-4">
+            Your dedication is paying off. Keep up the excellent work!
+          </p>
 
-          {/* Level Rewards Info */}
-          <div className="bg-accent/10 border border-accent/20 rounded-lg p-4 mb-6">
-            <h3 className="font-semibold text-accent mb-2 flex items-center justify-center gap-2">
-              <Star className="w-4 h-4" />
-              Level {newLevel} Perks
+          <div className="bg-primary/5 border border-primary/10 rounded-lg p-4 mb-6">
+            <h3 className="font-semibold text-primary mb-3 flex items-center justify-center gap-2">
+              <Star className="w-5 h-5 text-amber-400" />
+              Level {newLevel} Perks Unlocked
             </h3>
-            <div className="text-sm space-y-1">
-              <p>• Increased XP multiplier</p>
-              <p>• New badge opportunities</p>
-              <p>• Higher leaderboard ranking</p>
-              {newLevel >= 10 && <p>• 🌟 Elite status unlocked!</p>}
+            <div className="text-sm text-left space-y-2 text-muted-foreground">
+              <p className="animate-perk-in-1">✅ Increased XP multiplier</p>
+              <p className="animate-perk-in-2">✅ New badge opportunities</p>
+              <p className="animate-perk-in-3">✅ Higher leaderboard ranking</p>
+              {newLevel >= 10 && <p className="animate-perk-in-4">🌟 Elite status unlocked!</p>}
             </div>
           </div>
 
           <Button
             onClick={closeLevelUpModal}
-            className="w-full gradient-primary hover-bounce"
+            className="w-full transition-transform hover:scale-105"
             aria-label="Continue Journey"
           >
-            <Trophy className="w-4 h-4 mr-2" />
             Continue Journey
           </Button>
         </div>

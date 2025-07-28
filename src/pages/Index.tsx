@@ -1,8 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import confetti from "canvas-confetti";
 import {
-  Sun,
-  Moon,
   Trophy,
   TrendingUp,
   Settings,
@@ -36,8 +34,6 @@ import { Accordion } from "@/components/Accordion";
 
 
 const Index = () => {
-  const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(false);
   const [showIntro, setShowIntro] = useState(false);
   const [importing, setImporting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -50,20 +46,7 @@ const Index = () => {
     if (!localStorage.getItem("scores")) setShowIntro(true);
   }, []);
 
-  // Handle theme changes
-  useEffect(() => {
-    const shouldBeDark = localStorage.getItem("theme") === "dark";
-    setIsDarkMode(shouldBeDark);
-    document.documentElement.classList.toggle("dark", shouldBeDark);
-  }, []);
 
-  const toggleDarkMode = () => {
-    const newMode = !isDarkMode;
-    setIsDarkMode(newMode);
-    document.documentElement.classList.toggle("dark", newMode);
-    localStorage.setItem("theme", newMode ? "dark" : "light");
-    toast({ title: newMode ? "🌙 Dark mode on" : "☀️ Light mode on" });
-  };
 
   const handleExport = () => {
     const keys = ["scores", "xp", "streak", "level", "earnedBadges", "profile", "settings"];
@@ -103,25 +86,7 @@ const Index = () => {
     <>
       <div className="min-h-screen bg-background text-foreground p-4 sm:p-6">
         <div className="max-w-4xl mx-auto space-y-8">
-          {/* --- Header --- */}
-          <header className="glass p-6 rounded-3xl shadow-xl hover-lift animate-slide-in-left flex flex-col items-center gap-4 text-center">
-            {/* Title */}
-            <h1 className="text-4xl md:text-5xl font-bold gradient-primary bg-clip-text text-transparent tracking-tight animate-float">
-              AMC Mastery Tracker
-            </h1>
 
-            {/* Welcome Message */}
-            <RandomWelcome />
-
-            {/* Buttons */}
-            <div className="mt-4 flex flex-wrap justify-center items-center gap-2">
-              <UserProfile />
-              <Button variant="ghost" size="sm" onClick={() => setIsLeaderboardOpen(true)}><TrendingUp className="w-4 h-4 mr-1"/>Leaderboard</Button>
-              <Button asChild variant="ghost" size="sm"><Link to="/analytics"><BarChart className="w-4 h-4 mr-1"/>Analytics</Link></Button>
-              <Button asChild variant="ghost" size="sm"><Link to="/test-entry"><Trophy className="w-4 h-4 mr-1"/>Enter Test</Link></Button>
-              <Button onClick={toggleDarkMode} variant="ghost" size="icon"><span className="sr-only">Toggle Theme</span>{isDarkMode ? <Sun /> : <Moon />}</Button>
-            </div>
-          </header>
 
           {/* Features Section */}
           <section className="py-12 px-4">
@@ -191,7 +156,7 @@ const Index = () => {
       </div>
 
       {/* --- Overlays & Popups --- */}
-      <LeaderboardOverlay isOpen={isLeaderboardOpen} onClose={() => setIsLeaderboardOpen(false)} />
+
       <DailyBonus />
       <StreakCelebrationOverlay />
       <LevelUpModal />

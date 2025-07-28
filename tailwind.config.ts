@@ -87,21 +87,21 @@ export default {
 				sm: 'calc(var(--radius) - 4px)'
 			},
 			keyframes: {
-				'accordion-down': {
-					from: {
-						height: '0'
-					},
-					to: {
-						height: 'var(--radix-accordion-content-height)'
-					}
+				"accordion-down": {
+					from: { height: "0" },
+					to: { height: "var(--radix-accordion-content-height)" },
 				},
-				'accordion-up': {
-					from: {
-						height: 'var(--radix-accordion-content-height)'
-					},
-					to: {
-						height: '0'
-					}
+				"accordion-up": {
+					from: { height: "var(--radix-accordion-content-height)" },
+					to: { height: "0" },
+				},
+				"trophy-glow": {
+					'0%, 100%': { filter: 'drop-shadow(0 0 10px rgba(251, 191, 36, 0.6))' },
+					'50%': { filter: 'drop-shadow(0 0 20px rgba(251, 191, 36, 1))' },
+				},
+				"fade-in-up": {
+					'0%': { opacity: '0', transform: 'translateY(20px)' },
+					'100%': { opacity: '1', transform: 'translateY(0)' },
 				},
 				'slide-in-top': {
 					from: {
@@ -111,16 +111,6 @@ export default {
 					to: {
 						opacity: '1',
 						transform: 'translateY(0) scale(1)'
-					}
-				},
-				'fade-in-up': {
-					from: {
-						opacity: '0',
-						transform: 'translateY(20px)'
-					},
-					to: {
-						opacity: '1',
-						transform: 'translateY(0)'
 					}
 				},
 				'bounce-in': {
@@ -141,10 +131,15 @@ export default {
 				}
 			},
 			animation: {
-				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out',
+				"accordion-down": "accordion-down 0.2s ease-out",
+				"accordion-up": "accordion-up 0.2s ease-out",
+				"trophy-glow": "trophy-glow 2s ease-in-out infinite",
+				"fade-in-up": "fade-in-up 0.5s ease-out forwards",
+				"perk-in-1": "fade-in-up 0.5s 0.2s ease-out forwards",
+				"perk-in-2": "fade-in-up 0.5s 0.4s ease-out forwards",
+				"perk-in-3": "fade-in-up 0.5s 0.6s ease-out forwards",
+				"perk-in-4": "fade-in-up 0.5s 0.8s ease-out forwards",
 				'slide-in-top': 'slide-in-top 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-				'fade-in-up': 'fade-in-up 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
 				'bounce-in': 'bounce-in 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55)'
 			}
 		}

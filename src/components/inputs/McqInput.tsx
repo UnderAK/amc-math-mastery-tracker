@@ -27,8 +27,10 @@ const AnswerButton = React.memo(({ option, isSelected, onSelect }: { option: str
 
 const QuestionRow = React.memo(({ qNum, selectedAnswer, onSelect }: { qNum: number; selectedAnswer: string; onSelect: (qNum: number, option: string) => void; }) => {
   const handleSelect = useCallback((option: string) => {
-    onSelect(qNum, option);
-  }, [onSelect, qNum]);
+    // If the clicked option is already selected, treat it as a deselection.
+    const newValue = selectedAnswer === option ? ' ' : option;
+    onSelect(qNum, newValue);
+  }, [onSelect, qNum, selectedAnswer]);
 
   return (
     <div className="p-2 rounded-md bg-background/60 border flex flex-col items-center space-y-2">

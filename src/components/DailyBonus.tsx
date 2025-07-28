@@ -128,36 +128,42 @@ export const DailyBonus = () => {
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className="max-w-sm">
-        <div className="text-center space-y-4">
-          <div className="text-4xl">{getStreakEmoji(bonusData.streak)}</div>
-          <h2 className="text-xl font-bold flex items-center justify-center gap-2">
-            <Gift className="w-5 h-5 text-accent" />
-            Daily Bonus Ready!
-          </h2>
-          
-          {bonusData.streak > 0 && (
-            <div className={`flex items-center justify-center gap-2 text-lg font-medium ${getStreakColor(bonusData.streak)}`}>
-              <Flame className="w-5 h-5" />
-              {bonusData.streak} day streak!
+      <DialogContent className="max-w-sm p-0 border-0 bg-transparent shadow-none">
+        <div className="glass rounded-2xl shadow-2xl animate-fade-in-up overflow-hidden">
+          <div className="bg-primary p-8 text-center relative">
+            <div className="absolute inset-0 bg-grid-slate-100/[0.05] bg-[length:1rem_1rem] [mask-image:linear-gradient(to_bottom,white,transparent)]"></div>
+            <div className="relative z-10">
+              <Gift className="w-20 h-20 mx-auto mb-4 text-amber-300 animate-trophy-glow" />
+              <h2 className="text-3xl font-bold text-primary-foreground mb-1">Daily Bonus</h2>
+              <p className="text-primary-foreground/80">Claim your daily reward!</p>
             </div>
-          )}
+          </div>
 
-          <Button 
-            onClick={claimDailyBonus}
-            variant="gradient-primary"
-            className="w-full gap-2"
-            aria-label="Claim Daily Bonus"
-          >
-            <Star className="w-4 h-4" />
-            Claim {20 + Math.min(bonusData.streak * 5, 50)} XP
-          </Button>
+          <div className="p-6 text-center">
+            {bonusData.streak > 0 && (
+              <div className={`mb-4 animate-perk-in-1`}>
+                <p className="font-semibold text-lg flex items-center justify-center gap-2">
+                  <Flame className={`w-6 h-6 ${getStreakColor(bonusData.streak)}`} />
+                  {bonusData.streak} Day Streak!
+                </p>
+                <p className="text-sm text-muted-foreground">Your consistency is paying off!</p>
+              </div>
+            )}
 
-          {bonusData.totalBonusClaimed > 0 && (
-            <div className="text-xs text-muted-foreground">
-              Total bonus XP: {bonusData.totalBonusClaimed}
+            <div className="bg-primary/5 border border-primary/10 rounded-lg p-4 mb-6 animate-perk-in-2">
+              <p className="text-sm text-muted-foreground">Today's Reward</p>
+              <p className="text-2xl font-bold text-primary">{20 + Math.min(bonusData.streak * 5, 50)} XP</p>
             </div>
-          )}
+
+            <Button 
+              onClick={claimDailyBonus}
+              className="w-full transition-transform hover:scale-105 animate-perk-in-3"
+              aria-label="Claim Daily Bonus"
+            >
+              <Star className="w-4 h-4 mr-2" />
+              Claim Reward
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
