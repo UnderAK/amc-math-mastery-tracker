@@ -10,11 +10,6 @@ export const useDataMigrator = () => {
 
   useEffect(() => {
     const runMigration = async () => {
-      const migrationFlag = localStorage.getItem('migration_completed_v1');
-      if (migrationFlag) {
-        setMigrationCompleted(true);
-        return;
-      }
 
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
@@ -23,7 +18,6 @@ export const useDataMigrator = () => {
       const localScores: TestScore[] = saved ? JSON.parse(saved) : [];
 
       if (localScores.length === 0) {
-        localStorage.setItem('migration_completed_v1', 'true');
         setMigrationCompleted(true);
         return;
       }
@@ -31,15 +25,14 @@ export const useDataMigrator = () => {
       const unsyncedScores = localScores.filter(score => !score.synced);
 
       if (unsyncedScores.length === 0) {
-        localStorage.setItem('migration_completed_v1', 'true');
         setMigrationCompleted(true);
         return;
       }
 
       setIsMigrating(true);
       toast({
-        title: 'Migrating Your Data... 🚚',
-        description: `Found ${unsyncedScores.length} unsynced tests. Moving them to your cloud account.`,
+        title: 'Syncing Your Data... ☁️',
+        description: `Found ${unsyncedScores.length} unsynced tests. Saving them to your account.`,
       });
 
       const recordsToInsert = unsyncedScores.map(score => ({
@@ -64,10 +57,9 @@ export const useDataMigrator = () => {
       } else {
         const updatedLocalScores = localScores.map(score => ({ ...score, synced: true }));
         localStorage.setItem('scores', JSON.stringify(updatedLocalScores));
-        localStorage.setItem('migration_completed_v1', 'true');
         toast({
-          title: 'Migration Complete! ✨',
-          description: 'All your past test results are now saved to your account.',
+          title: 'Sync Complete! ✨',
+          description: 'All your test results are now saved to your account.',
         });
       }
 

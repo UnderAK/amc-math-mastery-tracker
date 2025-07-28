@@ -14,7 +14,7 @@ import { TestScore } from "@/types/TestScore";
 import { TestType } from "@/types/amc";
 import { NUM_QUESTIONS, TOPIC_OPTIONS, TEST_TYPES, MIN_YEAR, MAX_YEAR } from "@/config/test-config";
 import { preloadedTests } from '@/data/tests';
-import { supabase } from '@/lib/supabaseClient';
+
 
 const getTopicForQuestion = (): string => {
   return "Other";
@@ -42,7 +42,7 @@ export const TestEntryForm = ({ inputMode, initialAnswerKey }: TestEntryFormProp
   const [isGrading, setIsGrading] = useState(false);
   const [result, setResult] = useState("");
   const [selectedTestId, setSelectedTestId] = useState<string>('manual');
-  const [isSyncing, setIsSyncing] = useState(false);
+
   const { toast } = useToast();
 
   const debouncedUserAnswers = useDebounce(userAnswers, 300);
@@ -66,47 +66,7 @@ export const TestEntryForm = ({ inputMode, initialAnswerKey }: TestEntryFormProp
     }
   }, [initialAnswerKey]);
 
-  useEffect(() => {
-    const syncLatestTest = async () => {
-      if (savedTests.length === 0) return;
 
-      const latestTest = savedTests[savedTests.length - 1];
-      if (latestTest.synced) return;
-
-      setIsSyncing(true);
-      const { data: { user } } = await supabase.auth.getUser();
-
-      if (user) {
-        const { error } = await supabase.from('test_results').insert({
-          user_id: user.id,
-          score: latestTest.score,
-          time_taken: null, // timeTaken is not available in TestScore type
-          test_date: latestTest.date,
-          topics: latestTest.questionTopics,
-        });
-
-        if (error) {
-          toast({
-            title: "Sync Failed 😟",
-            description: "Could not save test result to the cloud. It's saved on your device.",
-            variant: "destructive",
-          });
-          console.error('Error syncing test result:', error);
-        } else {
-          toast({
-            title: "Sync Complete ☁️",
-            description: "Your test result has been saved to the cloud.",
-          });
-          const updatedTests = [...savedTests];
-          updatedTests[updatedTests.length - 1].synced = true;
-          localStorage.setItem("scores", JSON.stringify(updatedTests));
-        }
-      }
-      setIsSyncing(false);
-    };
-
-    syncLatestTest();
-  }, [savedTests, toast]);
 
   useEffect(() => {
     const initialTopics: { [key: number]: string } = {};

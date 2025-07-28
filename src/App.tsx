@@ -40,10 +40,6 @@ const App = () => {
         // If a user logs in, they are no longer a guest.
         sessionStorage.setItem('isGuest', 'false');
         setIsGuest(false);
-      } else {
-        // If a user logs out, they are no longer a guest and should see the auth screen.
-        sessionStorage.setItem('isGuest', 'false');
-        setIsGuest(false);
       }
     };
 
