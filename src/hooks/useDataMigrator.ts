@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { useToast } from '@/hooks/use-toast';
 import { TestScore } from '@/types/TestScore';
@@ -8,7 +8,7 @@ export const useDataMigrator = () => {
   const [migrationCompleted, setMigrationCompleted] = useState(false);
   const { toast } = useToast();
 
-  const runMigration = async () => {
+  const runMigration = useCallback(async () => {
 
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
@@ -64,7 +64,7 @@ export const useDataMigrator = () => {
 
       setIsMigrating(false);
       setMigrationCompleted(true);
-    };
+    }, [toast]);
 
   return { isMigrating, migrationCompleted, runMigration };
 };
