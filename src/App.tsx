@@ -28,7 +28,8 @@ const App = () => {
   useKonamiCode();
   useDataMigrator();
   const [session, setSession] = useState<Session | null>(null);
-  const [isGuest, setIsGuest] = useState(sessionStorage.getItem('isGuest') === 'true');
+  // Default to guest unless explicitly logged out
+  const [isGuest, setIsGuest] = useState(sessionStorage.getItem('isGuest') !== 'false');
 
   useEffect(() => {
     const handleAuthChange = (session: Session | null) => {
@@ -54,6 +55,7 @@ const App = () => {
   const handleContinueAsGuest = () => {
     sessionStorage.setItem('isGuest', 'true');
     setIsGuest(true);
+    window.location.reload(); // Reload to enter guest mode
   };
 
   if (!session && !isGuest) {

@@ -93,7 +93,7 @@ export const Header = () => {
           <Link to="/history">
             <Button variant="outline" className="transition-transform hover:scale-105"><BookOpen className="mr-2 h-4 w-4"/>History</Button>
           </Link>
-          {session && (
+          {(session || isGuest) && (
             <Button variant="outline" onClick={() => setIsLeaderboardOpen(true)} className="transition-transform hover:scale-105"><Award className="mr-2 h-4 w-4"/>Leaderboard</Button>
           )}
         </nav>
