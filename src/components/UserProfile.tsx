@@ -165,7 +165,8 @@ export const UserProfile = ({ isOpen, onClose }: UserProfilePopupProps) => {
                   type="text"
                   value={tempUsername}
                   onChange={(e) => setTempUsername(e.target.value)}
-                  className="text-2xl font-bold bg-transparent border-0 border-b-2 border-primary/50 focus:ring-0 focus:border-primary p-0"
+                  className="text-center"
+                  placeholder="Enter username"
                 />
               ) : (
                 <h2 className="text-2xl font-bold text-primary">{profile.username}</h2>
@@ -356,7 +357,7 @@ export const UserProfile = ({ isOpen, onClose }: UserProfilePopupProps) => {
                   </Button>
                 </>
               ) : (
-                <Button onClick={handleEdit} className="w-full gap-2 transition-transform hover:scale-105" variant="secondary">
+                <Button onClick={handleEdit} className="w-full gap-2 transition-transform hover:scale-105" variant="outline">
                   <Edit3 className="w-4 h-4" />
                   Edit Profile
                 </Button>
