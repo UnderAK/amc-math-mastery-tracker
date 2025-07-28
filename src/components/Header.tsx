@@ -2,76 +2,33 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Sun, Moon, Trophy, BarChart, BookOpen, Award, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { RandomWelcome } from '@/components/RandomWelcome';
 import { LeaderboardOverlay } from '@/components/LeaderboardOverlay';
 import { CoinDisplay } from '@/components/CoinDisplay';
 import { UserProfile } from '@/components/UserProfile';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/lib/supabaseClient';
+import { useAuth } from '@/contexts/AuthContext';
 
 export const Header = () => {
+  const { session, isGuest, handleLogout } = useAuth();
   const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const [session, setSession] = useState<any>(null);
-  const [isGuest, setIsGuest] = useState(sessionStorage.getItem('isGuest') === 'true');
   const { toast } = useToast();
 
   useEffect(() => {
-    const updateSession = () => {
-      supabase.auth.getSession().then(({ data: { session } }) => {
-        setSession(session);
-      });
-      setIsGuest(sessionStorage.getItem('isGuest') === 'true');
-    }
-
-    updateSession();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      // If user logs in or out, guest status should be cleared
-      sessionStorage.removeItem('isGuest');
-      setIsGuest(false);
-    });
-
-    // Listen for guest status changes
-    window.addEventListener('storage', updateSession);
-
-    return () => {
-      subscription.unsubscribe();
-      window.removeEventListener('storage', updateSession);
-    };
-  }, []);
-
-  useEffect(() => {
-    const shouldBeDark = localStorage.getItem('theme') === 'dark';
-    setIsDarkMode(shouldBeDark);
-    document.documentElement.classList.toggle('dark', shouldBeDark);
+    const isDark = localStorage.getItem('darkMode') === 'true';
+    setIsDarkMode(isDark);
+    document.documentElement.classList.toggle('dark', isDark);
   }, []);
 
   const toggleDarkMode = () => {
-    const newMode = !isDarkMode;
-    setIsDarkMode(newMode);
-    document.documentElement.classList.toggle('dark', newMode);
-    localStorage.setItem('theme', newMode ? 'dark' : 'light');
-    toast({ title: newMode ? '🌙 Dark mode on' : '☀️ Light mode on' });
-  };
-
-  const handleLogout = async () => {
-    if (isGuest) {
-      sessionStorage.setItem('isGuest', 'false');
-      setIsGuest(false);
-      // Force a re-render of App.tsx to show Auth page
-      window.location.reload();
-    } else {
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        toast({ title: 'Logout failed', description: error.message, variant: 'destructive' });
-      } else {
-        toast({ title: 'Logged out successfully' });
-        window.location.href = '/'; // Redirect to home to show Auth page
-      }
-    }
+    const newIsDarkMode = !isDarkMode;
+    setIsDarkMode(newIsDarkMode);
+    localStorage.setItem('darkMode', newIsDarkMode.toString());
+    document.documentElement.classList.toggle('dark', newIsDarkMode);
+    toast({
+      title: `Switched to ${newIsDarkMode ? 'Dark' : 'Light'} Mode`,
+    });
   };
 
   return (
@@ -108,9 +65,7 @@ export const Header = () => {
               <Button onClick={handleLogout} variant="outline">{isGuest ? 'Exit Guest' : 'Logout'}</Button>
             </>
           ) : (
-            <Link to="/">
-              <Button>Login</Button>
-            </Link>
+            <Button onClick={handleLogout}>Login</Button>
           )}
           <Button onClick={toggleDarkMode} variant="ghost" size="icon" className="rounded-full" aria-label="Toggle theme">
             {isDarkMode ? <Sun /> : <Moon />}

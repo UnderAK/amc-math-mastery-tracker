@@ -20,6 +20,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from './lib/supabaseClient';
 import Auth from './components/Auth';
 import { Session } from '@supabase/supabase-js';
+import { AuthProvider } from './contexts/AuthContext';
 
 const queryClient = new QueryClient();
 
@@ -62,37 +63,48 @@ const App = () => {
     window.location.reload(); // Reload to enter guest mode
   };
 
+  const handleLogout = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      console.error('Error logging out:', error);
+    } else {
+      sessionStorage.setItem('isGuest', 'false');
+      setIsGuest(false);
+      window.location.reload();
+    }
+  };
+
   if (!session && !isGuest) {
     return <Auth onContinueAsGuest={handleContinueAsGuest} />;
-  } else {
-    return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        {!isOnline && <OfflineBanner />}
-        <BrowserRouter>
-          <Routes>
-            <Route element={<MainLayout />}>
-              <Route path="/" element={<Index />} />
-              <Route path="/analytics" element={<Analytics />} />
-              <Route path="/test-entry" element={<TestEntryPage />} />
-              <Route path="/history" element={<History />} />
-              <Route path="/leaderboard" element={<Leaderboard />} />
-            </Route>
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-        {/* Konami code toast */}
-        <KonamiToast />
-        <VercelAnalytics />
-      </TooltipProvider>
-    </QueryClientProvider>
-    );
   }
+
+  return (
+    <AuthProvider value={{ session, isGuest, handleLogout }}>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          {!isOnline && <OfflineBanner />}
+          <BrowserRouter>
+            <Routes>
+              <Route element={<MainLayout />}>
+                <Route path="/" element={<Index />} />
+                <Route path="/analytics" element={<Analytics />} />
+                <Route path="/test-entry" element={<TestEntryPage />} />
+                <Route path="/history" element={<History />} />
+                <Route path="/leaderboard" element={<Leaderboard />} />
+              </Route>
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+          {/* Konami code toast */}
+          <KonamiToast />
+          <VercelAnalytics />
+        </TooltipProvider>
+      </QueryClientProvider>
+    </AuthProvider>
+  );
 };
-
-
 
 export default App;
