@@ -1,8 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { Award } from "lucide-react";
 import { TestScore } from "@/types/TestScore";
-import { getBadges, Badge, UserStats } from "@/lib/gamification";
-import { calculateLevel } from "@/lib/utils";
+import { getBadges, Badge, UserStats, calculateLevel } from "@/lib/gamification";
 
 export const BadgesPanel = () => {
   const [stats, setStats] = useState<UserStats | null>(null);
