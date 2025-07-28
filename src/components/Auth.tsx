@@ -11,7 +11,6 @@ const Auth = ({ onContinueAsGuest }: { onContinueAsGuest: () => void }) => {
     <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4">
       <div className="w-full max-w-sm mx-auto">
         <div className="text-center mb-8">
-          <img src="/placeholder.svg" alt="AMC Math Mastery Logo" className="w-20 h-20 mx-auto mb-4"/>
           <h1 className="text-3xl font-bold text-primary">Welcome</h1>
           <p className="text-muted-foreground">Sign in or continue as a guest to track your progress</p>
         </div>
