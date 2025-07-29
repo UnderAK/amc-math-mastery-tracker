@@ -86,6 +86,8 @@ const PracticePage = () => {
         compQuery = compQuery.or(`competition.ilike.%${competitionType}%,name.ilike.%${competitionType}%,competition.ilike.%${base}%,name.ilike.%${base}%`);
       }
       const { data: compData, error: compError } = await compQuery;
+      console.log('DEBUG: compData returned from Supabase:', compData);
+      console.log('DEBUG: normalized competitionType:', competitionType);
       if (compError) throw compError;
       if (!compData || compData.length === 0) {
         toast({
