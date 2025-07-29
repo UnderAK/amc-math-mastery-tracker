@@ -203,11 +203,13 @@ export const GamificationPanel = () => {
                   <div 
                     className="h-full gradient-primary rounded-full transition-all duration-500"
                     style={{ 
-                      width: `${correctPercent < 60 ? (correctPercent / 60) * 100 : 
-                               correctPercent < 70 ? ((correctPercent - 60) / 10) * 100 : 
-                               correctPercent < 80 ? ((correctPercent - 70) / 10) * 100 : 
-                               correctPercent < 90 ? ((correctPercent - 80) / 10) * 100 : 
-                               correctPercent >= 90 ? 100 : 0}%` 
+                      width: `${Math.max(0, Math.min(100, typeof correctPercent === 'number' ? (
+                        correctPercent < 60 ? (correctPercent / 60) * 100 : 
+                        correctPercent < 70 ? ((correctPercent - 60) / 10) * 100 : 
+                        correctPercent < 80 ? ((correctPercent - 70) / 10) * 100 : 
+                        correctPercent < 90 ? ((correctPercent - 80) / 10) * 100 : 
+                        correctPercent >= 90 ? 100 : 0
+                      ) : 0))}%` 
                     }}
                   />
                 </div>
