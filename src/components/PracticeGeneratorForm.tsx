@@ -8,12 +8,39 @@ interface PracticeGeneratorFormProps {
   isLoading: boolean;
 }
 
-const competitions = ['AMC 8', 'AMC 10', 'AMC 12', 'AHSME'];
+import { useEffect } from 'react';
+import { supabase } from '@/lib/supabaseClient';
+
+// Remove hardcoded competitions array.
 const questionNumbers = Array.from({ length: 25 }, (_, i) => i + 1);
 
 export const PracticeGeneratorForm: React.FC<PracticeGeneratorFormProps> = ({ onGenerate, isLoading }) => {
   const [competition, setCompetition] = useState<string>('');
   const [questionNumber, setQuestionNumber] = useState<number | null>(null);
+  const [competitions, setCompetitions] = useState<string[]>([]);
+  const [loadingCompetitions, setLoadingCompetitions] = useState<boolean>(true);
+  const [competitionError, setCompetitionError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchCompetitions = async () => {
+      setLoadingCompetitions(true);
+      setCompetitionError(null);
+      const { data, error } = await supabase
+        .from('tests')
+        .select('competition')
+        .neq('competition', null);
+      if (error) {
+        setCompetitionError('Failed to load competitions.');
+        setCompetitions([]);
+      } else if (data) {
+        // Get unique competition values
+        const unique = Array.from(new Set(data.map((d: any) => d.competition))).sort();
+        setCompetitions(unique);
+      }
+      setLoadingCompetitions(false);
+    };
+    fetchCompetitions();
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,14 +59,18 @@ export const PracticeGeneratorForm: React.FC<PracticeGeneratorFormProps> = ({ on
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label htmlFor="competition-select" className="block text-sm font-medium text-muted-foreground mb-2">Competition</label>
-            <Select onValueChange={setCompetition} value={competition}>
+            <Select onValueChange={setCompetition} value={competition} disabled={loadingCompetitions || !!competitionError}>
               <SelectTrigger id="competition-select">
-                <SelectValue placeholder="Select..." />
+                <SelectValue placeholder={loadingCompetitions ? 'Loading...' : (competitionError ? 'Error loading competitions' : 'Select...')} />
               </SelectTrigger>
               <SelectContent>
-                {competitions.map(comp => (
-                  <SelectItem key={comp} value={comp}>{comp}</SelectItem>
-                ))}
+                {competitionError ? (
+                  <div className="p-2 text-red-500">{competitionError}</div>
+                ) : (
+                  competitions.map(comp => (
+                    <SelectItem key={comp} value={comp}>{comp}</SelectItem>
+                  ))
+                )}
               </SelectContent>
             </Select>
           </div>
