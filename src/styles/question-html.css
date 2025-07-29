@@ -11,8 +11,9 @@
   display: none;
 }
 
-.question-html img.latex {
-  display: inline;
-  vertical-align: middle !important;
+.question-html * {
+  display: inline !important;
   margin: 0 !important;
+  padding: 0 !important;
+  vertical-align: middle !important;
 }
