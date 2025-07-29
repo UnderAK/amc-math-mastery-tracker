@@ -12,7 +12,7 @@ interface LeaderboardEntry {
   user_id: string;
   username: string;
   avatar: string;
-  xp: number;
+  total_xp: number;
 }
 
 const Leaderboard = () => {
@@ -29,6 +29,8 @@ const Leaderboard = () => {
         if (error) {
           throw error;
         }
+
+        console.log('Leaderboard data from Supabase:', data);
 
         const rankedData = data.map((item, index) => ({
           ...item,
@@ -88,7 +90,7 @@ const Leaderboard = () => {
                       <span className="text-2xl">{entry.avatar || '👤'}</span>
                       <span className="font-medium">{entry.username || 'Anonymous'}</span>
                     </td>
-                    <td className="p-4 align-middle text-right font-semibold text-lg">{entry.xp} XP</td>
+                    <td className="p-4 align-middle text-right font-semibold text-lg">{entry.total_xp ?? 0} XP</td>
                   </tr>
                 ))}
               </tbody>

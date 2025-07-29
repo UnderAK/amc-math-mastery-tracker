@@ -3,17 +3,19 @@ returns table (
   user_id uuid,
   username text,
   avatar text,
-  xp int
+  total_xp bigint
 )
 language sql
 security definer
 as $$
   select
-    p.user_id,
+    p.id as user_id,
     p.username,
     p.avatar,
-    p.xp
-  from profiles p
-  order by p.xp desc
+    (select coalesce(sum(score), 0) from test_results where user_id = p.id) as total_xp
+  from
+    profiles p
+  order by
+    total_xp desc
   limit 10;
 $$;
