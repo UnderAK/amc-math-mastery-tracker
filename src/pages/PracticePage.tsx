@@ -97,22 +97,8 @@ const PracticePage = () => {
         });
         return;
       }
-      // Filter competitions by type (e.g. AMC 10 matches AMC 10A, AMC 10B)
-      // New: AMC 8 matches both AMC 8 and AHSME; AMC 10/12 match any test name containing that string
-      const normalizedType = competitionType.replace(/\s/g, '').toUpperCase();
-      const matchingCompetitions = Array.from(new Set(compData.filter((d: any) => {
-        const comp = d.competition?.replace(/^\d{4}[_\s]*/, '').toUpperCase() || '';
-        const name = d.name?.replace(/^\d{4}[_\s]*/, '').toUpperCase() || '';
-        if (normalizedType === 'AMC8') {
-          return comp.includes('AMC8') || comp.includes('AHSME') || name.includes('AMC8') || name.includes('AHSME');
-        } else if (normalizedType === 'AMC10') {
-          return comp.includes('AMC10') || name.includes('AMC10');
-        } else if (normalizedType === 'AMC12') {
-          return comp.includes('AMC12') || name.includes('AMC12');
-        }
-        return comp.includes(normalizedType) || name.includes(normalizedType);
-      }).map((d: any) => d.competition)));
-
+      // Use all competitions returned by the Supabase query (already filtered)
+      const matchingCompetitions = compData.map((d: any) => d.competition);
       if (matchingCompetitions.length === 0) {
         toast({
           title: 'No Competitions Found',
