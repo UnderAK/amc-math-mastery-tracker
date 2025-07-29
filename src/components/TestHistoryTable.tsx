@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { BookOpen, Filter, Calendar, AlertCircle } from "lucide-react";
+import { format } from 'date-fns';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { TestScore } from "@/types/TestScore";
@@ -138,7 +139,7 @@ export const TestHistoryTable = ({ filterType = "all" }: TestHistoryTableProps) 
             <tbody className="divide-y divide-border">
               {processedScores.map((test) => (
                 <tr key={test.id} className="border-b last:border-none hover:bg-muted/50 transition-colors">
-                  <td className="px-4 py-3 text-muted-foreground">{new Date(test.date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</td>
+                  <td className="px-4 py-3 text-muted-foreground">{format(new Date(test.date), 'MMM d, yyyy')}</td>
                   <td className={`px-4 py-3 ${getScoreColor(test.score)}`}>
                     {test.score} / {test.totalQuestions}
                   </td>
