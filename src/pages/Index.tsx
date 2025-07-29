@@ -19,7 +19,7 @@ import { useToast } from "@/hooks/use-toast";
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { ProgressReport } from '@/components/ProgressReport';
-import { ThemeToggle } from '@/components/ThemeToggle';
+
 
 // Newly created components
 import { QuickStats } from "@/components/QuickStats";
@@ -33,12 +33,15 @@ import { StreakCelebrationOverlay } from "@/components/StreakCelebrationOverlay"
 import { DailyBonus } from "@/components/DailyBonus";
 import { LeaderboardOverlay } from "@/components/LeaderboardOverlay";
 import { Accordion } from "@/components/Accordion";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 
 
 
 
 const Index = () => {
+  const [settings, setSettings] = useState({ scoreDisplayMode: 'percentage' }); // 'percentage' or 'points'
   const [showIntro, setShowIntro] = useState(false);
   const [importing, setImporting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -48,6 +51,19 @@ const Index = () => {
   const reportRef = useRef<HTMLDivElement>(null);
 
 
+
+  // Load settings from localStorage on initial render
+  useEffect(() => {
+    const savedSettings = localStorage.getItem('settings');
+    if (savedSettings) {
+      setSettings(JSON.parse(savedSettings));
+    }
+  }, []);
+
+  // Save settings to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('settings', JSON.stringify(settings));
+  }, [settings]);
 
   // Show intro popup on first visit
   useEffect(() => {
@@ -197,18 +213,35 @@ const Index = () => {
               </div>
 
               {/* Settings & Data */}
-              <div className="glass p-6 rounded-lg">
-                <h2 className="text-xl font-semibold text-primary mb-1 flex items-center"><Settings className="mr-2"/>Settings & Data</h2>
-                <p className="text-sm text-muted-foreground mb-4">Backup or restore your progress.</p>
+              <div className="glass p-6 rounded-lg space-y-4">
+                <div>
+                  <h2 className="text-xl font-semibold text-primary mb-1 flex items-center"><Settings className="mr-2"/>Settings</h2>
+                  <p className="text-sm text-muted-foreground">Customize your experience.</p>
+                </div>
+                <div className="flex items-center justify-between rounded-lg border p-3">
+                  <Label htmlFor="score-mode" className="font-medium">
+                    Score Display
+                    <p className="text-xs text-muted-foreground">Show scores as points or percentage.</p>
+                  </Label>
+                  <Switch
+                    id="score-mode"
+                    checked={settings.scoreDisplayMode === 'points'}
+                    onCheckedChange={(checked) => setSettings(s => ({ ...s, scoreDisplayMode: checked ? 'points' : 'percentage' }))}
+                  />
+                </div>
+
+                <div>
+                  <h3 className="text-lg font-semibold text-primary mb-1 flex items-center">Data Management</h3>
+                  <p className="text-sm text-muted-foreground">Backup or restore your progress.</p>
+                </div>
                 <div className="grid grid-cols-2 gap-2">
-                  <Button onClick={handleExport} variant="outline"><FileDown className="mr-2 h-4 w-4"/>Export Data</Button>
-                  <Button onClick={handleDownloadReport} variant="outline"><FileDown className="mr-2 h-4 w-4"/>Download Report</Button>
-                  <div className="col-span-2 flex justify-end"><ThemeToggle /></div>
+                  <Button onClick={handleExport} variant="outline"><FileDown className="mr-2 h-4 w-4"/>Export</Button>
                   <Button onClick={() => document.getElementById('import-input')?.click()} variant="outline" disabled={importing}>
                     {importing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileUp className="mr-2 h-4 w-4"/>}
-                    {importing ? 'Importing...' : 'Import Data'}
+                    {importing ? 'Importing...' : 'Import'}
                   </Button>
                   <input type="file" id="import-input" accept=".json" onChange={handleImport} className="hidden" />
+                  <Button onClick={handleDownloadReport} variant="outline" className="col-span-2"><FileDown className="mr-2 h-4 w-4"/>Download Report</Button>
                 </div>
               </div>
             </div>
