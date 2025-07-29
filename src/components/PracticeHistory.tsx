@@ -15,6 +15,7 @@ interface PracticeScore {
 
 export const PracticeHistory: React.FC = () => {
   const [history, setHistory] = useState<PracticeScore[]>([]);
+  const { scoringMode } = useScoringMode();
 
   useEffect(() => {
     const storedScores = localStorage.getItem('practiceScores');
@@ -49,9 +50,7 @@ export const PracticeHistory: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {(() => {
-                const { scoringMode } = useScoringMode();
-                return history.map((item, index) => {
+              {history.map((item, index) => {
                   // PracticeScore does not have questionCorrectness; only use score
                   const totalQuestions = 25;
                   const maxPoints = 150;
@@ -92,8 +91,7 @@ export const PracticeHistory: React.FC = () => {
                       <td className="px-4 py-3 text-muted-foreground">{new Date(item.date).toLocaleDateString()}</td>
                     </tr>
                   );
-                });
-              })()}
+                })}
             </tbody>
           </table>
         </div>
