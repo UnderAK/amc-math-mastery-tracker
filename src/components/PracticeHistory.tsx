@@ -52,12 +52,14 @@ export const PracticeHistory: React.FC = () => {
             <tbody className="divide-y divide-border">
               {history.map((item, index) => {
                   // PracticeScore does not have questionCorrectness; only use score
+                  // Ensure score is a valid number, default to 0 otherwise
+                  const score = typeof item.score === 'number' ? item.score : 0;
                   const totalQuestions = 25;
                   const maxPoints = 150;
-                  const correct = Math.round(item.score / 6); // AMC 10/12 logic
+                  const correct = Math.round(score / 6); // AMC 10/12 logic
                   const percent = scoringMode === 'questions'
                     ? Math.round((correct / totalQuestions) * 100)
-                    : Math.round((item.score / maxPoints) * 100);
+                    : Math.round((score / maxPoints) * 100);
                   const getScoreColor = (score: number) => {
                     if (score >= 23) return "text-green-600 font-semibold";
                     if (score >= 20) return "text-blue-600 font-medium";
@@ -67,15 +69,15 @@ export const PracticeHistory: React.FC = () => {
                   return (
                     <tr key={index} className="border-b last:border-none hover:bg-muted/50 transition-colors">
                       <td className="px-4 py-3">{item.testName}</td>
-                      <td className={`px-4 py-3 ${getScoreColor(scoringMode === 'questions' ? correct : item.score)}`}>
+                      <td className={`px-4 py-3 ${getScoreColor(scoringMode === 'questions' ? correct : score)}`}>
                         {scoringMode === 'questions'
                           ? `${correct} / ${totalQuestions}`
-                          : `${item.score} / ${maxPoints}`
+                          : `${score} / ${maxPoints}`
                         }
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
-                          <span className={getScoreColor(scoringMode === 'questions' ? correct : item.score)}>{percent}%</span>
+                          <span className={getScoreColor(scoringMode === 'questions' ? correct : score)}>{percent}%</span>
                           <div className="w-16 h-2 bg-secondary rounded-full overflow-hidden">
                             <div
                               className={`h-full transition-all duration-500 ${
