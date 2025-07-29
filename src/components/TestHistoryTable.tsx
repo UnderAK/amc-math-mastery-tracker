@@ -144,8 +144,8 @@ export const TestHistoryTable = ({ filterType = "all" }: TestHistoryTableProps) 
               {processedScores.map((test) => (
                 <tr key={test.id} className="border-b last:border-none hover:bg-muted/50 transition-colors">
                   <td className="px-4 py-3 text-muted-foreground">{format(new Date(test.date), 'MMM d, yyyy')}</td>
-                  <td className={`px-4 py-3 ${getScoreColor(scoringMode === 'questions' ? getCorrectCount(test) : test.score)}`}>
-                    {scoringMode === 'questions'
+                  <td className={`px-4 py-3 ${getScoreColor((test.testType === 'amc8' ? 'questions' : scoringMode) === 'questions' ? getCorrectCount(test) : test.score)}`}>
+                    {(test.testType === 'amc8' ? 'questions' : scoringMode) === 'questions'
                       ? `${getCorrectCount(test)} / ${getTotalQuestions(test)}`
                       : `${test.score} / ${getMaxPoints(test)}`
                     }
@@ -157,7 +157,8 @@ export const TestHistoryTable = ({ filterType = "all" }: TestHistoryTableProps) 
                         const maxPoints = getMaxPoints(test);
                         const score = typeof test.score === 'number' ? test.score : 0;
 
-                        const percent = scoringMode === 'questions'
+                        const effectiveMode = test.testType === 'amc8' ? 'questions' : scoringMode;
+                        const percent = effectiveMode === 'questions'
                           ? totalQuestions > 0 ? Math.round((getCorrectCount(test) / totalQuestions) * 100) : 0
                           : maxPoints > 0 ? Math.round((score / maxPoints) * 100) : 0;
                         return <>
