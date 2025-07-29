@@ -30,14 +30,12 @@ const Leaderboard = () => {
           throw error;
         }
 
-        console.log('Leaderboard data from Supabase:', data);
-
         const rankedData = data.map((item, index) => ({
           ...item,
           rank: index + 1,
-        })) as unknown as LeaderboardEntry[];
+        }));
 
-        setLeaderboardData(rankedData);
+        setLeaderboardData(rankedData as LeaderboardEntry[]);
       } catch (err: any) {
         setError('Failed to fetch leaderboard data. Please try again later.');
         console.error(err);
