@@ -143,7 +143,7 @@ const PracticePage = () => {
           const j = Math.floor(Math.random() * (i + 1));
           [fetchedQuestions[i], fetchedQuestions[j]] = [fetchedQuestions[j], fetchedQuestions[i]];
         }
-        const selectedQuestions = fetchedQuestions.slice(0, 25);
+        const selectedQuestions = fetchedQuestions.slice(0, 25).map((q, i) => ({ ...q, question_number: i + 1 }));
         setQuestions(selectedQuestions);
         setUserAnswers(Array(selectedQuestions.length).fill(''));
         toast({
