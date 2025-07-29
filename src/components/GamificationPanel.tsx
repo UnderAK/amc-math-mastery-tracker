@@ -64,7 +64,7 @@ export const GamificationPanel = () => {
 
   return (
     <TooltipProvider>
-      <section className="glass p-6 rounded-2xl shadow-xl hover-lift animate-slide-in-right">
+      <section className="glass p-6 rounded-2xl shadow-xl hover-lift animate-slide-in-right bg-pink-50/50">
         <h2 className="text-xl font-semibold text-primary mb-4 flex items-center gap-2">
           <Zap className="w-5 h-5 animate-wiggle" />
           Gamification Panel

@@ -175,7 +175,7 @@ export const StatsPanel = ({ filterType = "all" }: StatsPanelProps) => {
   ];
 
   return (
-    <section className="glass p-6 rounded-2xl shadow-xl">
+    <section className="glass p-6 rounded-2xl shadow-xl bg-pink-50/50">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-semibold text-primary flex items-center gap-2">
           <TrendingUp className="w-5 h-5" />
