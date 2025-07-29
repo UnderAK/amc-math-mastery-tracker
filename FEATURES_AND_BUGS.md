@@ -22,7 +22,6 @@ Below is a comprehensive, up-to-date list of **features** and **known bugs / lim
 | Severity | Issue | Notes / Work-around |
 |---|---|---|
 | **Medium** | Missing source maps in production | Stack traces are minified; use dev build for debugging. |
-| **Low** | IDE CSS warnings (`@tailwind`, `@apply`) | Harmless; Tailwind PostCSS handles them. |
 | **Low** | Edge-case import/export quirks | Malformed JSON or partial overwrites can corrupt state—manual JSON repair needed. |
 | **Medium** | No multi-user auth | Only single-user via localStorage or single Supabase project. |
 | **Low** | No PWA/offline mode | Requires service-worker setup for true offline installability. |
