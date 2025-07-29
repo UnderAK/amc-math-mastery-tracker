@@ -1,4 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
+import { useScoringMode } from '@/context/ScoringModeContext';
+import { getCorrectCount, getTotalQuestions, getMaxPoints } from '@/lib/scoring';
 import { BookOpen, Filter, Calendar, AlertCircle } from "lucide-react";
 import { format } from 'date-fns';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -91,6 +93,8 @@ export const TestHistoryTable = ({ filterType = "all" }: TestHistoryTableProps) 
     );
   }
 
+  const { scoringMode } = useScoringMode();
+
   return (
     <section className="glass p-6 rounded-2xl shadow-xl">
       <div className="flex items-center justify-between mb-4">
@@ -140,22 +144,32 @@ export const TestHistoryTable = ({ filterType = "all" }: TestHistoryTableProps) 
               {processedScores.map((test) => (
                 <tr key={test.id} className="border-b last:border-none hover:bg-muted/50 transition-colors">
                   <td className="px-4 py-3 text-muted-foreground">{format(new Date(test.date), 'MMM d, yyyy')}</td>
-                  <td className={`px-4 py-3 ${getScoreColor(test.score)}`}>
-                    {test.score} / {test.totalQuestions}
+                  <td className={`px-4 py-3 ${getScoreColor(scoringMode === 'questions' ? getCorrectCount(test) : test.score)}`}>
+                    {scoringMode === 'questions'
+                      ? `${getCorrectCount(test)} / ${getTotalQuestions(test)}`
+                      : `${test.score} / ${getMaxPoints(test)}`
+                    }
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
-                      <span className={getScoreColor(test.score)}>{test.percent}%</span>
-                      <div className="w-16 h-2 bg-secondary rounded-full overflow-hidden">
-                        <div
-                          className={`h-full transition-all duration-500 ${
-                            test.percent >= 90 ? 'bg-green-500' :
-                            test.percent >= 75 ? 'bg-blue-500' :
-                            test.percent >= 60 ? 'bg-yellow-500' : 'bg-red-500'
-                          }`}
-                          style={{ width: `${test.percent}%` }}
-                        />
-                      </div>
+                      {(() => {
+                        const percent = scoringMode === 'questions'
+                          ? Math.round((getCorrectCount(test) / getTotalQuestions(test)) * 100)
+                          : Math.round((test.score / getMaxPoints(test)) * 100);
+                        return <>
+                          <span className={getScoreColor(scoringMode === 'questions' ? getCorrectCount(test) : test.score)}>{percent}%</span>
+                          <div className="w-16 h-2 bg-secondary rounded-full overflow-hidden">
+                            <div
+                              className={`h-full transition-all duration-500 ${
+                                percent >= 90 ? 'bg-green-500' :
+                                percent >= 75 ? 'bg-blue-500' :
+                                percent >= 60 ? 'bg-yellow-500' : 'bg-red-500'
+                              }`}
+                              style={{ width: `${percent}%` }}
+                            />
+                          </div>
+                        </>;
+                      })()}
                     </div>
                   </td>
                   <td className="px-4 py-3">

@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { useScoringMode } from '@/context/ScoringModeContext';
+import { getCorrectCount, getTotalQuestions, getMaxPoints } from '@/lib/scoring';
 import { BarChart, Target, Flame, Star } from 'lucide-react';
 
 export const QuickStats = () => {
