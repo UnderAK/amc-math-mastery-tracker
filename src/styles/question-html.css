@@ -10,3 +10,9 @@
 .question-html.prose br {
   display: none;
 }
+
+.question-html img.latex {
+  display: inline;
+  vertical-align: middle !important;
+  margin: 0 !important;
+}
