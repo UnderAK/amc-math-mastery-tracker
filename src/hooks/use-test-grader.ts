@@ -62,7 +62,7 @@ export function useTestGrader({ debouncedUserAnswers, debouncedAnswerKey, testTy
         localStorage.setItem('scores', JSON.stringify(updatedTests));
 
         // Award coins
-        const coinsEarned = score * 10;
+        const coinsEarned = score * 5;
         const currentCoins = parseInt(localStorage.getItem('coins') || '0', 10);
         const newTotalCoins = currentCoins + coinsEarned;
         localStorage.setItem('coins', newTotalCoins.toString());
@@ -83,7 +83,7 @@ export function useTestGrader({ debouncedUserAnswers, debouncedAnswerKey, testTy
         });
 
         // Award XP
-        const xpEarned = score * 100;
+        const xpEarned = score * 10;
         const currentXp = parseInt(localStorage.getItem('xp') || '0', 10);
         const newTotalXp = currentXp + xpEarned;
         localStorage.setItem('xp', newTotalXp.toString());

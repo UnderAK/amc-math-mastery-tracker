@@ -10,6 +10,7 @@ import {
   Target,
   BookOpen,
   Award,
+  BrainCircuit,
   Loader2
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
@@ -98,15 +99,17 @@ const Index = () => {
           {/* Features Section */}
           <section className="py-12 px-4">
             <div className="max-w-5xl mx-auto grid md:grid-cols-3 gap-8">
-              <FeatureCard 
-                icon={<Target className="w-8 h-8 text-primary" />} 
-                title="Track Your Progress"
+              <FeatureCard
+                to="/test-entry"
+                icon={<Target className="w-8 h-8 text-primary" />}
+                title="Enter a Test"
                 description="Log your AMC test scores and see detailed performance analytics to identify strengths and weaknesses."
               />
-              <FeatureCard 
-                icon={<BookOpen className="w-8 h-8 text-primary" />} 
-                title="Master Key Concepts"
-                description="Practice problems by topic to build mastery in areas like Algebra, Geometry, and Number Theory."
+              <FeatureCard
+                to="/practice"
+                icon={<BrainCircuit className="w-8 h-8 text-primary" />}
+                title="Practice a Test"
+                description="Hone your skills by taking a full practice test from any year and any competition."
               />
               <FeatureCard 
                 icon={<Award className="w-8 h-8 text-primary" />} 

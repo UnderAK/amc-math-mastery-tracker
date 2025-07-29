@@ -10,7 +10,12 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "scrape": "node scripts/runScraper.js",
+    "scrape:amc12": "node scripts/scrapeFromAoPS_AMC12.js",
+    "scrape:ahsme": "node scripts/scrapeFromAoPS_AHSME.js",
+    "scrape:amc8": "node scripts/scrapeFromAoPS_AMC8.js",
+    "seed": "node scripts/seedDatabase.js"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
@@ -83,6 +88,8 @@
     "@vitejs/plugin-react-swc": "^3.5.0",
     "@vitest/ui": "^3.2.4",
     "autoprefixer": "^10.4.20",
+    "cross-fetch": "^4.1.0",
+    "dotenv": "^17.2.1",
     "eslint": "^9.9.0",
     "eslint-plugin-react-hooks": "^5.1.0-rc.0",
     "eslint-plugin-react-refresh": "^0.4.9",

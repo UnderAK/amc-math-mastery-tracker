@@ -9,6 +9,7 @@ import Analytics from "./pages/Analytics";
 import TestEntryPage from "./pages/TestEntryPage";
 import History from "./pages/History";
 import Leaderboard from "./pages/Leaderboard";
+import PracticePage from "./pages/PracticePage";
 import NotFound from "./pages/NotFound";
 import { Analytics as VercelAnalytics } from "@vercel/analytics/react";
 import { KonamiToast } from "@/components/KonamiToast";
@@ -85,7 +86,8 @@ const App = () => {
             <Route element={<MainLayout />}>
               <Route path="/" element={<Index />} />
               <Route path="/analytics" element={<Analytics />} />
-              <Route path="/test-entry" element={<TestEntryPage />} />
+                            <Route path="/test-entry" element={<TestEntryPage />} />
+              <Route path="/practice" element={<PracticePage />} />
               <Route path="/history" element={<History />} />
               <Route path="/leaderboard" element={<Leaderboard />} />
             </Route>
