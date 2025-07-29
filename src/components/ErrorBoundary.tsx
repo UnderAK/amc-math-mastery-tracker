@@ -1,4 +1,5 @@
 import React, { Component, ErrorInfo, ReactNode } from "react";
+import { Button } from "@/components/ui/button";
 
 interface Props {
   children: ReactNode;
@@ -29,8 +30,18 @@ class ErrorBoundary extends Component<Props, State> {
           <div className="max-w-lg text-center">
             <h1 className="text-2xl font-bold text-destructive mb-4">Application Error</h1>
             <p className="text-muted-foreground mb-4">
-              Something went wrong, and the application has crashed. Please try refreshing the page.
+              Something went wrong, and the application has crashed. Please try refreshing the page or clearing the cache.
             </p>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                localStorage.clear();
+                window.location.reload();
+              }}
+              className="mt-4"
+            >
+              Clear Cache & Reset
+            </Button>
             <details className="bg-muted p-4 rounded-lg text-left text-sm overflow-auto">
               <summary className="cursor-pointer font-medium">Error Details</summary>
               <pre className="mt-2 whitespace-pre-wrap">
