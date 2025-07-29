@@ -64,6 +64,7 @@ export const UserProfile = ({ isOpen, onClose }: UserProfilePopupProps) => {
   const [pendingUsername, setPendingUsername] = useState("");
   const { toast } = useToast();
   const [isGuest, setIsGuest] = useState(false);
+  const { scoringMode, setScoringMode } = useScoringMode();
 
   useEffect(() => {
     const updateData = () => {
