@@ -13,6 +13,8 @@ interface QuestionDisplayProps {
   questions: Question[];
 }
 
+import '../styles/question-html.css';
+
 export const QuestionDisplay: React.FC<QuestionDisplayProps> = ({ questions }) => {
 
   return (
@@ -20,7 +22,7 @@ export const QuestionDisplay: React.FC<QuestionDisplayProps> = ({ questions }) =
       {questions.map((question) => (
         <div key={question.id} className="glass p-6 rounded-2xl shadow-lg animate-fade-in-up">
           <p className="font-bold text-primary mb-3">Question {question.question_number}</p>
-          <div className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: question.problem_html.replace(/^<p>|<\/p>$/g, '') }} />
+          <div className="prose prose-sm max-w-none question-html" dangerouslySetInnerHTML={{ __html: question.problem_html }} />
         </div>
       ))}
     </div>
