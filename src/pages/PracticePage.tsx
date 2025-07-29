@@ -90,8 +90,19 @@ const PracticePage = () => {
         return;
       }
       // Filter competitions by type (e.g. AMC 10 matches AMC 10A, AMC 10B)
-      const matchingCompetitions = Array.from(new Set(compData.map((d: any) => d.competition)))
-        .filter((c: string) => c.replace(/\s/g, '').toLowerCase().startsWith(competitionType.replace(/\s/g, '').toLowerCase()));
+      // New: AMC 8 matches both AMC 8 and AHSME; AMC 10/12 match any test name containing that string
+      const normalizedType = competitionType.replace(/\s/g, '').toUpperCase();
+      const matchingCompetitions = Array.from(new Set(compData.map((d: any) => d.competition))).filter((c: string) => {
+        const comp = c.replace(/^\d{4}[_\s]*/, '').toUpperCase();
+        if (normalizedType === 'AMC8') {
+          return comp.includes('AMC8') || comp.includes('AHSME');
+        } else if (normalizedType === 'AMC10') {
+          return comp.includes('AMC10');
+        } else if (normalizedType === 'AMC12') {
+          return comp.includes('AMC12');
+        }
+        return comp.includes(normalizedType);
+      });
       if (matchingCompetitions.length === 0) {
         toast({
           title: 'No Competitions Found',
@@ -124,12 +135,18 @@ const PracticePage = () => {
         .order('id');
       if (questionError) throw questionError;
       if (questionData && questionData.length > 0) {
-        const fetchedQuestions = questionData as Question[];
-        setQuestions(fetchedQuestions);
-        setUserAnswers(Array(fetchedQuestions.length).fill(''));
+        let fetchedQuestions = questionData as Question[];
+        // Shuffle and pick up to 25 questions
+        for (let i = fetchedQuestions.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [fetchedQuestions[i], fetchedQuestions[j]] = [fetchedQuestions[j], fetchedQuestions[i]];
+        }
+        const selectedQuestions = fetchedQuestions.slice(0, 25);
+        setQuestions(selectedQuestions);
+        setUserAnswers(Array(selectedQuestions.length).fill(''));
         toast({
           title: 'Practice Set Generated!',
-          description: `Found ${fetchedQuestions.length} questions for ${competitionType} #${questionNumber}.`,
+          description: `Selected ${selectedQuestions.length} random questions for ${competitionType} #${questionNumber}.`,
         });
       } else {
         toast({
