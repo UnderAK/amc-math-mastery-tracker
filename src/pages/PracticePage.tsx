@@ -66,57 +66,75 @@ const PracticePage = () => {
     });
   };
 
-  const handleGenerate = async (competition: string, questionNumber: number) => {
+  const handleGenerate = async (competitionType: string, questionNumber: number) => {
     setIsLoading(true);
     setQuestions([]);
     setUserAnswers([]);
-    setPracticeParams({ competition, questionNumber });
+    setPracticeParams({ competition: competitionType, questionNumber });
     setScore(null);
     setIsGraded(false);
 
     try {
-      // First, get all test IDs for the selected competition
-      const { data: testData, error: testError } = await supabase
+      // Get all competitions of the selected type (e.g., AMC 10 => AMC 10A, AMC 10B)
+      const { data: compData, error: compError } = await supabase
         .from('tests')
-        .select('id')
-        .eq('competition', competition);
-
-      if (testError) throw testError;
-
-      if (!testData || testData.length === 0) {
+        .select('competition')
+        .neq('competition', null);
+      if (compError) throw compError;
+      if (!compData || compData.length === 0) {
         toast({
-          title: 'No Tests Found',
-          description: `No tests found for ${competition}. Please try a different competition.`,
+          title: 'No Competitions Found',
+          description: `No competitions found for ${competitionType}.`,
           variant: 'destructive',
         });
         return;
       }
-
+      // Filter competitions by type (e.g. AMC 10 matches AMC 10A, AMC 10B)
+      const matchingCompetitions = Array.from(new Set(compData.map((d: any) => d.competition)))
+        .filter((c: string) => c.replace(/\s/g, '').toLowerCase().startsWith(competitionType.replace(/\s/g, '').toLowerCase()));
+      if (matchingCompetitions.length === 0) {
+        toast({
+          title: 'No Competitions Found',
+          description: `No competitions found for ${competitionType}.`,
+          variant: 'destructive',
+        });
+        return;
+      }
+      // Get all test IDs for the matching competitions
+      const { data: testData, error: testError } = await supabase
+        .from('tests')
+        .select('id')
+        .in('competition', matchingCompetitions);
+      if (testError) throw testError;
+      if (!testData || testData.length === 0) {
+        toast({
+          title: 'No Tests Found',
+          description: `No tests found for ${competitionType}.`,
+          variant: 'destructive',
+        });
+        return;
+      }
       const testIds = testData.map(test => test.id);
-
-      // Then, get all questions for the selected question number from those tests
+      // Get all questions for the selected question number from those tests
       const { data: questionData, error: questionError } = await supabase
         .from('questions')
         .select('id, question_number, problem_html, answer')
         .eq('question_number', questionNumber)
         .in('test_id', testIds)
         .order('id');
-
       if (questionError) throw questionError;
-
       if (questionData && questionData.length > 0) {
         const fetchedQuestions = questionData as Question[];
         setQuestions(fetchedQuestions);
         setUserAnswers(Array(fetchedQuestions.length).fill(''));
-        
         toast({
           title: 'Practice Set Generated!',
-          description: `Found ${fetchedQuestions.length} questions for ${competition} #${questionNumber}.`,
+          description: `Found ${fetchedQuestions.length} questions for ${competitionType} #${questionNumber}.`,
         });
       } else {
         toast({
           title: 'No Questions Found',
-          description: `Could not find any questions for ${competition} #${questionNumber}. Please try a different selection.`,
+          description: `Could not find any questions for ${competitionType} #${questionNumber}. Please try a different selection.`,
           variant: 'destructive',
         });
       }
