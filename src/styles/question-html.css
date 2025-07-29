@@ -1,4 +1,12 @@
-.question-html.prose p {
+.question-html.prose p,
+.question-html.prose ul,
+.question-html.prose ol,
+.question-html.prose li {
   display: inline;
   margin: 0;
+  padding: 0;
+}
+
+.question-html.prose br {
+  display: none;
 }
