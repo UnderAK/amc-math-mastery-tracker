@@ -33,11 +33,17 @@ export const PracticeGeneratorForm: React.FC<PracticeGeneratorFormProps> = ({ on
         setCompetitionError('Failed to load competitions.');
         setCompetitions([]);
       } else if (data) {
-        // Extract base types (e.g. 'AMC 10' from 'AMC 10A')
+        // Extract base types (e.g. 'AMC 10' from 'AMC 10A', 'AMC 10B', etc.)
         const baseTypes = Array.from(new Set(
           data.map((d: any) => {
-            const match = d.competition.match(/^(AMC \d+|AHSME)/i);
-            return match ? match[0].toUpperCase() : d.competition.toUpperCase();
+            // Remove trailing A/B (and whitespace/underscore) from end
+            let comp = d.competition.toUpperCase().replace(/[_\s]*[AB]$/i, '');
+            // Only keep 'AMC 8', 'AMC 10', 'AMC 12', 'AHSME', etc.
+            if (comp.startsWith('AMC 8')) return 'AMC 8';
+            if (comp.startsWith('AMC 10')) return 'AMC 10';
+            if (comp.startsWith('AMC 12')) return 'AMC 12';
+            if (comp.startsWith('AHSME')) return 'AHSME';
+            return comp;
           })
         )).sort();
         setCompetitions(baseTypes);
