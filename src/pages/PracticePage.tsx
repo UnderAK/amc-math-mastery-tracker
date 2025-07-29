@@ -76,10 +76,16 @@ const PracticePage = () => {
 
     try {
       // Get all competitions of the selected type (e.g., AMC 10 => AMC 10A, AMC 10B)
-      const { data: compData, error: compError } = await supabase
-        .from('tests')
-        .select('competition, name')
-        .neq('competition', null);
+      // Robustly match all relevant tests using ilike (case-insensitive SQL LIKE)
+      let compQuery = supabase.from('tests').select('competition, name, id');
+      if (competitionType === 'AMC 8') {
+        compQuery = compQuery.or(`competition.ilike.%AMC 8%,name.ilike.%AMC 8%,competition.ilike.%AHSME%,name.ilike.%AHSME%`);
+      } else {
+        // e.g. 'AMC 12' matches 'AMC 12', 'AMC_12', etc.
+        const base = competitionType.replace(/\s/g, '_');
+        compQuery = compQuery.or(`competition.ilike.%${competitionType}%,name.ilike.%${competitionType}%,competition.ilike.%${base}%,name.ilike.%${base}%`);
+      }
+      const { data: compData, error: compError } = await compQuery;
       if (compError) throw compError;
       if (!compData || compData.length === 0) {
         toast({
