@@ -2,9 +2,11 @@ import { useState } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { TestSelector } from '@/components/TestSelector';
-import { QuestionDisplay } from '@/components/QuestionDisplay';
+import { PracticeGeneratorForm } from '@/components/PracticeGeneratorForm';
 import { AnswerSheet } from '@/components/AnswerSheet';
+import { QuestionDisplay } from '@/components/QuestionDisplay';
+import { supabase } from '@/lib/supabaseClient';
+
 import { PracticeHistory } from '@/components/PracticeHistory';
 import { useToast } from '@/hooks/use-toast';
 
@@ -16,32 +18,21 @@ interface Question {
   answer: string;
 }
 
-// Define the DbTest type to match the one in TestSelector
-interface DbTest {
-  id: string;
-  name: string;
-  competition: string;
-  year: number;
-}
+
 
 const PracticePage = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [selectedTest, setSelectedTest] = useState<DbTest | null>(null);
-  const [questions, setQuestions] = useState<Question[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   const [userAnswers, setUserAnswers] = useState<string[]>([]);
+  const [practiceParams, setPracticeParams] = useState<{competition: string, questionNumber: number} | null>(null);
+  const [questions, setQuestions] = useState<Question[]>([]);
+  
   const [score, setScore] = useState<number | null>(null);
   const [isGraded, setIsGraded] = useState(false);
 
-  const handleQuestionsFetched = (fetchedQuestions: Question[]) => {
-    setQuestions(fetchedQuestions);
-    setUserAnswers(Array(fetchedQuestions.length).fill(''));
-    setScore(null);
-    setIsGraded(false);
-  };
-
   const handleGradeTest = () => {
-    if (!selectedTest) return;
+    if (!practiceParams) return;
 
     const correctAnswers = questions.map(q => q.answer);
     let correctCount = 0;
@@ -58,8 +49,7 @@ const PracticePage = () => {
     setIsGraded(true);
 
     const practiceScore = {
-      testId: selectedTest.id,
-      testName: selectedTest.name,
+      testName: `Practice: ${practiceParams.competition} #${practiceParams.questionNumber}s`,
       score: finalScore,
       date: new Date().toISOString(),
       userAnswers,
@@ -72,9 +62,53 @@ const PracticePage = () => {
 
     toast({
       title: "Test Graded!",
-      description: `Your score is ${finalScore}. Correct: ${correctCount}, Blank: ${blankCount}, Incorrect: ${incorrectCount}. Score saved.`,
+      description: `Your score is ${finalScore}. Correct: ${correctCount}, Blank: ${blankCount}, Incorrect: ${incorrectCount}.`,
     });
   };
+
+  const handleGenerate = async (competition: string, questionNumber: number) => {
+    setIsLoading(true);
+    setQuestions([]);
+    setUserAnswers([]);
+    setPracticeParams({ competition, questionNumber });
+
+    try {
+      const { data, error } = await supabase
+        .from('questions')
+        .select(`
+          id, question_number, problem_html, answer,
+          tests ( competition, year )
+        `)
+        .eq('question_number', questionNumber)
+        .eq('tests.competition', competition)
+        .limit(25);
+
+      if (error) throw error;
+
+      if (data.length > 0) {
+        const fetchedQuestions = data as unknown as Question[];
+        setQuestions(fetchedQuestions);
+        setUserAnswers(Array(fetchedQuestions.length).fill(''));
+      } else {
+        toast({
+          title: 'No Questions Found',
+          description: 'Could not find enough questions matching your criteria. Please try a different selection.',
+          variant: 'destructive',
+        });
+      }
+    } catch (error: any) {
+      console.error('Error generating practice set:', error);
+      toast({
+        title: 'Error',
+        description: 'An error occurred while generating the practice set.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  
 
   return (
     <div className="min-h-screen bg-background text-foreground p-4 sm:p-6">
@@ -106,15 +140,10 @@ const PracticePage = () => {
         {/* Practice Area */}
         <main className="space-y-6">
           <div className="glass p-6 rounded-3xl shadow-xl">
-            <TestSelector onTestSelect={setSelectedTest} />
-            {selectedTest && (
-              <QuestionDisplay 
-                testId={selectedTest.id} 
-                onQuestionsFetched={handleQuestionsFetched} 
-              />
-            )}
+            <PracticeGeneratorForm onGenerate={handleGenerate} isLoading={isLoading} />
             {questions.length > 0 && (
-              <>
+              <div className="mt-6">
+                <QuestionDisplay questions={questions} />
                 <AnswerSheet 
                   numQuestions={questions.length} 
                   onAnswersChange={setUserAnswers} 
@@ -122,7 +151,7 @@ const PracticePage = () => {
                 <Button className="mt-6 w-full" onClick={handleGradeTest} disabled={isGraded}>
                   {isGraded ? `Your Score: ${score}` : 'Grade Test'}
                 </Button>
-              </>
+              </div>
             )}
           </div>
         </main>

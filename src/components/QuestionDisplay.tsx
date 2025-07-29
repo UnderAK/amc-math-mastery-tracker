@@ -10,59 +10,10 @@ interface Question {
 }
 
 interface QuestionDisplayProps {
-  testId: string;
-  onQuestionsFetched: (questions: Question[]) => void;
+  questions: Question[];
 }
 
-export const QuestionDisplay: React.FC<QuestionDisplayProps> = ({ testId, onQuestionsFetched }) => {
-  const [questions, setQuestions] = useState<Question[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!testId) return;
-
-    const fetchQuestions = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const { data, error } = await supabase
-          .from('questions')
-          .select('id, question_number, problem_html, answer')
-          .eq('test_id', testId)
-          .order('question_number', { ascending: true });
-
-        if (error) {
-          throw error;
-        }
-
-        if (data) {
-          setQuestions(data);
-          onQuestionsFetched(data);
-        }
-      } catch (err: any) {
-        setError('Failed to load questions. Please try again.');
-        console.error("Error fetching questions:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchQuestions();
-  }, [testId, onQuestionsFetched]);
-
-  if (loading) {
-    return (
-      <div className="flex items-center gap-2 text-muted-foreground mt-6">
-        <Loader2 className="w-5 h-5 animate-spin" />
-        <span>Loading questions...</span>
-      </div>
-    );
-  }
-
-  if (error) {
-    return <p className="text-destructive mt-6">{error}</p>;
-  }
+export const QuestionDisplay: React.FC<QuestionDisplayProps> = ({ questions }) => {
 
   return (
     <div className="mt-6 space-y-6">
