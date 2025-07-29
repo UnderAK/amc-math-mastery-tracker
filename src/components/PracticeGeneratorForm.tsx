@@ -33,11 +33,15 @@ export const PracticeGeneratorForm: React.FC<PracticeGeneratorFormProps> = ({ on
         setCompetitionError('Failed to load competitions.');
         setCompetitions([]);
       } else if (data) {
-        // Extract base types (e.g. 'AMC 10' from 'AMC 10A', 'AMC 10B', etc.)
+        // Extract base types (e.g. 'AMC 10' from '2021_AMC_10A', 'AHSME' from '1950_AHSME', etc.)
         const baseTypes = Array.from(new Set(
           data.map((d: any) => {
-            // Remove trailing A/B (and whitespace/underscore) from end
-            let comp = d.competition.toUpperCase().replace(/[_\s]*[AB]$/i, '');
+            // Remove leading year and underscores (e.g. '1950_AHSME' -> 'AHSME', '2021_AMC_10A' -> 'AMC_10A')
+            let comp = d.competition.replace(/^\d{4}[_\s]*/, '').toUpperCase();
+            // Remove trailing A/B (and whitespace/underscore)
+            comp = comp.replace(/[_\s]*[AB]$/i, '');
+            // Normalize underscores to spaces
+            comp = comp.replace(/_/g, ' ');
             // Only keep 'AMC 8', 'AMC 10', 'AMC 12', 'AHSME', etc.
             if (comp.startsWith('AMC 8')) return 'AMC 8';
             if (comp.startsWith('AMC 10')) return 'AMC 10';
