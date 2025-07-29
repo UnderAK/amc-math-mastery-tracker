@@ -37,7 +37,8 @@ export const ScoreChart = ({ filterType = "all" }: ScoreChartProps) => {
         (s.questionCorrectness && Object.keys(s.questionCorrectness).length > 0) 
         ? Object.keys(s.questionCorrectness).length 
         : (s.key && s.key.length > 0) ? s.key.length : 25;
-      const percentage = totalQuestions > 0 ? (s.score / totalQuestions) * 100 : 0;
+      const score = typeof s.score === 'number' ? s.score : 0;
+      const percentage = totalQuestions > 0 ? (score / totalQuestions) * 100 : 0;
       return { ...s, totalQuestions, percentage };
     });
   }, [filteredScores]);
