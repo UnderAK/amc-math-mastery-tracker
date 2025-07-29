@@ -58,7 +58,9 @@ export const GamificationPanel = () => {
   const xpForNextLevel = (level) * 250; // Changed from 100 to 250 XP per level
   const progressToNextLevel = xp - ((level - 1) * 250);
   const progressPercent = Math.min(100, Math.round((progressToNextLevel / 250) * 100));
-  const correctPercent = problemStats.total > 0 ? Math.round((problemStats.correct / problemStats.total) * 100) : 0;
+  const correctPercent = problemStats.total > 0 
+    ? Math.round((problemStats.correct / problemStats.total) * 100)
+    : 0;
 
   return (
     <TooltipProvider>
