@@ -71,28 +71,52 @@ const PracticePage = () => {
     setQuestions([]);
     setUserAnswers([]);
     setPracticeParams({ competition, questionNumber });
+    setScore(null);
+    setIsGraded(false);
 
     try {
-      const { data, error } = await supabase
+      // First, get all test IDs for the selected competition
+      const { data: testData, error: testError } = await supabase
+        .from('tests')
+        .select('id')
+        .eq('competition', competition);
+
+      if (testError) throw testError;
+
+      if (!testData || testData.length === 0) {
+        toast({
+          title: 'No Tests Found',
+          description: `No tests found for ${competition}. Please try a different competition.`,
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      const testIds = testData.map(test => test.id);
+
+      // Then, get all questions for the selected question number from those tests
+      const { data: questionData, error: questionError } = await supabase
         .from('questions')
-        .select(`
-          id, question_number, problem_html, answer,
-          tests ( competition, year )
-        `)
+        .select('id, question_number, problem_html, answer')
         .eq('question_number', questionNumber)
-        .eq('tests.competition', competition)
-        .limit(25);
+        .in('test_id', testIds)
+        .order('id');
 
-      if (error) throw error;
+      if (questionError) throw questionError;
 
-      if (data.length > 0) {
-        const fetchedQuestions = data as unknown as Question[];
+      if (questionData && questionData.length > 0) {
+        const fetchedQuestions = questionData as Question[];
         setQuestions(fetchedQuestions);
         setUserAnswers(Array(fetchedQuestions.length).fill(''));
+        
+        toast({
+          title: 'Practice Set Generated!',
+          description: `Found ${fetchedQuestions.length} questions for ${competition} #${questionNumber}.`,
+        });
       } else {
         toast({
           title: 'No Questions Found',
-          description: 'Could not find enough questions matching your criteria. Please try a different selection.',
+          description: `Could not find any questions for ${competition} #${questionNumber}. Please try a different selection.`,
           variant: 'destructive',
         });
       }
@@ -100,7 +124,7 @@ const PracticePage = () => {
       console.error('Error generating practice set:', error);
       toast({
         title: 'Error',
-        description: 'An error occurred while generating the practice set.',
+        description: 'An error occurred while generating the practice set. Please try again.',
         variant: 'destructive',
       });
     } finally {
