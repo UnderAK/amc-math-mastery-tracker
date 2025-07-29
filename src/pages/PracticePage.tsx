@@ -82,8 +82,17 @@ const PracticePage = () => {
         compQuery = compQuery.or(`competition.ilike.%AMC 8%,name.ilike.%AMC 8%,competition.ilike.%AHSME%,name.ilike.%AHSME%`);
       } else {
         // e.g. 'AMC 12' matches 'AMC 12', 'AMC_12', etc.
-        const base = competitionType.replace(/\s/g, '_');
-        compQuery = compQuery.or(`competition.ilike.%${competitionType}%,name.ilike.%${competitionType}%,competition.ilike.%${base}%,name.ilike.%${base}%`);
+        const baseWithUnderscore = competitionType.replace(/\s/g, '_');
+        const baseWithoutSpace = competitionType.replace(/\s/g, '');
+        const orConditions = [
+          `competition.ilike.%${competitionType}%`,
+          `name.ilike.%${competitionType}%`,
+          `competition.ilike.%${baseWithUnderscore}%`,
+          `name.ilike.%${baseWithUnderscore}%`,
+          `competition.ilike.%${baseWithoutSpace}%`,
+          `name.ilike.%${baseWithoutSpace}%`,
+        ].join(',');
+        compQuery = compQuery.or(orConditions);
       }
       const { data: compData, error: compError } = await compQuery;
       console.log('DEBUG: compData returned from Supabase:', compData);

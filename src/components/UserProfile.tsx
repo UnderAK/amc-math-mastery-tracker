@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { UserProfileData } from '@/types/amc';
 import { useScoringMode } from '@/context/ScoringModeContext';
 import { Switch } from '@/components/ui/switch';
 import { User, Edit3, Save, X, ShoppingCart, Coins, Calendar, ChevronsRight, Star } from "lucide-react";
@@ -33,12 +34,7 @@ function unlockAvatar(avatar: string) {
 }
 
 
-interface UserProfileData {
-  username: string;
-  avatar: string;
-  joinDate: string;
-  xp: number;
-}
+
 
 interface UserProfilePopupProps {
   isOpen: boolean;

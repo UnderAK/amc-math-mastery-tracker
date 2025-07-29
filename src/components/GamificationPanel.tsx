@@ -69,8 +69,10 @@ export const GamificationPanel = () => {
           <Zap className="w-5 h-5 animate-wiggle" />
           Gamification Panel
           <Tooltip>
-            <TooltipTrigger>
-              <HelpCircle className="w-4 h-4 text-muted-foreground ml-1" />
+            <TooltipTrigger asChild>
+              <button className="bg-transparent border-none p-0 m-0 align-middle cursor-pointer" aria-label="About the Gamification Panel">
+                <HelpCircle className="w-4 h-4 text-muted-foreground ml-1" />
+              </button>
             </TooltipTrigger>
             <TooltipContent>
               <p>Track your XP, level progress, and daily streaks</p>
@@ -85,8 +87,10 @@ export const GamificationPanel = () => {
             <Flame className="w-5 h-5 text-orange-500" />
             <strong>Streak:</strong>
             <Tooltip>
-              <TooltipTrigger>
-                <HelpCircle className="w-3 h-3 text-muted-foreground" />
+              <TooltipTrigger asChild>
+                <button className="bg-transparent border-none p-0 m-0 align-middle cursor-pointer" aria-label="About streaks">
+                  <HelpCircle className="w-3 h-3 text-muted-foreground" />
+                </button>
               </TooltipTrigger>
               <TooltipContent>
                 <p>Daily test completion streak. Earn bonus XP for 7+ day streaks!</p>

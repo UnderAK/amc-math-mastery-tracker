@@ -16,6 +16,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
+import { ProgressReport } from '@/components/ProgressReport';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 // Newly created components
 import { QuickStats } from "@/components/QuickStats";
@@ -39,6 +43,9 @@ const Index = () => {
   const [importing, setImporting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const [generatingReport, setGeneratingReport] = useState(false);
+  const [reportData, setReportData] = useState<{ profile: any; tests: any[] } | null>(null);
+  const reportRef = useRef<HTMLDivElement>(null);
 
 
 
@@ -74,21 +81,75 @@ const Index = () => {
     const file = e.target.files?.[0];
     if (!file) return;
     setImporting(true);
+
     const reader = new FileReader();
     reader.onload = evt => {
       try {
-        const json = JSON.parse(evt.target?.result as string);
-        Object.entries(json).forEach(([k, v]) => localStorage.setItem(k, typeof v === "string" ? v : JSON.stringify(v)));
-        window.dispatchEvent(new CustomEvent('dataUpdate')); // Notify components
-        toast({ title: "Import Successful!", description: "Your progress is restored." });
-      } catch {
-        toast({ title: "Import Failed", description: "Invalid file format.", variant: "destructive" });
+        const data = JSON.parse(evt.target?.result as string);
+
+        // --- Data Validation ---
+        const requiredKeys = ["scores", "xp", "streak", "level", "earnedBadges", "profile"];
+        const missingKeys = requiredKeys.filter(key => !(key in data));
+
+        if (missingKeys.length > 0) {
+          throw new Error(`Missing required data fields: ${missingKeys.join(', ')}`);
+        }
+
+        if (!Array.isArray(data.scores)) throw new Error('"scores" field must be an array.');
+        if (typeof data.profile !== 'object' || data.profile === null) throw new Error('"profile" field must be an object.');
+        // --- End Validation ---
+
+        Object.entries(data).forEach(([k, v]) => {
+          localStorage.setItem(k, typeof v === 'string' ? v : JSON.stringify(v));
+        });
+
+        window.dispatchEvent(new CustomEvent('dataUpdate'));
+        toast({ title: "Import Successful!", description: "Your progress has been restored." });
+
+      } catch (error: any) {
+        const errorMessage = error.message || "Invalid file format.";
+        toast({ title: "Import Failed", description: errorMessage, variant: "destructive" });
       } finally {
         setImporting(false);
+        if (fileInputRef.current) {
+          fileInputRef.current.value = ""; // Reset file input
+        }
       }
     };
     reader.readAsText(file);
   };
+
+  const handleDownloadReport = () => {
+    try {
+      const profile = JSON.parse(localStorage.getItem('profile') || 'null');
+      const tests = JSON.parse(localStorage.getItem('scores') || '[]');
+      // For now, we'll pass empty stats and calculate them in the report component later.
+      setReportData({ profile, tests });
+      setGeneratingReport(true);
+    } catch (error) {
+      toast({ title: "Error Preparing Report", description: "Could not load data for the report.", variant: "destructive" });
+    }
+  };
+
+  useEffect(() => {
+    if (generatingReport && reportRef.current) {
+      html2canvas(reportRef.current, { scale: 2 })
+        .then((canvas) => {
+          const imgData = canvas.toDataURL('image/png');
+          const pdf = new jsPDF('p', 'mm', 'a4');
+          const pdfWidth = pdf.internal.pageSize.getWidth();
+          const pdfHeight = pdf.internal.pageSize.getHeight();
+          pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+          pdf.save('progress-report.pdf');
+          setGeneratingReport(false); // Reset the state
+          toast({ title: "Report Downloaded!", description: "Your progress report has been saved." });
+        })
+        .catch(() => {
+          toast({ title: "Report Failed", description: "Could not generate the report.", variant: "destructive" });
+          setGeneratingReport(false);
+        });
+    }
+  }, [generatingReport, toast]);
 
   return (
     <>
@@ -119,6 +180,14 @@ const Index = () => {
             </div>
           </section>
 
+          {generatingReport && reportData && (
+            <div style={{ position: 'absolute', left: '-9999px', top: 0 }}>
+              <div ref={reportRef}>
+                <ProgressReport profile={reportData.profile} tests={reportData.tests} stats={{}} />
+              </div>
+            </div>
+          )}
+
           {/* --- Main Content --- */}
           <main className="space-y-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -133,6 +202,8 @@ const Index = () => {
                 <p className="text-sm text-muted-foreground mb-4">Backup or restore your progress.</p>
                 <div className="grid grid-cols-2 gap-2">
                   <Button onClick={handleExport} variant="outline"><FileDown className="mr-2 h-4 w-4"/>Export Data</Button>
+                  <Button onClick={handleDownloadReport} variant="outline"><FileDown className="mr-2 h-4 w-4"/>Download Report</Button>
+                  <div className="col-span-2 flex justify-end"><ThemeToggle /></div>
                   <Button onClick={() => document.getElementById('import-input')?.click()} variant="outline" disabled={importing}>
                     {importing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileUp className="mr-2 h-4 w-4"/>}
                     {importing ? 'Importing...' : 'Import Data'}

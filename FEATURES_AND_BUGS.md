@@ -12,6 +12,7 @@ Below is a comprehensive, up-to-date list of **features** and **known bugs / lim
 | **UI / UX** | • Liquid-glass design with subtle transparency & blur <br>• Blue primary accent + playful pink backgrounds on key panels <br>• Responsive layout (mobile → desktop) <br>• Hover-lift, slide-in, and wiggle micro-animations |
 | **Data & Sync** | • Import / export progress as JSON (works offline) <br>• Supabase integration with graceful fallback to localStorage <br>• Guest mode if env vars missing |
 | **Robustness** | • Global ErrorBoundary catches runtime crashes <br>• NaN-safe calculations (fixed all known divide-by-zero) <br>• AMC 8 tests always display “questions” mode regardless of global toggle |
+| **Reporting** | • Generate and download PDF progress reports with stats and test history |
 | **Accessibility** | • Keyboard-navigable buttons & links <br>• Tooltips with aria-labels <br>• High-contrast focus rings |
 
 ---
@@ -36,4 +37,4 @@ If you want to expand further:
 - Introduce **leaderboards** (needs multi-user auth).  
 - Support **custom problem tags** (algebra, geometry, etc.) for granular analytics.  
 - Add **calendar heat-map** of test days.  
-- Generate **PDF progress reports** for coaches / parents.
+

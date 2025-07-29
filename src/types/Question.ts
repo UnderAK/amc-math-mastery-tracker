@@ -8,10 +8,3 @@ export interface Question {
   solution?: string; // Optional for now
 }
 
-export interface Test {
-  id: string;
-  name: string;
-  year: number;
-  competition: 'AMC 10A' | 'AMC 10B' | 'AMC 12A' | 'AMC 12B';
-  questions: Question[];
-}
