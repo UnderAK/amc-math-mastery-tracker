@@ -98,8 +98,8 @@ const PracticePage = () => {
         return;
       }
       // Use all competitions returned by the Supabase query (already filtered)
-      const matchingCompetitions = compData.map((d: any) => d.competition);
-      if (matchingCompetitions.length === 0) {
+      const matchingTestIds = compData.map((d: any) => d.id);
+      if (matchingTestIds.length === 0) {
         toast({
           title: 'No Competitions Found',
           description: `No competitions found for ${competitionType}.`,
@@ -107,27 +107,12 @@ const PracticePage = () => {
         });
         return;
       }
-      // Get all test IDs for the matching competitions
-      const { data: testData, error: testError } = await supabase
-        .from('tests')
-        .select('id')
-        .in('competition', matchingCompetitions);
-      if (testError) throw testError;
-      if (!testData || testData.length === 0) {
-        toast({
-          title: 'No Tests Found',
-          description: `No tests found for ${competitionType}.`,
-          variant: 'destructive',
-        });
-        return;
-      }
-      const testIds = testData.map(test => test.id);
-      // Get all questions for the selected question number from those tests
+      // Get all questions for the matching test IDs and question number
       const { data: questionData, error: questionError } = await supabase
         .from('questions')
         .select('id, question_number, problem_html, answer')
+        .in('test_id', matchingTestIds)
         .eq('question_number', questionNumber)
-        .in('test_id', testIds)
         .order('id');
       if (questionError) throw questionError;
       if (questionData && questionData.length > 0) {
