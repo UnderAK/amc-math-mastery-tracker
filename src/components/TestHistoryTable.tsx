@@ -153,9 +153,13 @@ export const TestHistoryTable = ({ filterType = "all" }: TestHistoryTableProps) 
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
                       {(() => {
+                        const totalQuestions = getTotalQuestions(test);
+                        const maxPoints = getMaxPoints(test);
+                        const score = typeof test.score === 'number' ? test.score : 0;
+
                         const percent = scoringMode === 'questions'
-                          ? Math.round((getCorrectCount(test) / getTotalQuestions(test)) * 100)
-                          : Math.round((test.score / getMaxPoints(test)) * 100);
+                          ? totalQuestions > 0 ? Math.round((getCorrectCount(test) / totalQuestions) * 100) : 0
+                          : maxPoints > 0 ? Math.round((score / maxPoints) * 100) : 0;
                         return <>
                           <span className={getScoreColor(scoringMode === 'questions' ? getCorrectCount(test) : test.score)}>{percent}%</span>
                           <div className="w-16 h-2 bg-secondary rounded-full overflow-hidden">
