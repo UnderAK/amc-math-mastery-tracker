@@ -22,36 +22,9 @@ export const PracticeGeneratorForm: React.FC<PracticeGeneratorFormProps> = ({ on
   const [competitionError, setCompetitionError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchCompetitions = async () => {
-      setLoadingCompetitions(true);
-      setCompetitionError(null);
-      const { data, error } = await supabase
-        .from('tests')
-        .select('competition')
-        .neq('competition', null);
-      if (error) {
-        setCompetitionError('Failed to load competitions.');
-        setCompetitions([]);
-      } else if (data) {
-        // Extract base types (e.g. 'AMC 10' from '2021_AMC_10A', 'AHSME' from '1950_AHSME', etc.)
-        const allowedTypes = ['AMC 8', 'AMC 10', 'AMC 12', 'AHSME'];
-        const baseTypes = Array.from(new Set(
-          data.map((d: any) => {
-            let comp = d.competition.replace(/^\d{4}[_\s]*/, '').toUpperCase();
-            comp = comp.replace(/[_\s]*[AB]$/i, '');
-            comp = comp.replace(/_/g, ' ');
-            if (comp.startsWith('AMC 8')) return 'AMC 8';
-            if (comp.startsWith('AMC 10')) return 'AMC 10';
-            if (comp.startsWith('AMC 12')) return 'AMC 12';
-            if (comp.startsWith('AHSME')) return 'AHSME';
-            return null;
-          }).filter(Boolean)
-        )).filter(t => allowedTypes.includes(t)).sort();
-        setCompetitions(baseTypes);
-      }
-      setLoadingCompetitions(false);
-    };
-    fetchCompetitions();
+    setCompetitions(['AMC 8', 'AMC 10', 'AMC 12']);
+    setLoadingCompetitions(false);
+    setCompetitionError(null);
   }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
