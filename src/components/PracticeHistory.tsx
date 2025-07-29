@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useScoringMode } from '@/context/ScoringModeContext';
-import { getCorrectCount, getTotalQuestions, getMaxPoints } from '@/lib/scoring';
+import { useSettings } from '@/context/SettingsContext';
+import { getCorrectCount, getMaxPoints, getTotalQuestions } from '@/lib/scoring';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -9,13 +9,13 @@ interface PracticeScore {
   testName: string;
   score: number;
   date: string;
-  // If questionCorrectness is ever added, it should be optional
-  // questionCorrectness?: { [questionNum: number]: boolean };
+  userAnswers: string[];
+  correctAnswers: string[];
 }
 
 export const PracticeHistory: React.FC = () => {
   const [history, setHistory] = useState<PracticeScore[]>([]);
-  const { scoringMode } = useScoringMode();
+  const { settings } = useSettings();
 
   useEffect(() => {
     const storedScores = localStorage.getItem('practiceScores');
@@ -44,56 +44,56 @@ export const PracticeHistory: React.FC = () => {
             <thead className="bg-secondary/50 sticky top-0">
               <tr>
                 <th className="px-4 py-3 text-left font-medium">Test</th>
-                <th className="px-4 py-3 text-left font-medium">Score</th>
-                <th className="px-4 py-3 text-left font-medium">Percent</th>
+                <th className="px-4 py-3 text-left font-medium">Result</th>
+                <th className="px-4 py-3 text-left font-medium">Percentage</th>
                 <th className="px-4 py-3 text-left font-medium">Date</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {history.map((item, index) => {
-                  // PracticeScore does not have questionCorrectness; only use score
-                  // Ensure score is a valid number, default to 0 otherwise
-                  const score = typeof item.score === 'number' ? item.score : 0;
-                  const totalQuestions = 25;
-                  const maxPoints = 150;
-                  const correct = Math.round(score / 6); // AMC 10/12 logic
-                  const percent = scoringMode === 'questions'
-                    ? Math.round((correct / totalQuestions) * 100)
-                    : Math.round((score / maxPoints) * 100);
-                  const getScoreColor = (score: number) => {
-                    if (score >= 23) return "text-green-600 font-semibold";
-                    if (score >= 20) return "text-blue-600 font-medium";
-                    if (score >= 15) return "text-yellow-600";
-                    return "text-red-600";
-                  };
-                  return (
-                    <tr key={index} className="border-b last:border-none hover:bg-muted/50 transition-colors">
-                      <td className="px-4 py-3">{item.testName}</td>
-                      <td className={`px-4 py-3 ${getScoreColor(scoringMode === 'questions' ? correct : score)}`}>
-                        {scoringMode === 'questions'
-                          ? `${correct} / ${totalQuestions}`
-                          : `${score} / ${maxPoints}`
-                        }
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-2">
-                          <span className={getScoreColor(scoringMode === 'questions' ? correct : score)}>{percent}%</span>
-                          <div className="w-16 h-2 bg-secondary rounded-full overflow-hidden">
-                            <div
-                              className={`h-full transition-all duration-500 ${
-                                percent >= 90 ? 'bg-green-500' :
-                                percent >= 75 ? 'bg-blue-500' :
-                                percent >= 60 ? 'bg-yellow-500' : 'bg-red-500'
-                              }`}
-                              style={{ width: `${percent}%` }}
-                            />
-                          </div>
+                const testTypeMatch = item.testName.match(/AMC (8|10|12)/);
+                const testType = testTypeMatch ? `amc${testTypeMatch[1]}` as any : 'amc10'; // Default to amc10 if no match
+
+                const correctCount = getCorrectCount(item.userAnswers, item.correctAnswers);
+                const totalQuestions = getTotalQuestions(testType);
+                const maxPoints = getMaxPoints(testType);
+
+                const percent = maxPoints > 0 ? Math.round((item.score / maxPoints) * 100) : 0;
+
+                const getScoreColor = (p: number) => {
+                  if (p >= 90) return "text-green-500 font-semibold";
+                  if (p >= 75) return "text-blue-500 font-medium";
+                  if (p >= 60) return "text-yellow-500";
+                  return "text-red-500";
+                };
+
+                return (
+                  <tr key={index} className="border-b last:border-none hover:bg-muted/50 transition-colors">
+                    <td className="px-4 py-3">{item.testName}</td>
+                    <td className={`px-4 py-3 font-medium ${getScoreColor(percent)}`}>
+                      {settings.scoreDisplayMode === 'points'
+                        ? `${item.score.toFixed(1)} / ${maxPoints}`
+                        : `${correctCount} / ${totalQuestions}`}
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2">
+                        <span className={`font-semibold ${getScoreColor(percent)}`}>{percent}%</span>
+                        <div className="w-16 h-2 bg-secondary rounded-full overflow-hidden">
+                          <div
+                            className={`h-full transition-all duration-500 ${
+                              percent >= 90 ? 'bg-green-500' :
+                              percent >= 75 ? 'bg-blue-500' :
+                              percent >= 60 ? 'bg-yellow-500' : 'bg-red-500'
+                            }`}
+                            style={{ width: `${percent}%` }}
+                          />
                         </div>
-                      </td>
-                      <td className="px-4 py-3 text-muted-foreground">{new Date(item.date).toLocaleDateString()}</td>
-                    </tr>
-                  );
-                })}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">{new Date(item.date).toLocaleDateString()}</td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

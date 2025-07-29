@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useSettings } from '@/context/SettingsContext';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
@@ -6,6 +7,7 @@ import { PracticeGeneratorForm } from '@/components/PracticeGeneratorForm';
 import { AnswerSheet } from '@/components/AnswerSheet';
 import { QuestionDisplay } from '@/components/QuestionDisplay';
 import { supabase } from '@/lib/supabaseClient';
+import { calculateScore, getCorrectCount, getMaxPoints } from '@/lib/scoring';
 
 import { PracticeHistory } from '@/components/PracticeHistory';
 import { useToast } from '@/hooks/use-toast';
@@ -23,29 +25,25 @@ interface Question {
 const PracticePage = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { settings } = useSettings();
   const [isLoading, setIsLoading] = useState(false);
   const [userAnswers, setUserAnswers] = useState<string[]>([]);
   const [practiceParams, setPracticeParams] = useState<{competition: string, questionNumber: number} | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
   
   const [score, setScore] = useState<number | null>(null);
+  const [correctCount, setCorrectCount] = useState<number>(0);
   const [isGraded, setIsGraded] = useState(false);
 
   const handleGradeTest = () => {
     if (!practiceParams) return;
 
     const correctAnswers = questions.map(q => q.answer);
-    let correctCount = 0;
-    userAnswers.forEach((answer, index) => {
-      if (answer.toUpperCase() === correctAnswers[index]?.toUpperCase()) {
-        correctCount++;
-      }
-    });
+    const correctCountValue = getCorrectCount(userAnswers, correctAnswers);
+    const finalScore = calculateScore(userAnswers, correctAnswers, practiceParams.competition as any);
 
-    const blankCount = userAnswers.filter(a => a === '').length;
-    const incorrectCount = questions.length - correctCount - blankCount;
-    const finalScore = (correctCount * 6) + (blankCount * 1.5);
     setScore(finalScore);
+    setCorrectCount(correctCountValue);
     setIsGraded(true);
 
     const practiceScore = {
@@ -62,7 +60,7 @@ const PracticePage = () => {
 
     toast({
       title: "Test Graded!",
-      description: `Your score is ${finalScore}. Correct: ${correctCount}, Blank: ${blankCount}, Incorrect: ${incorrectCount}.`,
+      description: `Your score is ${finalScore}. You got ${correctCountValue} questions correct.`,
     });
   };
 
@@ -198,7 +196,11 @@ const PracticePage = () => {
                   onAnswersChange={setUserAnswers} 
                 />
                 <Button className="mt-6 w-full" onClick={handleGradeTest} disabled={isGraded}>
-                  {isGraded ? `Your Score: ${score}` : 'Grade Test'}
+                  {isGraded
+                    ? settings.scoreDisplayMode === 'points'
+                      ? `Your Score: ${score}`
+                      : `Correct: ${correctCount} / ${questions.length}`
+                    : 'Grade Test'}
                 </Button>
               </div>
             )}

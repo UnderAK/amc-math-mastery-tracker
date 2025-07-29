@@ -4,13 +4,16 @@ import App from './App.tsx';
 import ErrorBoundary from './components/ErrorBoundary';
 import './index.css';
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { SettingsProvider } from "@/context/SettingsContext";
 import { Toaster } from "@/components/ui/toaster";
 
 createRoot(document.getElementById('root')!).render(
   <BrowserRouter>
     <ErrorBoundary>
       <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-        <App />
+        <SettingsProvider>
+          <App />
+        </SettingsProvider>
         <Toaster />
       </ThemeProvider>
     </ErrorBoundary>

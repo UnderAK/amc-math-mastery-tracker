@@ -1,5 +1,7 @@
 import React from 'react';
 import { CompletedTest, UserProfileData } from '@/types/amc';
+import { useSettings } from '@/context/SettingsContext';
+import { getMaxPoints } from '@/lib/scoring';
 
 interface ProgressReportProps {
   profile: UserProfileData | null;
@@ -7,19 +9,35 @@ interface ProgressReportProps {
   stats: any; // Using 'any' for now, will define a proper type later
 }
 
-const calculateAverage = (tests: CompletedTest[]) => {
+const calculateAverage = (tests: CompletedTest[], mode: 'points' | 'percentage') => {
   if (tests.length === 0) return '0.0';
-  const total = tests.reduce((acc, test) => acc + (test.score / (test.testType === 'amc8' ? 25 : 150)) * 100, 0);
-  return (total / tests.length).toFixed(1);
+  if (mode === 'percentage') {
+    const total = tests.reduce((acc, test) => {
+      const maxPoints = getMaxPoints(test.testType);
+      return acc + (maxPoints > 0 ? (test.score / maxPoints) * 100 : 0);
+    }, 0);
+    return (total / tests.length).toFixed(1);
+  } else {
+    const total = tests.reduce((acc, test) => acc + test.score, 0);
+    return (total / tests.length).toFixed(1);
+  }
 };
 
-const calculateBest = (tests: CompletedTest[]) => {
+const calculateBest = (tests: CompletedTest[], mode: 'points' | 'percentage') => {
   if (tests.length === 0) return '0.0';
-  const best = Math.max(...tests.map(test => (test.score / (test.testType === 'amc8' ? 25 : 150)) * 100));
-  return best.toFixed(1);
+  if (mode === 'percentage') {
+    const best = Math.max(...tests.map(test => {
+      const maxPoints = getMaxPoints(test.testType);
+      return maxPoints > 0 ? (test.score / maxPoints) * 100 : 0;
+    }));
+    return best.toFixed(1);
+  } else {
+    return Math.max(...tests.map(test => test.score)).toFixed(1);
+  }
 };
 
 export const ProgressReport: React.FC<ProgressReportProps> = ({ profile, tests, stats }) => {
+  const { settings } = useSettings();
   return (
     <div className="p-8 bg-white text-black w-[210mm] h-[297mm]">
       <header className="text-center mb-8 border-b-2 pb-4 border-gray-300">
@@ -38,11 +56,11 @@ export const ProgressReport: React.FC<ProgressReportProps> = ({ profile, tests, 
             </div>
             <div className="p-4 bg-gray-100 rounded-lg">
               <p className="text-sm text-gray-500">Average Score</p>
-              <p className="text-2xl font-bold">{calculateAverage(tests)}%</p>
+                            <p className="text-2xl font-bold">{calculateAverage(tests, settings.scoreDisplayMode)}{settings.scoreDisplayMode === 'percentage' ? '%' : ''}</p>
             </div>
             <div className="p-4 bg-gray-100 rounded-lg">
               <p className="text-sm text-gray-500">Best Score</p>
-              <p className="text-2xl font-bold">{calculateBest(tests)}%</p>
+                            <p className="text-2xl font-bold">{calculateBest(tests, settings.scoreDisplayMode)}{settings.scoreDisplayMode === 'percentage' ? '%' : ''}</p>
             </div>
           </div>
         </section>
@@ -62,7 +80,12 @@ export const ProgressReport: React.FC<ProgressReportProps> = ({ profile, tests, 
                 <tr key={index} className="hover:bg-gray-50">
                   <td className="py-2 px-4 border-b">{new Date(test.date).toLocaleDateString()}</td>
                   <td className="py-2 px-4 border-b">{test.testType.toUpperCase()}</td>
-                  <td className="py-2 px-4 border-b">{test.score} / {test.testType === 'amc8' ? 25 : 150}</td>
+                                    <td className="py-2 px-4 border-b">
+                    {settings.scoreDisplayMode === 'percentage'
+                      ? `${((test.score / getMaxPoints(test.testType)) * 100).toFixed(1)}%`
+                      : `${test.score} / ${getMaxPoints(test.testType)}`
+                    }
+                  </td>
                 </tr>
               ))}
             </tbody>

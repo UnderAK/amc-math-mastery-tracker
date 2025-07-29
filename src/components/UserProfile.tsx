@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { UserProfileData } from '@/types/amc';
-import { useScoringMode } from '@/context/ScoringModeContext';
+
 import { Switch } from '@/components/ui/switch';
 import { User, Edit3, Save, X, ShoppingCart, Coins, Calendar, ChevronsRight, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -60,7 +60,7 @@ export const UserProfile = ({ isOpen, onClose }: UserProfilePopupProps) => {
   const [pendingUsername, setPendingUsername] = useState("");
   const { toast } = useToast();
   const [isGuest, setIsGuest] = useState(false);
-  const { scoringMode, setScoringMode } = useScoringMode();
+
 
   useEffect(() => {
     const updateData = () => {
@@ -377,19 +377,7 @@ export const UserProfile = ({ isOpen, onClose }: UserProfilePopupProps) => {
             </div>
           </div>
         </div>
-        {/* Scoring Mode Toggle */}
-        <div className="flex items-center gap-4 mt-2">
-          <span className="text-sm font-medium text-muted-foreground">Scoring Display:</span>
-          <div className="flex items-center gap-2">
-            <span className={scoringMode === 'points' ? 'font-bold text-primary' : ''}>Points</span>
-            <Switch
-              checked={scoringMode === 'questions'}
-              onCheckedChange={(checked) => setScoringMode(checked ? 'questions' : 'points')}
-              aria-label="Toggle scoring mode"
-            />
-            <span className={scoringMode === 'questions' ? 'font-bold text-primary' : ''}>Questions</span>
-          </div>
-        </div>
+
       </DialogContent>
     </Dialog>
   );

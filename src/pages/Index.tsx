@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import confetti from "canvas-confetti";
 import {
   Trophy,
@@ -35,13 +35,14 @@ import { LeaderboardOverlay } from "@/components/LeaderboardOverlay";
 import { Accordion } from "@/components/Accordion";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { useSettings } from "@/context/SettingsContext";
 
 
 
 
 
 const Index = () => {
-  const [settings, setSettings] = useState({ scoreDisplayMode: 'percentage' }); // 'percentage' or 'points'
+  const { settings, setSettings } = useSettings();
   const [showIntro, setShowIntro] = useState(false);
   const [importing, setImporting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -52,18 +53,7 @@ const Index = () => {
 
 
 
-  // Load settings from localStorage on initial render
-  useEffect(() => {
-    const savedSettings = localStorage.getItem('settings');
-    if (savedSettings) {
-      setSettings(JSON.parse(savedSettings));
-    }
-  }, []);
 
-  // Save settings to localStorage whenever they change
-  useEffect(() => {
-    localStorage.setItem('settings', JSON.stringify(settings));
-  }, [settings]);
 
   // Show intro popup on first visit
   useEffect(() => {

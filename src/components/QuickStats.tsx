@@ -1,19 +1,34 @@
 import { useState, useEffect } from "react";
-import { useScoringMode } from '@/context/ScoringModeContext';
-import { getCorrectCount, getTotalQuestions, getMaxPoints } from '@/lib/scoring';
+import { useSettings } from '@/context/SettingsContext';
+import { getMaxPoints } from '@/lib/scoring';
+import { TestScore } from '@/types/TestScore';
 import { BarChart, Target, Flame, Star } from 'lucide-react';
 
 export const QuickStats = () => {
+  const { settings } = useSettings();
   const [stats, setStats] = useState({ tests: 0, avg: 0, streak: 0, xp: 0 });
 
   useEffect(() => {
     const updateStats = () => {
-      const scores = JSON.parse(localStorage.getItem('scores') || '[]');
+      const scores: TestScore[] = JSON.parse(localStorage.getItem('scores') || '[]');
       const xp = parseInt(localStorage.getItem('xp') || '0', 10);
       const streak = parseInt(localStorage.getItem('streak') || '0', 10);
-      const avg = scores.length > 0
-        ? Math.round(scores.reduce((sum: number, s: { score: number }) => sum + (s.score || 0), 0) / scores.length)
-        : 0;
+      
+      let avg = 0;
+      if (scores.length > 0) {
+        if (settings.scoreDisplayMode === 'percentage') {
+          const totalPercentage = scores.reduce((sum, s) => {
+            const maxPoints = getMaxPoints(s.testType);
+            const percentage = maxPoints > 0 ? (s.score / maxPoints) * 100 : 0;
+            return sum + percentage;
+          }, 0);
+          avg = Math.round(totalPercentage / scores.length);
+        } else { // 'points'
+          const totalPoints = scores.reduce((sum, s) => sum + (s.score || 0), 0);
+          avg = Math.round(totalPoints / scores.length);
+        }
+      }
+
       setStats({ tests: scores.length, avg, streak, xp });
     };
 
@@ -44,7 +59,7 @@ export const QuickStats = () => {
       <h3 className="text-xl font-semibold text-primary flex items-center"><BarChart className="mr-2"/>Quick Stats</h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <StatItem icon={<Target className="w-6 h-6 text-primary" />} value={stats.tests} label="Tests Taken" />
-        <StatItem icon={<Star className="w-6 h-6 text-primary" />} value={stats.avg} label="Average Score" />
+                <StatItem icon={<Star className="w-6 h-6 text-primary" />} value={`${stats.avg}${settings.scoreDisplayMode === 'percentage' ? '%' : ''}`} label="Average Score" />
         <StatItem icon={<Flame className="w-6 h-6 text-primary" />} value={stats.streak} label="Current Streak" />
         <StatItem icon={<BarChart className="w-6 h-6 text-primary" />} value={stats.xp.toLocaleString()} label="Experience Points" />
       </div>
