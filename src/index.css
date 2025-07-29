@@ -8,7 +8,7 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* AMC Tracker Theme - Mathematical Blue */
+    /* AMC Tracker Theme - Warm Amber */
     --background: 240 10% 98%;
     --foreground: 217 32% 17%;
 
@@ -18,10 +18,10 @@ All colors MUST be HSL.
     --popover: 0 0% 100%;
     --popover-foreground: 217 32% 17%;
 
-    /* Mathematical Blue Primary */
-    --primary: 217 91% 60%;
+    /* Warm Amber Primary */
+    --primary: 35 92% 60%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 217 91% 75%;
+    --primary-glow: 35 92% 75%;
 
     /* Soft Mathematical Secondary */
     --secondary: 217 50% 95%;
