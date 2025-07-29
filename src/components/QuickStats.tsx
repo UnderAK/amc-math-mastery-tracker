@@ -4,13 +4,47 @@ import { getMaxPoints } from '@/lib/scoring';
 import { TestScore } from '@/types/TestScore';
 import { BarChart, Target, Flame, Star } from 'lucide-react';
 
+// Type guard to check if an object is a valid TestScore
+const isTestScore = (item: any): item is TestScore => {
+  return (
+    typeof item === 'object' &&
+    item !== null &&
+    typeof item.score === 'number' &&
+    typeof item.date === 'string' &&
+    typeof item.testType === 'string'
+  );
+};
+
 export const QuickStats = () => {
   const { settings } = useSettings();
   const [stats, setStats] = useState({ tests: 0, avg: 0, streak: 0, xp: 0 });
 
   useEffect(() => {
     const updateStats = () => {
-      const scores: TestScore[] = JSON.parse(localStorage.getItem('scores') || '[]');
+      let scores: TestScore[] = [];
+      try {
+        const rawScores = JSON.parse(localStorage.getItem('scores') || '[]');
+        if (Array.isArray(rawScores)) {
+          // Check for legacy format (array of numbers/strings) and migrate
+          if (rawScores.every(s => typeof s === 'number' || typeof s === 'string')) {
+            const migratedScores: TestScore[] = rawScores.map(s => ({
+              id: crypto.randomUUID(),
+              score: Number(s) || 0,
+              date: new Date().toISOString(),
+              year: new Date().getFullYear(),
+              testType: 'amc10', // Assign a default testType
+            }));
+            localStorage.setItem('scores', JSON.stringify(migratedScores));
+            scores = migratedScores;
+          } else {
+            // Filter for valid TestScore objects
+            scores = rawScores.filter(isTestScore);
+          }
+        }
+      } catch (e) {
+        console.error("Failed to parse or migrate scores from localStorage", e);
+        scores = [];
+      }
       const xp = parseInt(localStorage.getItem('xp') || '0', 10);
       const streak = parseInt(localStorage.getItem('streak') || '0', 10);
       
@@ -40,7 +74,7 @@ export const QuickStats = () => {
     return () => {
       window.removeEventListener('dataUpdate', updateStats);
     };
-  }, []);
+  }, [settings.scoreDisplayMode]);
 
   const StatItem = ({ icon, value, label }: { icon: React.ReactNode, value: string | number, label: string }) => (
     <div className="group relative glass p-4 rounded-lg flex items-center space-x-4 transition-all duration-300 hover:bg-primary/10 hover:shadow-lg hover:-translate-y-1">
