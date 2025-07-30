@@ -26,6 +26,7 @@ const LiveSession = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [userAnswer, setUserAnswer] = useState<string | null>(null);
   const [answerStatus, setAnswerStatus] = useState<'correct' | 'incorrect' | null>(null);
+  const [submittedAnswers, setSubmittedAnswers] = useState<Database['public']['Tables']['live_answers']['Row'][]>([]);
 
   const isGuestMode = useMemo(() => location.state?.isGuest || sessionId?.startsWith('guest-'), [location.state, sessionId]);
 
@@ -82,6 +83,13 @@ const LiveSession = () => {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'live_participants', filter: `session_id=eq.${sessionId}` }, (payload) => {
         fetchSessionData();
       })
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'live_answers' }, (payload) => {
+        const newAnswer = payload.new as Database['public']['Tables']['live_answers']['Row'];
+        // Check if the answer is for the current session by checking if the participant is in the current session
+        if (participants.some(p => p.id === newAnswer.participant_id)) {
+          setSubmittedAnswers(currentAnswers => [...currentAnswers, newAnswer]);
+        }
+      })
       .subscribe();
 
     return () => {
@@ -113,13 +121,43 @@ const LiveSession = () => {
 
   const handleAnswerSubmit = async (answer: string) => {
     if (!userId || !session || !test) return;
+    
+    const participant = participants.find(p => p.user_id === userId);
+    if (!participant) {
+      toast({ title: 'Error', description: 'You are not a participant in this session.', variant: 'destructive' });
+      return;
+    }
+
     const isCorrect = test.questions[session.current_question_index].answer === answer;
     setAnswerStatus(isCorrect ? 'correct' : 'incorrect');
     setUserAnswer(answer);
 
-    const participant = participants.find(p => p.user_id === userId);
-    if (isCorrect && participant) {
-        await supabase.rpc('increment_score', { participant_id_to_update: participant.id, score_to_add: 10 });
+    // Save the answer to the database
+    const { error: answerError } = await supabase
+      .from('live_answers')
+      .insert({
+        participant_id: participant.id,
+        question_number: session.current_question_index + 1, // 1-indexed
+        answer: answer,
+        is_correct: isCorrect
+      });
+
+    if (answerError) {
+      console.error('Error saving answer:', answerError);
+      toast({ title: 'Error', description: 'Failed to save your answer.', variant: 'destructive' });
+      return;
+    }
+
+    // Update score if correct
+    if (isCorrect) {
+      const { error: scoreError } = await supabase.rpc('increment_score', { 
+        participant_id_to_update: participant.id, 
+        score_to_add: 10 
+      });
+      
+      if (scoreError) {
+        console.error('Error updating score:', scoreError);
+      }
     }
   };
 
@@ -223,7 +261,12 @@ const LiveSession = () => {
                 </Avatar>
                 <span>{p.username || 'Anonymous'}</span>
               </div>
-              <span className="font-bold">{p.score || 0} pts</span>
+              <div className="flex items-center gap-2">
+                {submittedAnswers.some(a => a.participant_id === p.id && a.question_number === (session?.current_question_index ?? 0) + 1) && (
+                  <CheckIcon className="h-5 w-5 text-green-500" />
+                )}
+                <span className="font-bold">{p.score || 0} pts</span>
+              </div>
             </li>
           ))}
         </ul>
