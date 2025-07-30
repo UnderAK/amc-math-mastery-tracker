@@ -89,13 +89,11 @@ const LiveBuzzerLobby = () => {
     }
     setIsJoining(true);
 
-    const { data: session, error: sessionError } = await supabase
-      .from('live_sessions')
-      .select('id')
-      .eq('join_code', joinCode.toUpperCase())
-      .single();
+    const { data: sessionId, error: rpcError } = await supabase.rpc('get_session_by_code', {
+      p_join_code: joinCode.toUpperCase(),
+    });
 
-    if (sessionError || !session) {
+    if (rpcError || !sessionId) {
       toast({ title: 'Session not found', description: 'Invalid join code.', variant: 'destructive' });
       setIsJoining(false);
       return;
@@ -110,7 +108,7 @@ const LiveBuzzerLobby = () => {
 
     const { error: joinError } = await supabase
       .from('live_participants')
-      .insert({ session_id: session.id, user_id: user.id });
+      .insert({ session_id: sessionId, user_id: user.id });
 
     if (joinError) {
       // Handle unique constraint violation (already joined)
@@ -124,7 +122,7 @@ const LiveBuzzerLobby = () => {
     }
 
     setIsLoading(true); // Show loading state before navigating
-    navigate(`/live-buzzer/${session.id}`);
+    navigate(`/live-buzzer/${sessionId}`);
   };
 
   if (isLoading) {
