@@ -3,13 +3,14 @@ import { useToast } from '@/hooks/use-toast';
 import { NUM_QUESTIONS } from '@/config/test-config';
 import { TestType } from '@/types/amc';
 import { TestScore } from '@/types/TestScore';
+import { Topic } from '@/lib/topics';
 
 interface UseTestGraderProps {
   debouncedUserAnswers: string;
   debouncedAnswerKey: string;
   testType: TestType;
   testYear: string;
-  allQuestionTopics: { [key: number]: string };
+  allQuestionTopics: { [key: number]: Topic };
   savedTests: TestScore[];
   setSavedTests: (tests: TestScore[]) => void;
   setNewAchievements: (achievements: any[]) => void;

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useScoringMode } from '@/context/ScoringModeContext';
+import { useScoringMode } from '@/context/SettingsContext';
 import { getCorrectCount, getTotalQuestions, getMaxPoints } from '@/lib/scoring';
 import { Trophy, TrendingUp, AlertCircle, Star, Award, X } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";

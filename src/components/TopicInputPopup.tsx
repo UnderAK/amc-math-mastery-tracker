@@ -10,14 +10,15 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Topic } from "@/lib/topics";
 
 interface TopicInputPopupProps {
   isOpen: boolean;
   onClose: () => void;
   questionsToTopic: number[]; // Array of question numbers (1-25)
-  initialTopics: { [questionNum: number]: string };
-  onSaveTopics: (topics: { [questionNum: number]: string }) => void;
-  topicOptions: string[];
+  initialTopics: { [questionNum: number]: Topic };
+  onSaveTopics: (topics: { [questionNum: number]: Topic }) => void;
+  topicOptions: Topic[];
 }
 
 export const TopicInputPopup: React.FC<TopicInputPopupProps> = ({
@@ -29,7 +30,7 @@ export const TopicInputPopup: React.FC<TopicInputPopupProps> = ({
   topicOptions,
 }) => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [topics, setTopics] = useState<{ [questionNum: number]: string }>({});
+  const [topics, setTopics] = useState<{ [questionNum: number]: Topic }>({});
 
   // Initialize topics state when the popup opens or initialTopics change
   useEffect(() => {
@@ -47,12 +48,12 @@ export const TopicInputPopup: React.FC<TopicInputPopupProps> = ({
   const totalQuestions = questionsToTopic.length; // Should be 25
   const currentQuestionNumber = questionsToTopic[currentQuestionIndex];
 
-  const handleTopicChange = (topic: string) => {
+  const handleTopicChange = (topic: Topic) => {
     console.log(`DEBUG: handleTopicChange - Question ${currentQuestionNumber}, Topic: ${topic}`);
     setTopics(prevTopics => {
       const newTopics = {
         ...prevTopics,
-        [currentQuestionNumber]: topic.trim(),
+        [currentQuestionNumber]: topic,
       };
       console.log('DEBUG: handleTopicChange - Updated topics state:', newTopics);
       console.log('DEBUG: handleTopicChange - Current question topic set to:', newTopics[currentQuestionNumber]);
@@ -142,7 +143,7 @@ export const TopicInputPopup: React.FC<TopicInputPopupProps> = ({
   }
 
   // Determine the topic currently selected for the current question
-  const currentSelectedTopic = topics[currentQuestionNumber] || "";
+  const currentSelectedTopic = topics[currentQuestionNumber] || "Other";
   console.log('DEBUG TopicInputPopup: Current question:', currentQuestionNumber, 'Selected topic:', currentSelectedTopic);
   console.log('DEBUG TopicInputPopup: All topics state:', topics);
 

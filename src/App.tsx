@@ -23,7 +23,6 @@ import Auth from './components/Auth';
 import { Session } from '@supabase/supabase-js';
 import { AuthProvider } from './contexts/AuthContext';
 import { SpeedInsights } from '@vercel/speed-insights/react';
-import { ScoringModeProvider } from './context/ScoringModeContext';
 
 const queryClient = new QueryClient();
 
@@ -78,31 +77,29 @@ const App = () => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ScoringModeProvider>
-        <AuthProvider value={{ session, isGuest, handleLogout }}>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            {!isOnline && <OfflineBanner />}
-            <Routes>
-              <Route element={<MainLayout />}>
-                <Route path="/" element={<Index />} />
-                <Route path="/analytics" element={<Analytics />} />
-                <Route path="/test-entry" element={<TestEntryPage />} />
-                <Route path="/practice" element={<PracticePage />} />
-                <Route path="/history" element={<History />} />
-                <Route path="/leaderboard" element={<Leaderboard />} />
-              </Route>
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-            {/* Konami code toast */}
-            <KonamiToast />
-            <VercelAnalytics />
-            <SpeedInsights />
-          </TooltipProvider>
-        </AuthProvider>
-      </ScoringModeProvider>
+      <AuthProvider value={{ session, isGuest, handleLogout }}>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          {!isOnline && <OfflineBanner />}
+          <Routes>
+            <Route element={<MainLayout />}>
+              <Route path="/" element={<Index />} />
+              <Route path="/analytics" element={<Analytics />} />
+              <Route path="/test-entry" element={<TestEntryPage />} />
+              <Route path="/practice" element={<PracticePage />} />
+              <Route path="/history" element={<History />} />
+              <Route path="/leaderboard" element={<Leaderboard />} />
+            </Route>
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+          {/* Konami code toast */}
+          <KonamiToast />
+          <VercelAnalytics />
+          <SpeedInsights />
+        </TooltipProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 };

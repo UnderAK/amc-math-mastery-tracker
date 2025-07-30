@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { BarChart3, TrendingUp, TrendingDown, AlertTriangle, BookOpen, Target } from "lucide-react";
 import { TestScore } from "@/types/TestScore";
+import { TOPICS, isTopic } from "@/lib/topics";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
 
@@ -40,7 +41,7 @@ export const TopicBreakdown = ({ filterType = "all" }: TopicBreakdownProps) => {
 
   const topicStats = useMemo(() => {
     const topicData: { [topic: string]: { correct: number; total: number; mistakes: number } } = {};
-    const possibleTopics = ["Algebra", "Geometry", "Number Theory", "Combinatorics", "Other"];
+    const possibleTopics = TOPICS;
     possibleTopics.forEach(topic => {
       topicData[topic] = { correct: 0, total: 0, mistakes: 0 };
     });
@@ -49,7 +50,7 @@ export const TopicBreakdown = ({ filterType = "all" }: TopicBreakdownProps) => {
       if (score.questionTopics && score.questionCorrectness) {
         for (let i = 1; i <= 25; i++) {
           const rawTopic = score.questionTopics[i] || "Other";
-          const topic = possibleTopics.includes(rawTopic) ? rawTopic : "Other";
+          const topic = isTopic(rawTopic) ? rawTopic : "Other";
           const isCorrect = score.questionCorrectness[i];
 
           topicData[topic].total++;
@@ -105,10 +106,7 @@ export const TopicBreakdown = ({ filterType = "all" }: TopicBreakdownProps) => {
       case "Geometry": return "📏";
       case "Number Theory": return "🧮";
       case "Combinatorics": return "🎯";
-      case "Basic Arithmetic": return "➕";
-      case "Advanced Topics": return "🧠";
-      case "Unknown": return "❓"; // Added icon for Unknown topic
-      default: return "📚";
+      default: return "📚"; // Icon for "Other"
     }
   };
 

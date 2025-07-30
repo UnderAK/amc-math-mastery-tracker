@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useScoringMode } from '@/context/ScoringModeContext';
+import { useScoringMode } from '@/context/SettingsContext';
 import { getCorrectCount, getTotalQuestions, getMaxPoints } from '@/lib/scoring';
 import { TrendingUp, Calendar, Target, Award, Filter, BarChart3, Zap, TrendingDown, Clock } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";

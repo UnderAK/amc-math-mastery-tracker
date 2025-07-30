@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { useScoringMode } from '@/context/ScoringModeContext';
+import { useScoringMode } from '@/context/SettingsContext';
 import { getCorrectCount, getTotalQuestions, getMaxPoints } from '@/lib/scoring';
 import { BookOpen, Filter, Calendar, AlertCircle } from "lucide-react";
 import { format } from 'date-fns';
@@ -94,6 +94,12 @@ export const TestHistoryTable = ({ filterType = "all" }: TestHistoryTableProps) 
   }
 
   const { scoringMode } = useScoringMode();
+  
+  useEffect(() => {
+    console.log('DEBUG TestHistoryTable: Current scoringMode from unified context:', scoringMode);
+    console.log('DEBUG TestHistoryTable: localStorage scoringMode:', localStorage.getItem('scoringMode'));
+    console.log('DEBUG TestHistoryTable: localStorage settings:', localStorage.getItem('settings'));
+  }, [scoringMode]);
 
   return (
     <section className="glass p-6 rounded-2xl shadow-xl bg-pink-50/50">

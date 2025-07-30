@@ -2,7 +2,9 @@ import { useState, useEffect } from "react";
 import { UserProfileData } from '@/types/amc';
 
 import { Switch } from '@/components/ui/switch';
-import { User, Edit3, Save, X, ShoppingCart, Coins, Calendar, ChevronsRight, Star } from "lucide-react";
+import { Label } from '@/components/ui/label';
+import { useScoringMode } from '@/context/SettingsContext';
+import { User, Edit3, Save, X, ShoppingCart, Coins, Calendar, ChevronsRight, Star, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
@@ -60,6 +62,7 @@ export const UserProfile = ({ isOpen, onClose }: UserProfilePopupProps) => {
   const [pendingUsername, setPendingUsername] = useState("");
   const { toast } = useToast();
   const [isGuest, setIsGuest] = useState(false);
+  const { scoringMode, setScoringMode } = useScoringMode();
 
 
   useEffect(() => {
@@ -339,6 +342,28 @@ export const UserProfile = ({ isOpen, onClose }: UserProfilePopupProps) => {
                     </div>
                   ))
                 )}
+              </div>
+            </div>
+
+            {/* Scoring Mode Toggle */}
+            <div className="p-4 bg-primary/5 dark:bg-primary/10 rounded-xl border border-primary/20">
+              <h3 className="text-lg font-semibold text-primary mb-3 text-center flex items-center justify-center gap-2">
+                <Settings className="w-5 h-5"/> Display Settings
+              </h3>
+              <div className="flex items-center justify-between rounded-lg border p-3 bg-background/50">
+                <Label htmlFor="profile-score-mode" className="font-medium">
+                  Score Display
+                  <p className="text-xs text-muted-foreground">Show scores as points or questions correct.</p>
+                </Label>
+                <Switch
+                  id="profile-score-mode"
+                  checked={scoringMode === 'points'}
+                  onCheckedChange={(checked) => {
+                    const newMode = checked ? 'points' : 'questions';
+                    console.log('DEBUG UserProfile: Scoring mode changed to:', newMode);
+                    setScoringMode(newMode);
+                  }}
+                />
               </div>
             </div>
 

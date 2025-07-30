@@ -211,12 +211,16 @@ const Index = () => {
                 <div className="flex items-center justify-between rounded-lg border p-3">
                   <Label htmlFor="score-mode" className="font-medium">
                     Score Display
-                    <p className="text-xs text-muted-foreground">Show scores as points or percentage.</p>
+                    <p className="text-xs text-muted-foreground">Show scores as points or questions correct.</p>
                   </Label>
                   <Switch
                     id="score-mode"
-                    checked={settings.scoreDisplayMode === 'points'}
-                    onCheckedChange={(checked) => setSettings(s => ({ ...s, scoreDisplayMode: checked ? 'points' : 'percentage' }))}
+                    checked={settings.scoringMode === 'points'}
+                    onCheckedChange={(checked) => {
+                      const newMode = checked ? 'points' : 'questions';
+                      console.log('DEBUG Index.tsx: Unified scoring mode changed to:', newMode);
+                      setSettings(s => ({ ...s, scoringMode: newMode }));
+                    }}
                   />
                 </div>
 

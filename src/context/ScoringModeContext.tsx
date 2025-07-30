@@ -15,10 +15,13 @@ export const ScoringModeProvider: React.FC<{ children: React.ReactNode }> = ({ c
   });
 
   useEffect(() => {
+    console.log('DEBUG ScoringModeContext: Saving scoringMode to localStorage:', scoringMode);
     localStorage.setItem('scoringMode', scoringMode);
   }, [scoringMode]);
 
   const setScoringMode = (mode: ScoringMode) => {
+    console.log('DEBUG ScoringModeContext: setScoringMode called with:', mode);
+    console.log('DEBUG ScoringModeContext: Previous scoringMode:', scoringMode);
     setScoringModeState(mode);
   };
 

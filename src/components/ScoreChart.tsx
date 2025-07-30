@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
-import { useScoringMode } from '@/context/ScoringModeContext';
+import { useScoringMode } from '@/context/SettingsContext';
 import { getCorrectCount, getTotalQuestions, getMaxPoints } from '@/lib/scoring';
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { TestScore } from "@/types/TestScore";

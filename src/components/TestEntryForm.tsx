@@ -12,11 +12,12 @@ import { useToast } from "@/hooks/use-toast";
 import { useTestGrader } from '@/hooks/use-test-grader';
 import { TestScore } from "@/types/TestScore";
 import { TestType } from "@/types/amc";
-import { NUM_QUESTIONS, TOPIC_OPTIONS, TEST_TYPES, MIN_YEAR, MAX_YEAR } from "@/config/test-config";
+import { NUM_QUESTIONS, TEST_TYPES, MIN_YEAR, MAX_YEAR } from "@/config/test-config";
+import { TOPICS, Topic } from "@/lib/topics";
 import { preloadedTests } from '@/data/tests';
 
 
-const getTopicForQuestion = (): string => {
+const getTopicForQuestion = (): Topic => {
   return "Other";
 };
 
@@ -37,7 +38,7 @@ export const TestEntryForm = ({ inputMode, initialAnswerKey }: TestEntryFormProp
   const [userAnswers, setUserAnswers] = useState("");
   const [answerKey, setAnswerKey] = useState("");
   const [label, setLabel] = useState("");
-  const [allQuestionTopics, setAllQuestionTopics] = useState<{ [key: number]: string }>({});
+  const [allQuestionTopics, setAllQuestionTopics] = useState<{ [key: number]: Topic }>({});
   const [isTopicInputForAllOpen, setIsTopicInputForAllOpen] = useState(false);
   const [isGrading, setIsGrading] = useState(false);
   const [result, setResult] = useState("");
@@ -69,7 +70,7 @@ export const TestEntryForm = ({ inputMode, initialAnswerKey }: TestEntryFormProp
 
 
   useEffect(() => {
-    const initialTopics: { [key: number]: string } = {};
+    const initialTopics: { [key: number]: Topic } = {};
     for (let i = 1; i <= NUM_QUESTIONS; i++) {
       initialTopics[i] = getTopicForQuestion();
     }
@@ -86,15 +87,16 @@ export const TestEntryForm = ({ inputMode, initialAnswerKey }: TestEntryFormProp
       const newAnswerKey = test.questions.map(q => q.answer).join('');
       setAnswerKey(newAnswerKey);
 
-      const newTopics = Object.fromEntries(
-        test.questions.map(q => [q.questionNumber, q.topic])
-      );
+      const newTopics = test.questions.reduce((acc: { [key: number]: Topic }, q) => {
+        acc[q.questionNumber] = q.topic as Topic;
+        return acc;
+      }, {});
       setAllQuestionTopics(newTopics);
     } else {
       setAnswerKey('');
       setTestType('amc8');
       setTestYear(new Date().getFullYear().toString());
-      const initialTopics: { [key: number]: string } = {};
+      const initialTopics: { [key: number]: Topic } = {};
       for (let i = 1; i <= NUM_QUESTIONS; i++) {
         initialTopics[i] = getTopicForQuestion();
       }
@@ -147,7 +149,7 @@ export const TestEntryForm = ({ inputMode, initialAnswerKey }: TestEntryFormProp
     setIsTopicInputForAllOpen(true);
   };
 
-  const handleSaveAllTopics = (topics: { [key: number]: string }) => {
+  const handleSaveAllTopics = (topics: { [key: number]: Topic }) => {
     setAllQuestionTopics(topics);
     setIsTopicInputForAllOpen(false);
     setIsGrading(true);
@@ -265,7 +267,7 @@ export const TestEntryForm = ({ inputMode, initialAnswerKey }: TestEntryFormProp
         questionsToTopic={Array.from({length: NUM_QUESTIONS}, (_, i) => i + 1)}
         initialTopics={allQuestionTopics}
         onSaveTopics={handleSaveAllTopics}
-        topicOptions={TOPIC_OPTIONS}
+        topicOptions={[...TOPICS]}
       />
 
     <AchievementPopup
