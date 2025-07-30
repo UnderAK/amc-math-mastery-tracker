@@ -8,6 +8,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Loader2, CheckIcon } from 'lucide-react';
 import { getTestById, AmcTest } from '@/data/amc-tests';
 
+
 type Participant = Database['public']['Views']['session_participants_with_profiles']['Row'];
 type SessionData = Database['public']['Tables']['live_sessions']['Row'] & {
   session_participants_with_profiles: Participant[];
@@ -173,7 +174,7 @@ const LiveSession = () => {
           <div className="mt-6">
             <div className="mb-4">
               <p className="font-bold text-lg">Question {session.current_question_index + 1} of {test.questions.length}</p>
-              <p className="text-xl mt-2">{currentQuestion.text}</p>
+              <div className="text-xl mt-2 prose" dangerouslySetInnerHTML={{ __html: currentQuestion.text }} />
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {Object.entries(currentQuestion.options).map(([key, value]) => (
@@ -186,7 +187,7 @@ const LiveSession = () => {
                   disabled={!!userAnswer}
                 >
                   <span className="font-bold mr-4">{key}</span>
-                  <span>{value}</span>
+                  <span dangerouslySetInnerHTML={{ __html: value }} />
                 </Button>
               ))}
             </div>
