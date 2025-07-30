@@ -24,8 +24,14 @@ const LiveSession = () => {
   const [userId, setUserId] = useState<string | undefined>();
   const [test, setTest] = useState<AmcTest | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [userAnswer, setUserAnswer] = useState<string | null>(null);
+  const [userAnswer, setUserAnswer] = useState<string>('');
   const [answerStatus, setAnswerStatus] = useState<'correct' | 'incorrect' | null>(null);
+  const [hasBuzzedIn, setHasBuzzedIn] = useState(false);
+  const [buzzerState, setBuzzerState] = useState<{
+    isLocked: boolean;
+    firstBuzzer: string | null;
+    canAnswer: boolean;
+  }>({ isLocked: false, firstBuzzer: null, canAnswer: false });
   const [submittedAnswers, setSubmittedAnswers] = useState<Database['public']['Tables']['live_answers']['Row'][]>([]);
   const [isSessionActive, setIsSessionActive] = useState(false);
 
@@ -86,6 +92,23 @@ const LiveSession = () => {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'live_participants', filter: `session_id=eq.${sessionId}` }, (payload) => {
         fetchSessionData();
       })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'live_buzzer_state', filter: `session_id=eq.${sessionId}` }, (payload) => {
+        console.log('[DEBUG] Buzzer state changed:', payload);
+        if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
+          const newState = payload.new as any;
+          if (newState.question_number === session?.current_question_index + 1) {
+            // Find the participant name
+            const buzzerParticipant = participants.find(p => p.id === newState.first_buzzer_participant_id);
+            const buzzerName = buzzerParticipant?.username || 'Someone';
+            
+            setBuzzerState({
+              isLocked: newState.buzzer_locked,
+              firstBuzzer: buzzerName,
+              canAnswer: buzzerParticipant?.user_id === userId
+            });
+          }
+        }
+      })
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'live_answers' }, (payload) => {
         const newAnswer = payload.new as Database['public']['Tables']['live_answers']['Row'];
         // Check if the answer is for the current session by checking if the participant is in the current session
@@ -105,6 +128,11 @@ const LiveSession = () => {
     if (session?.status === 'in_progress') {
       console.log('[DEBUG] Session is active, showing questions.');
       setIsSessionActive(true);
+      // Reset buzzer state for new question
+      setHasBuzzedIn(false);
+      setBuzzerState({ isLocked: false, firstBuzzer: null, canAnswer: false });
+      setUserAnswer('');
+      setAnswerStatus(null);
     } else {
       setIsSessionActive(false);
     }
@@ -133,8 +161,8 @@ const LiveSession = () => {
     if (error) toast({ title: 'Error starting session', description: error.message, variant: 'destructive' });
   };
 
-  const handleAnswerSubmit = async (answer: string) => {
-    if (!userId || !session || !test) return;
+  const handleBuzzIn = async () => {
+    if (!userId || !session || hasBuzzedIn) return;
     
     const participant = participants.find(p => p.user_id === userId);
     if (!participant) {
@@ -142,18 +170,50 @@ const LiveSession = () => {
       return;
     }
 
-    const isCorrect = test.questions[session.current_question_index].answer === answer;
-    setAnswerStatus(isCorrect ? 'correct' : 'incorrect');
-    setUserAnswer(answer);
+    const { data, error } = await supabase.rpc('buzz_in', {
+      p_session_id: session.id,
+      p_participant_id: participant.id,
+      p_question_number: session.current_question_index + 1
+    });
 
-    // Save the answer to the database
+    if (error) {
+      console.error('Error buzzing in:', error);
+      toast({ title: 'Error', description: 'Failed to buzz in.', variant: 'destructive' });
+      return;
+    }
+
+    setHasBuzzedIn(true);
+    
+    if (data.first_buzzer) {
+      setBuzzerState({ isLocked: true, firstBuzzer: data.participant_name, canAnswer: true });
+      toast({ title: 'Success!', description: data.message });
+    } else {
+      setBuzzerState({ isLocked: true, firstBuzzer: data.first_buzzer_name, canAnswer: false });
+      toast({ title: 'Too late!', description: data.message, variant: 'destructive' });
+    }
+  };
+
+  const handleAnswerSubmit = async () => {
+    if (!userId || !session || !test || !userAnswer.trim()) return;
+    
+    const participant = participants.find(p => p.user_id === userId);
+    if (!participant) {
+      toast({ title: 'Error', description: 'You are not a participant in this session.', variant: 'destructive' });
+      return;
+    }
+
+    const currentQuestion = test.questions[session.current_question_index];
+    const isCorrect = currentQuestion.answer.toLowerCase() === userAnswer.toLowerCase().trim();
+    setAnswerStatus(isCorrect ? 'correct' : 'incorrect');
+
     const { error: answerError } = await supabase
       .from('live_answers')
       .insert({
         participant_id: participant.id,
-        question_number: session.current_question_index + 1, // 1-indexed
-        answer: answer,
-        is_correct: isCorrect
+        question_number: session.current_question_index + 1,
+        answer: userAnswer.trim(),
+        is_correct: isCorrect,
+        buzzed_at: new Date().toISOString()
       });
 
     if (answerError) {
@@ -162,16 +222,17 @@ const LiveSession = () => {
       return;
     }
 
-    // Update score if correct
     if (isCorrect) {
-      const { error: scoreError } = await supabase.rpc('increment_score', { 
-        participant_id_to_update: participant.id, 
-        score_to_add: 10 
+      const { error: scoreError } = await supabase.rpc('increment_score', {
+        participant_id_to_update: participant.id,
+        score_to_add: 10
       });
-      
       if (scoreError) {
         console.error('Error updating score:', scoreError);
       }
+      toast({ title: 'Correct!', description: 'Great job!' });
+    } else {
+      toast({ title: 'Incorrect', description: `The correct answer was: ${currentQuestion.answer}`, variant: 'destructive' });
     }
   };
 
@@ -228,20 +289,73 @@ const LiveSession = () => {
               <p className="font-bold text-lg">Question {session.current_question_index + 1} of {test.questions.length}</p>
               <div className="text-xl mt-2 prose question-html" dangerouslySetInnerHTML={{ __html: currentQuestion.text }} />
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {Object.entries(currentQuestion.options).map(([key, value]) => (
-                <Button
-                  key={key}
-                  variant={userAnswer === key ? (answerStatus === 'correct' ? 'success' : 'destructive') : 'outline'}
-                  size="lg"
-                  className="justify-start h-full whitespace-normal relative"
-                  onClick={() => handleAnswerSubmit(key)}
-                  disabled={!!userAnswer}
-                >
-                  <span className="font-bold mr-4">{key}</span>
-                  <span dangerouslySetInnerHTML={{ __html: value }} />
-                </Button>
-              ))}
+            <div className="space-y-4">
+              {!buzzerState.isLocked ? (
+                <div className="text-center">
+                  <Button
+                    onClick={handleBuzzIn}
+                    disabled={hasBuzzedIn}
+                    size="lg"
+                    className="w-full h-20 text-2xl font-bold bg-red-500 hover:bg-red-600 text-white"
+                  >
+                    {hasBuzzedIn ? 'Buzzed In!' : 'BUZZ IN'}
+                  </Button>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Click the buzzer when you know the answer!
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="text-center p-4 bg-yellow-100 dark:bg-yellow-900/20 rounded-lg">
+                    <p className="font-bold text-lg">
+                      {buzzerState.firstBuzzer} buzzed in first!
+                    </p>
+                  </div>
+                  
+                  {buzzerState.canAnswer ? (
+                    <div className="space-y-3">
+                      <div>
+                        <label htmlFor="answer-input" className="block text-sm font-medium mb-2">
+                          Your Answer:
+                        </label>
+                        <input
+                          id="answer-input"
+                          type="text"
+                          value={userAnswer}
+                          onChange={(e) => setUserAnswer(e.target.value)}
+                          className="w-full p-3 border rounded-lg text-lg"
+                          placeholder="Type your answer here..."
+                          disabled={!!answerStatus}
+                          onKeyPress={(e) => e.key === 'Enter' && handleAnswerSubmit()}
+                        />
+                      </div>
+                      <Button
+                        onClick={handleAnswerSubmit}
+                        disabled={!userAnswer.trim() || !!answerStatus}
+                        className="w-full"
+                        size="lg"
+                      >
+                        Submit Answer
+                      </Button>
+                      {answerStatus && (
+                        <div className={`text-center p-3 rounded-lg ${
+                          answerStatus === 'correct' 
+                            ? 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-200'
+                            : 'bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-200'
+                        }`}>
+                          <p className="font-bold">
+                            {answerStatus === 'correct' ? '✓ Correct!' : '✗ Incorrect'}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="text-center p-4 bg-gray-100 dark:bg-gray-800 rounded-lg">
+                      <p>Wait for {buzzerState.firstBuzzer} to answer...</p>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
             {isHost && (
               <div className="flex justify-between items-center mt-6">
