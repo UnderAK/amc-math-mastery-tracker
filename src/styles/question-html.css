@@ -11,9 +11,8 @@
   display: none;
 }
 
-.question-html * {
-  display: inline !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  vertical-align: middle !important;
+.question-html img {
+  display: inline;
+  vertical-align: middle;
+  margin: 0 2px;
 }

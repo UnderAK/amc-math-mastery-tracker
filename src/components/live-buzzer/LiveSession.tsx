@@ -54,6 +54,7 @@ const LiveSession = () => {
     const sessionData = sessionWithParticipants.session;
     const participantsData = sessionWithParticipants.participants || [];
 
+    console.log('[DEBUG] Fetched Session Data:', sessionData);
     setSession(sessionData);
     setParticipants(participantsData);
     setIsLoading(false);
@@ -107,6 +108,7 @@ const LiveSession = () => {
         toast({ title: 'Error fetching test data', description: error.message, variant: 'destructive' });
         setTest(null);
       } else {
+        console.log('[DEBUG] Fetched Test Data:', data);
         setTest(data);
       }
     };
