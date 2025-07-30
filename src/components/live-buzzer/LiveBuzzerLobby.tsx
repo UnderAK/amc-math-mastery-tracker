@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { useEffect } from 'react';
 
 const LiveBuzzerLobby = () => {
   const [joinCode, setJoinCode] = useState('');
@@ -15,19 +17,42 @@ const LiveBuzzerLobby = () => {
   const [isCreating, setIsCreating] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isGuestMode, setIsGuestMode] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setIsGuestMode(!session);
+    };
+    checkAuth();
+  }, []);
+
   const handleCreateSession = async () => {
     setIsCreating(true);
+
+    if (isGuestMode) {
+      const guestSessionId = `guest-${Math.random().toString(36).substring(2, 9)}`;
+      toast({ title: 'Entering Guest Session', description: 'Your session is local and will not be saved.' });
+      setIsLoading(true);
+      navigate(`/live-buzzer/${guestSessionId}`, { 
+        state: { 
+          isGuest: true,
+          test_type: testType,
+          test_year: testYear
+        }
+      });
+      return;
+    }
+
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
+    if (!user) { // Should not happen if not guest mode, but as a fallback
       toast({ title: 'Error', description: 'You must be logged in to create a session.', variant: 'destructive' });
       setIsCreating(false);
       return;
     }
 
-    // Generate a simple 6-character random code
     const code = Math.random().toString(36).substring(2, 8).toUpperCase();
 
     const { data, error } = await supabase
@@ -38,18 +63,18 @@ const LiveBuzzerLobby = () => {
         test_year: testYear,
         join_code: code,
         status: 'lobby',
+        current_question_index: 0,
       })
       .select()
       .single();
 
     if (error) {
       toast({ title: 'Failed to create session', description: error.message, variant: 'destructive' });
+      setIsCreating(false);
     } else if (data) {
       toast({ title: 'Session Created!', description: `Share code: ${data.join_code}` });
-      setIsLoading(true); // Show loading state before navigating
+      setIsLoading(true);
       navigate(`/live-buzzer/${data.id}`);
-    } else {
-      setIsCreating(false);
     }
   };
 
@@ -146,16 +171,28 @@ const LiveBuzzerLobby = () => {
       </div>
 
       {/* Join Session Card */}
-      <div className="glass p-6 rounded-lg">
-        <h2 className="text-2xl font-bold mb-4">Join a Session</h2>
+      <div className={`glass p-6 rounded-lg ${isGuestMode ? 'opacity-50 cursor-not-allowed' : ''}`}>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger className="w-full">
+              <h2 className="text-2xl font-bold mb-4 text-left">Join a Session</h2>
+            </TooltipTrigger>
+            {isGuestMode && (
+              <TooltipContent>
+                <p>Joining sessions requires an account. Please log in to use this feature.</p>
+              </TooltipContent>
+            )}
+          </Tooltip>
+        </TooltipProvider>
         <div className="space-y-4">
           <Input
             placeholder="Enter Join Code"
             value={joinCode}
             onChange={(e) => setJoinCode(e.target.value)}
             className="text-center text-lg tracking-widest"
+            disabled={isGuestMode}
           />
-          <Button onClick={handleJoinSession} disabled={isJoining} className="w-full">
+          <Button onClick={handleJoinSession} disabled={isJoining || isGuestMode} className="w-full">
             {isJoining && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} 
             Join Session
           </Button>

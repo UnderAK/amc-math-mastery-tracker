@@ -1,6 +1,5 @@
-import React from 'react';
-
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useParams, useLocation } from 'react-router-dom';
 import { supabase } from '@/lib/supabaseClient';
 import { Database } from '@/types/supabase';
 import { useToast } from '@/hooks/use-toast';
@@ -8,74 +7,112 @@ import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 import { getTestById, AmcTest } from '@/data/amc-tests';
 
-type LiveSessionProps = {
-  sessionId: string;
+type Participant = Omit<Database['public']['Tables']['live_participants']['Row'], 'id'> & {
+  id: string; // Ensure id is always a string, overriding default number type if needed
+  profiles: {
+    id: string;
+    username: string | null;
+    avatar_url: string | null;
+    updated_at: string | null;
+    website: string | null;
+    coin_balance: number | null;
+    full_name: string | null;
+  } | null;
 };
 
 type SessionData = Database['public']['Tables']['live_sessions']['Row'] & {
-  live_participants: (Database['public']['Tables']['live_participants']['Row'] & {
-    profiles: Database['public']['Tables']['profiles']['Row'] | null;
-  })[];
+  live_participants: Participant[];
 };
 
-const LiveSession = ({ sessionId }: LiveSessionProps) => {
-  const [session, setSession] = useState<SessionData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [isUpdating, setIsUpdating] = useState(false);
-  const [currentUserId, setCurrentUserId] = useState<string | undefined>(undefined);
+const LiveSession = () => {
+  const { sessionId } = useParams<{ sessionId: string }>();
+  const location = useLocation();
   const { toast } = useToast();
-  const [test, setTest] = useState<AmcTest | undefined>(undefined);
-  const [submittedAnswers, setSubmittedAnswers] = useState<Map<number, string>>(new Map());
-  const [isSubmitting, setIsSubmitting] = useState<string | null>(null); // Track which answer is being submitted
 
+  const isGuestMode = location.state?.isGuest || sessionId?.startsWith('guest-');
+
+  const [session, setSession] = useState<SessionData | null>(null);
+  const [participants, setParticipants] = useState<Participant[]>([]);
+  const [userId, setUserId] = useState<string | undefined>(isGuestMode ? 'guest-user' : undefined);
+  const [userAnswer, setUserAnswer] = useState<string | null>(null);
+  const [answerStatus, setAnswerStatus] = useState<'correct' | 'incorrect' | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Memoize test data to avoid re-calculating on every render
+  const test: AmcTest | undefined = React.useMemo(() => {
+    if (!session && !isGuestMode) return undefined;
+    const testType = isGuestMode ? location.state.test_type : session?.test_type;
+    const testYear = isGuestMode ? location.state.test_year : session?.test_year;
+    if (!testType || !testYear) return undefined;
+    const testId = `${testType.toLowerCase().replace(/\s+/g, '')}-${testYear}`;
+    return getTestById(testId);
+  }, [session, isGuestMode, location.state]);
+
+  // Effect for initializing session (both guest and authenticated)
   useEffect(() => {
-    const fetchUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setCurrentUserId(user?.id);
+    const initializeSession = async () => {
+      setIsLoading(true);
+      if (isGuestMode) {
+        const guestSession: SessionData = {
+          id: sessionId!,
+          created_at: new Date().toISOString(),
+          host_id: 'guest-user',
+          test_type: location.state.test_type,
+          test_year: location.state.test_year,
+          join_code: 'GUEST',
+          status: 'lobby',
+          current_question_index: 0,
+          live_participants: [], // Will be populated by guest participant
+        };
+        const guestParticipant: Participant = {
+          id: 'guest-participant',
+          session_id: sessionId!,
+          user_id: 'guest-user',
+          joined_at: new Date().toISOString(),
+          score: 0,
+          profiles: { 
+            id: 'guest-user', 
+            username: 'Guest', 
+            avatar_url: null, 
+            updated_at: null, 
+            website: null, 
+            coin_balance: 0, 
+            full_name: 'Guest User'
+          },
+        };
+        setSession(guestSession);
+        setParticipants([guestParticipant]);
+      } else {
+        const { data: { user } } = await supabase.auth.getUser();
+        setUserId(user?.id);
+      }
+      setIsLoading(false);
     };
-    fetchUser();
-  }, []);
+    initializeSession();
+  }, [isGuestMode, sessionId, location.state]);
 
+  // Effect for fetching data and real-time updates for authenticated users
   useEffect(() => {
-    if (!sessionId || !currentUserId) return;
+    if (isGuestMode || !sessionId || !userId) return;
 
-    const fetchSessionAndAnswers = async () => {
-      setLoading(true);
+    const fetchSessionData = async () => {
       const { data, error } = await supabase
         .from('live_sessions')
-        .select('*, live_participants (*, profiles (*))')
+        .select('*, live_participants!inner(*, profiles(*))')
         .eq('id', sessionId)
         .single();
 
       if (error || !data) {
         toast({ title: 'Error fetching session', description: error?.message || 'Session not found.', variant: 'destructive' });
         setSession(null);
-        setLoading(false);
-        return;
-      }
-
-      setSession(data as SessionData);
-      const testId = `${data.test_type.toLowerCase().replace(' ', '')}-${data.test_year}`;
-      const loadedTest = getTestById(testId);
-      if (loadedTest) {
-        setTest(loadedTest);
       } else {
-        toast({ title: 'Test data not found', description: `Could not find questions for ${data.test_type} ${data.test_year}`, variant: 'destructive' });
+        setSession(data as SessionData);
+        setParticipants(data.live_participants as Participant[]);
       }
-
-      const participant = data.live_participants.find(p => p.user_id === currentUserId);
-      if (participant) {
-        const { data: answersData } = await supabase.from('live_answers').select('question_number, answer').eq('participant_id', participant.id);
-        if (answersData) {
-          const answers = answersData as { question_number: number; answer: string }[];
-          const answerMap = new Map<number, string>(answers.map(a => [a.question_number, a.answer]));
-          setSubmittedAnswers(answerMap);
-        }
-      }
-      setLoading(false);
+      setIsLoading(false);
     };
 
-    fetchSessionAndAnswers();
+    fetchSessionData();
 
     const channel = supabase
       .channel(`session-${sessionId}`)
@@ -83,169 +120,126 @@ const LiveSession = ({ sessionId }: LiveSessionProps) => {
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'live_sessions', filter: `id=eq.${sessionId}` },
         (payload) => {
-          setSession(prev => prev ? { ...prev, ...(payload.new as Partial<SessionData>) } : null);
+          setSession(prev => ({ ...prev!, ...(payload.new as SessionData) }));
+          setUserAnswer(null); // Reset answer on question change
+          setAnswerStatus(null);
         }
       )
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'live_participants', filter: `session_id=eq.${sessionId}` },
-        () => fetchSessionAndAnswers()
+        () => fetchSessionData() // Refetch all participants to update scores and list
       )
       .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [sessionId, currentUserId, toast]);
+  }, [isGuestMode, sessionId, userId, toast]);
 
-  if (loading) {
-    return <div>Loading session...</div>;
-  }
-
-  if (!session) {
-    return <div>Session not found.</div>;
-  }
-
-  const isHost = currentUserId === session.host_id;
-
-  const handleAnswerSubmit = async (answer: string) => {
-    if (!test) return;
-    const currentQuestion = test.questions[session.current_question_index];
-    const participant = session.live_participants.find(p => p.user_id === currentUserId);
-
-    if (!participant) {
-      toast({ title: 'Error', description: 'You are not a participant in this session.', variant: 'destructive' });
+  const handleStartSession = async () => {
+    if (isGuestMode) {
+      setSession(prev => (prev ? { ...prev, status: 'in_progress' } : null));
       return;
     }
+    const { error } = await supabase.from('live_sessions').update({ status: 'in_progress' }).eq('id', sessionId);
+    if (error) toast({ title: 'Error starting session', description: error.message, variant: 'destructive' });
+  };
 
-    setIsSubmitting(answer);
+  const handleAnswerSubmit = async (answer: string) => {
+    if (!test || !session) return;
+    const currentQuestion = test.questions[session.current_question_index];
+    if (!currentQuestion) return;
 
-    const { error } = await supabase.from('live_answers').insert({
-      participant_id: participant.id,
-      question_number: currentQuestion.number,
-      answer: answer,
-      is_correct: currentQuestion.answer === answer
-    });
+    setUserAnswer(answer);
+    const isCorrect = answer === currentQuestion.answer;
+    setAnswerStatus(isCorrect ? 'correct' : 'incorrect');
 
-    if (error) {
-      toast({ title: 'Failed to submit answer', description: error.message, variant: 'destructive' });
-    } else {
-      setSubmittedAnswers(prev => {
-        const newMap = new Map<number, string>(prev);
-        newMap.set(currentQuestion.number, answer);
-        return newMap;
-      });
-      if (currentQuestion.answer === answer) {
-        const { error: rpcError } = await supabase.rpc('increment_score', { participant_id_to_update: participant.id, score_to_add: 10 });
-        if (rpcError) {
-          toast({ title: 'Error updating score', description: rpcError.message, variant: 'destructive' });
+    if (isCorrect) {
+      if (isGuestMode) {
+        setParticipants(prev => prev.map(p => (p.user_id === userId ? { ...p, score: p.score + 10 } : p)));
+      } else {
+        const participant = participants.find(p => p.user_id === userId);
+        if (participant) {
+          const { error } = await supabase.rpc('increment_score', { participant_id_to_update: participant.id, score_to_add: 10 });
+          if (error) toast({ title: 'Error updating score', description: error.message, variant: 'destructive' });
         }
       }
     }
-    setIsSubmitting(null);
   };
 
-  const handleStartSession = async () => {
-    setIsUpdating(true);
-    const { error } = await supabase
-      .from('live_sessions')
-      .update({ status: 'in_progress' })
-      .eq('id', sessionId);
-
-    if (error) {
-      toast({ title: 'Error starting session', description: error.message, variant: 'destructive' });
-    } else {
-      toast({ title: 'Session Started!', description: 'The test is now live.' });
+  const updateQuestionIndex = async (newIndex: number) => {
+    if (isGuestMode) {
+      setSession(prev => (prev ? { ...prev, current_question_index: newIndex } : null));
+      setUserAnswer(null);
+      setAnswerStatus(null);
+      return;
     }
-    setIsUpdating(false);
+    const { error } = await supabase.from('live_sessions').update({ current_question_index: newIndex }).eq('id', sessionId);
+    if (error) toast({ title: 'Error updating question', description: error.message, variant: 'destructive' });
   };
 
-  const handlePreviousQuestion = async () => {
-    if (!session || session.current_question_index <= 0) return;
+  if (isLoading) {
+    return <div className="flex justify-center items-center h-64"><Loader2 className="h-16 w-16 animate-spin" /></div>;
+  }
 
-    const { error } = await supabase
-      .from('live_sessions')
-      .update({ current_question_index: session.current_question_index - 1 })
-      .eq('id', sessionId);
+  if (!session || !test) {
+    return <div>Session or test data not found.</div>;
+  }
 
-    if (error) {
-      toast({ title: 'Error', description: 'Failed to update question.', variant: 'destructive' });
-    }
-  };
-
-  const handleNextQuestion = async () => {
-    if (!session || session.current_question_index >= test.questions.length - 1) return;
-
-    const { error } = await supabase
-      .from('live_sessions')
-      .update({ current_question_index: session.current_question_index + 1 })
-      .eq('id', sessionId);
-
-    if (error) {
-      toast({ title: 'Error', description: 'Failed to update question.', variant: 'destructive' });
-    }
-  };
+  const isHost = userId === session.host_id;
+  const currentQuestion = test.questions[session.current_question_index];
 
   return (
     <div className="p-4 border rounded-lg grid md:grid-cols-3 gap-8">
       <div className="md:col-span-2">
-        <h2 className="text-2xl font-bold">{session.test_type} {session.test_year}</h2>
-        <p className="text-muted-foreground">Status: <span className="font-semibold capitalize">{session.status}</span></p>
-        
+        <h2 className="text-2xl font-bold">{`${test.type} - ${test.year}`}</h2>
+        <p className="text-muted-foreground">Status: <span className="font-semibold capitalize">{session.status.replace('_', ' ')}</span></p>
+
         {isHost && session.status === 'lobby' && (
           <div className="mt-4 bg-secondary/50 p-4 rounded-lg">
             <h3 className="font-bold text-lg">Host Controls</h3>
-            <p className="text-sm text-muted-foreground">Share this code with participants to let them join.</p>
+            <p className="text-sm text-muted-foreground">Share this code to invite others.</p>
             <div className="my-2 p-2 bg-background rounded-md text-center font-mono text-2xl tracking-widest">{session.join_code}</div>
-            <Button onClick={handleStartSession} disabled={isUpdating} className="w-full mt-2">
-              {isUpdating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Start Session
-            </Button>
+            <Button onClick={handleStartSession} className="w-full mt-2">Start Session</Button>
           </div>
         )}
 
-        {session.status === 'in_progress' && test && (
+        {session.status === 'in_progress' && currentQuestion && (
           <div className="mt-6">
             <div className="mb-4">
               <p className="font-bold text-lg">Question {session.current_question_index + 1} of {test.questions.length}</p>
-              <p className="text-xl mt-2">{test.questions[session.current_question_index].text}</p>
+              <p className="text-xl mt-2">{currentQuestion.text}</p>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {Object.entries(test.questions[session.current_question_index].options).map(([key, value]) => {
-                const currentQuestionNumber = test.questions[session.current_question_index].number;
-                const submittedAnswer = submittedAnswers.get(currentQuestionNumber);
-                const isSubmitted = submittedAnswer === key;
-                const isCorrect = test.questions[session.current_question_index].answer === key;
-
-                return (
-                  <Button
-                    key={key}
-                    variant={submittedAnswer ? (isSubmitted ? (isCorrect ? 'success' : 'destructive') : 'outline') : 'outline'}
-                    size="lg"
-                    className="justify-start h-full whitespace-normal relative"
-                    onClick={() => handleAnswerSubmit(key)}
-                    disabled={!!submittedAnswer || !!isSubmitting}
-                  >
-                    {isSubmitting === key && <Loader2 className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin" />}
-                    <span className="font-bold mr-4">{key}</span>
-                    <span>{value}</span>
-                  </Button>
-                );
-              })}
+              {Object.entries(currentQuestion.options).map(([key, value]) => (
+                <Button
+                  key={key}
+                  variant={userAnswer === key ? (answerStatus === 'correct' ? 'success' : 'destructive') : 'outline'}
+                  size="lg"
+                  className="justify-start h-full whitespace-normal relative"
+                  onClick={() => handleAnswerSubmit(key)}
+                  disabled={!!userAnswer}
+                >
+                  <span className="font-bold mr-4">{key}</span>
+                  <span>{value}</span>
+                </Button>
+              ))}
             </div>
             {isHost && (
-              <div className="flex justify-between mt-6">
-                <Button onClick={handlePreviousQuestion} disabled={session.current_question_index === 0}>Previous</Button>
-                <span className="font-semibold">Question {session.current_question_index + 1} / {test.questions.length}</span>
-                <Button onClick={handleNextQuestion} disabled={session.current_question_index === test.questions.length - 1}>Next</Button>
+              <div className="flex justify-between items-center mt-6">
+                <Button onClick={() => updateQuestionIndex(session.current_question_index - 1)} disabled={session.current_question_index <= 0}>Previous</Button>
+                <span className="font-semibold text-muted-foreground">Host Controls</span>
+                <Button onClick={() => updateQuestionIndex(session.current_question_index + 1)} disabled={session.current_question_index >= test.questions.length - 1}>Next</Button>
               </div>
             )}
           </div>
         )}
       </div>
       <div>
-        <h3 className="text-lg font-bold">Participants ({session.live_participants.length})</h3>
+        <h3 className="text-lg font-bold">Participants ({participants.length})</h3>
         <ul className="space-y-2 mt-2">
-          {session.live_participants.map(p => (
+          {[...participants].sort((a, b) => b.score - a.score).map(p => (
             <li key={p.id} className="flex items-center justify-between p-2 rounded-md bg-secondary/50">
               <span>{p.profiles?.username || 'Anonymous'}</span>
               <span className="font-bold">{p.score} pts</span>

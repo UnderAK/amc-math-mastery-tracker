@@ -91,6 +91,7 @@ export type Database = {
       live_sessions: {
         Row: {
           created_at: string
+          current_question_index: number
           host_id: string
           id: string
           join_code: string
@@ -100,6 +101,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          current_question_index?: number
           host_id: string
           id?: string
           join_code: string
@@ -109,6 +111,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          current_question_index?: number
           host_id?: string
           id?: string
           join_code?: string
