@@ -35,8 +35,11 @@ All colors MUST be HSL.
     --accent-foreground: 0 0% 100%;
 
     /* Warning for incorrect answers */
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+
+    --success: 142.1 76.2% 36.3%;
+    --success-foreground: 142.1 76.2% 96.3%;
 
     --border: 217 50% 88%;
     --input: 217 50% 88%;

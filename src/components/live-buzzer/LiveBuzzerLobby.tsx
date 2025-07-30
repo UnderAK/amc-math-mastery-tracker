@@ -14,6 +14,7 @@ const LiveBuzzerLobby = () => {
   const [testYear, setTestYear] = useState(new Date().getFullYear());
   const [isCreating, setIsCreating] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -45,9 +46,11 @@ const LiveBuzzerLobby = () => {
       toast({ title: 'Failed to create session', description: error.message, variant: 'destructive' });
     } else if (data) {
       toast({ title: 'Session Created!', description: `Share code: ${data.join_code}` });
+      setIsLoading(true); // Show loading state before navigating
       navigate(`/live-buzzer/${data.id}`);
+    } else {
+      setIsCreating(false);
     }
-    setIsCreating(false);
   };
 
   const handleJoinSession = async () => {
@@ -91,9 +94,17 @@ const LiveBuzzerLobby = () => {
       }
     }
 
+    setIsLoading(true); // Show loading state before navigating
     navigate(`/live-buzzer/${session.id}`);
-    setIsJoining(false);
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <Loader2 className="h-16 w-16 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto p-4 grid md:grid-cols-2 gap-8">
@@ -103,7 +114,12 @@ const LiveBuzzerLobby = () => {
         <div className="space-y-4">
           <div>
             <label htmlFor="testType" className="block text-sm font-medium text-muted-foreground">Test Type</label>
-            <select id="testType" value={testType} onChange={(e) => setTestType(e.target.value)} className="mt-1 block w-full p-2 border rounded-md">
+            <select 
+              id="testType" 
+              value={testType} 
+              onChange={(e) => setTestType(e.target.value)} 
+              className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 mt-1"
+            >
               <option>AMC 10</option>
               <option>AMC 12</option>
             </select>
@@ -114,7 +130,12 @@ const LiveBuzzerLobby = () => {
               id="testYear"
               type="number"
               value={testYear}
-              onChange={(e) => setTestYear(parseInt(e.target.value))}
+              onChange={(e) => {
+                const year = parseInt(e.target.value);
+                if (!isNaN(year)) {
+                  setTestYear(year);
+                }
+              }}
             />
           </div>
           <Button onClick={handleCreateSession} disabled={isCreating} className="w-full">

@@ -25,7 +25,6 @@ const LiveSession = ({ sessionId }: LiveSessionProps) => {
   const [currentUserId, setCurrentUserId] = useState<string | undefined>(undefined);
   const { toast } = useToast();
   const [test, setTest] = useState<AmcTest | undefined>(undefined);
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [submittedAnswers, setSubmittedAnswers] = useState<Map<number, string>>(new Map());
   const [isSubmitting, setIsSubmitting] = useState<string | null>(null); // Track which answer is being submitted
 
@@ -35,48 +34,51 @@ const LiveSession = ({ sessionId }: LiveSessionProps) => {
       setCurrentUserId(user?.id);
     };
     fetchUser();
+  }, []);
 
-    const fetchSession = async () => {
+  useEffect(() => {
+    if (!sessionId || !currentUserId) return;
+
+    const fetchSessionAndAnswers = async () => {
+      setLoading(true);
       const { data, error } = await supabase
         .from('live_sessions')
         .select('*, live_participants (*, profiles (*))')
         .eq('id', sessionId)
         .single();
 
-      if (data) {
-        setSession(data as SessionData);
-        const testId = `${data.test_type.toLowerCase().replace(' ', '')}-${data.test_year}`;
-        const loadedTest = getTestById(testId);
-        if (loadedTest) {
-          setTest(loadedTest);
-        } else {
-          toast({ title: 'Test data not found', description: `Could not find questions for ${data.test_type} ${data.test_year}`, variant: 'destructive' });
-        }
+      if (error || !data) {
+        toast({ title: 'Error fetching session', description: error?.message || 'Session not found.', variant: 'destructive' });
+        setSession(null);
+        setLoading(false);
+        return;
+      }
 
-        // Load submitted answers for the current user
-        const participant = data.live_participants.find(p => p.user_id === currentUserId);
-        if (participant) {
-          const { data: answersData } = await supabase.from('live_answers').select('question_number, answer').eq('participant_id', participant.id);
-          if (answersData) {
-            // Explicitly cast the returned data to ensure type safety.
-            const answers = answersData as { question_number: number; answer: string }[];
-            const answerMap = new Map<number, string>(answers.map(a => [a.question_number, a.answer]));
-            setSubmittedAnswers(answerMap);
-          }
+      setSession(data as SessionData);
+      const testId = `${data.test_type.toLowerCase().replace(' ', '')}-${data.test_year}`;
+      const loadedTest = getTestById(testId);
+      if (loadedTest) {
+        setTest(loadedTest);
+      } else {
+        toast({ title: 'Test data not found', description: `Could not find questions for ${data.test_type} ${data.test_year}`, variant: 'destructive' });
+      }
+
+      const participant = data.live_participants.find(p => p.user_id === currentUserId);
+      if (participant) {
+        const { data: answersData } = await supabase.from('live_answers').select('question_number, answer').eq('participant_id', participant.id);
+        if (answersData) {
+          const answers = answersData as { question_number: number; answer: string }[];
+          const answerMap = new Map<number, string>(answers.map(a => [a.question_number, a.answer]));
+          setSubmittedAnswers(answerMap);
         }
       }
       setLoading(false);
     };
 
-    fetchSession();
+    fetchSessionAndAnswers();
 
     const channel = supabase
       .channel(`session-${sessionId}`)
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'live_participants', filter: `session_id=eq.${sessionId}` },
-        () => fetchSession() // Refetch all data on change
-      )
       .on(
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'live_sessions', filter: `id=eq.${sessionId}` },
@@ -84,12 +86,17 @@ const LiveSession = ({ sessionId }: LiveSessionProps) => {
           setSession(prev => prev ? { ...prev, ...(payload.new as Partial<SessionData>) } : null);
         }
       )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'live_participants', filter: `session_id=eq.${sessionId}` },
+        () => fetchSessionAndAnswers()
+      )
       .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [sessionId]);
+  }, [sessionId, currentUserId, toast]);
 
   if (loading) {
     return <div>Loading session...</div>;
@@ -103,8 +110,8 @@ const LiveSession = ({ sessionId }: LiveSessionProps) => {
 
   const handleAnswerSubmit = async (answer: string) => {
     if (!test) return;
-    const currentQuestion = test.questions[currentQuestionIndex];
-    const participant = session?.live_participants.find(p => p.user_id === currentUserId);
+    const currentQuestion = test.questions[session.current_question_index];
+    const participant = session.live_participants.find(p => p.user_id === currentUserId);
 
     if (!participant) {
       toast({ title: 'Error', description: 'You are not a participant in this session.', variant: 'destructive' });
@@ -153,6 +160,32 @@ const LiveSession = ({ sessionId }: LiveSessionProps) => {
     setIsUpdating(false);
   };
 
+  const handlePreviousQuestion = async () => {
+    if (!session || session.current_question_index <= 0) return;
+
+    const { error } = await supabase
+      .from('live_sessions')
+      .update({ current_question_index: session.current_question_index - 1 })
+      .eq('id', sessionId);
+
+    if (error) {
+      toast({ title: 'Error', description: 'Failed to update question.', variant: 'destructive' });
+    }
+  };
+
+  const handleNextQuestion = async () => {
+    if (!session || session.current_question_index >= test.questions.length - 1) return;
+
+    const { error } = await supabase
+      .from('live_sessions')
+      .update({ current_question_index: session.current_question_index + 1 })
+      .eq('id', sessionId);
+
+    if (error) {
+      toast({ title: 'Error', description: 'Failed to update question.', variant: 'destructive' });
+    }
+  };
+
   return (
     <div className="p-4 border rounded-lg grid md:grid-cols-3 gap-8">
       <div className="md:col-span-2">
@@ -173,15 +206,15 @@ const LiveSession = ({ sessionId }: LiveSessionProps) => {
         {session.status === 'in_progress' && test && (
           <div className="mt-6">
             <div className="mb-4">
-              <p className="font-bold text-lg">Question {currentQuestionIndex + 1} of {test.questions.length}</p>
-              <p className="text-xl mt-2">{test.questions[currentQuestionIndex].text}</p>
+              <p className="font-bold text-lg">Question {session.current_question_index + 1} of {test.questions.length}</p>
+              <p className="text-xl mt-2">{test.questions[session.current_question_index].text}</p>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {Object.entries(test.questions[currentQuestionIndex].options).map(([key, value]) => {
-                const currentQuestionNumber = test.questions[currentQuestionIndex].number;
+              {Object.entries(test.questions[session.current_question_index].options).map(([key, value]) => {
+                const currentQuestionNumber = test.questions[session.current_question_index].number;
                 const submittedAnswer = submittedAnswers.get(currentQuestionNumber);
                 const isSubmitted = submittedAnswer === key;
-                const isCorrect = test.questions[currentQuestionIndex].answer === key;
+                const isCorrect = test.questions[session.current_question_index].answer === key;
 
                 return (
                   <Button
@@ -201,8 +234,9 @@ const LiveSession = ({ sessionId }: LiveSessionProps) => {
             </div>
             {isHost && (
               <div className="flex justify-between mt-6">
-                <Button onClick={() => setCurrentQuestionIndex(prev => Math.max(0, prev - 1))} disabled={currentQuestionIndex === 0}>Previous</Button>
-                <Button onClick={() => setCurrentQuestionIndex(prev => Math.min(test.questions.length - 1, prev + 1))} disabled={currentQuestionIndex === test.questions.length - 1}>Next</Button>
+                <Button onClick={handlePreviousQuestion} disabled={session.current_question_index === 0}>Previous</Button>
+                <span className="font-semibold">Question {session.current_question_index + 1} / {test.questions.length}</span>
+                <Button onClick={handleNextQuestion} disabled={session.current_question_index === test.questions.length - 1}>Next</Button>
               </div>
             )}
           </div>
