@@ -99,9 +99,22 @@ const LiveSession = () => {
   }, [sessionId, isGuestMode, fetchSessionData]);
 
   const test: AmcTest | undefined = useMemo(() => {
-    if (!session) return undefined;
+    if (!session) {
+      console.log('No session data for test creation');
+      return undefined;
+    }
+    
+    console.log('Creating test from session:', session);
+    console.log('Session test_type:', session.test_type);
+    console.log('Session test_year:', session.test_year);
+    
     const testId = `${session.test_type.toLowerCase().replace(/\s+/g, '')}-${session.test_year}`;
-    return getTestById(testId);
+    console.log('Generated testId:', testId);
+    
+    const foundTest = getTestById(testId);
+    console.log('Found test:', foundTest);
+    
+    return foundTest;
   }, [session]);
 
   const handleStartSession = async () => {
