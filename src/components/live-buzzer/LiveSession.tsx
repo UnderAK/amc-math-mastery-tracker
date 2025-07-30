@@ -101,12 +101,14 @@ const LiveSession = () => {
   }, [sessionId, isGuestMode, fetchSessionData]);
 
   useEffect(() => {
+    console.log('[DEBUG] Session object updated:', session);
     if (session?.status === 'in_progress') {
+      console.log('[DEBUG] Session is active, showing questions.');
       setIsSessionActive(true);
     } else {
       setIsSessionActive(false);
     }
-  }, [session?.status]);
+  }, [session]);
 
   useEffect(() => {
     const fetchTestForSession = async () => {
