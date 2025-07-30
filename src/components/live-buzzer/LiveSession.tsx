@@ -30,33 +30,29 @@ const LiveSession = () => {
   const fetchSessionData = useCallback(async () => {
     if (isGuestMode || !sessionId) return;
 
-    // Fetch session data (except participants) as before
-    const { data: sessionData, error: sessionError } = await supabase
-      .from('live_sessions')
-      .select('*')
-      .eq('id', sessionId)
-      .single();
+    // Use a single secure RPC call to get both session and participants data
+    const { data: sessionWithParticipants, error } = await supabase.rpc('get_session_with_participants_secure', {
+      p_session_id: sessionId,
+    });
 
-    if (sessionError || !sessionData) {
+    if (error) {
       toast({ title: 'Error fetching session', description: 'The session may have ended or the code is invalid.', variant: 'destructive' });
       setIsLoading(false);
       return;
     }
 
-    setSession(sessionData as SessionData);
-
-    // Fetch all participants for the session using the secure RPC
-    const { data: participantsData, error: participantsError } = await supabase.rpc('get_session_participants', {
-      p_session_id: sessionId,
-    });
-
-    if (participantsError) {
-      toast({ title: 'Error fetching participants', description: participantsError.message, variant: 'destructive' });
+    if (!sessionWithParticipants) {
+      toast({ title: 'Session not found', description: 'The session may have expired.', variant: 'destructive' });
       setIsLoading(false);
       return;
     }
 
-    setParticipants(participantsData || []);
+    // Parse the returned JSON data
+    const sessionData = sessionWithParticipants.session;
+    const participantsData = sessionWithParticipants.participants || [];
+
+    setSession(sessionData);
+    setParticipants(participantsData);
     setIsLoading(false);
   }, [sessionId, isGuestMode, toast]);
 
