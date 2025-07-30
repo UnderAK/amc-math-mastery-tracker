@@ -88,10 +88,13 @@ const LiveBuzzerLobby = () => {
       return;
     }
     setIsJoining(true);
+    console.log(`[DEBUG] Attempting to join session with code: ${joinCode.toUpperCase()}`);
 
     const { data: sessionId, error: rpcError } = await supabase.rpc('get_session_by_code', {
       p_join_code: joinCode.toUpperCase(),
     });
+
+    console.log('[DEBUG] RPC Response:', { sessionId, rpcError });
 
     if (rpcError || !sessionId) {
       toast({ title: 'Session not found', description: 'Invalid join code.', variant: 'destructive' });
@@ -100,15 +103,20 @@ const LiveBuzzerLobby = () => {
     }
 
     const { data: { user } } = await supabase.auth.getUser();
+    console.log('[DEBUG] Current user:', user);
+
     if (!user) {
       toast({ title: 'Error', description: 'You must be logged in to join a session.', variant: 'destructive' });
       setIsJoining(false);
       return;
     }
 
+    console.log(`[DEBUG] Inserting into live_participants:`, { session_id: sessionId, user_id: user.id });
     const { error: joinError } = await supabase
       .from('live_participants')
       .insert({ session_id: sessionId, user_id: user.id });
+
+    console.log('[DEBUG] Join attempt result:', { joinError });
 
     if (joinError) {
       // Handle unique constraint violation (already joined)
@@ -122,6 +130,7 @@ const LiveBuzzerLobby = () => {
     }
 
     setIsLoading(true); // Show loading state before navigating
+    console.log(`[DEBUG] Navigating to /live-buzzer/${sessionId}`);
     navigate(`/live-buzzer/${sessionId}`);
   };
 
