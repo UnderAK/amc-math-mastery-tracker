@@ -55,28 +55,18 @@ const LiveBuzzerLobby = () => {
       return;
     }
 
-    const code = Math.random().toString(36).substring(2, 8).toUpperCase();
-
-    const { data, error } = await supabase
-      .from('live_sessions')
-      .insert({
-        host_id: user.id,
-        test_type: testType,
-        test_year: testYear,
-        join_code: code,
-        status: 'lobby',
-        current_question_index: 0,
-      })
-      .select()
-      .single();
+    const { data, error } = await supabase.rpc('create_session_and_add_host', {
+      p_test_type: testType,
+      p_test_year: testYear,
+    });
 
     if (error) {
       toast({ title: 'Failed to create session', description: error.message, variant: 'destructive' });
       setIsCreating(false);
     } else if (data) {
-      toast({ title: 'Session Created!', description: `Share code: ${data.join_code}` });
+      toast({ title: 'Session Created!', description: 'You have been added to the lobby.' });
       setIsLoading(true);
-      navigate(`/live-buzzer/${data.id}`);
+      navigate(`/live-buzzer/${data}`);
     }
   };
 
