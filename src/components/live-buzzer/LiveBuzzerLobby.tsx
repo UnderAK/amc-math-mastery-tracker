@@ -13,7 +13,7 @@ import { useEffect } from 'react';
 const LiveBuzzerLobby = () => {
   const [joinCode, setJoinCode] = useState('');
   const [testType, setTestType] = useState('AMC 10');
-  const [testYear, setTestYear] = useState(new Date().getFullYear());
+  const [testYear, setTestYear] = useState(2023);
   const [isCreating, setIsCreating] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
   const [isLoading, setIsLoading] = useState(false);

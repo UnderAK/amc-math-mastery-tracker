@@ -21,6 +21,7 @@ const LiveSession = () => {
   const [session, setSession] = useState<SessionData | null>(null);
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [userId, setUserId] = useState<string | undefined>();
+  const [test, setTest] = useState<AmcTest | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [userAnswer, setUserAnswer] = useState<string | null>(null);
   const [answerStatus, setAnswerStatus] = useState<'correct' | 'incorrect' | null>(null);
@@ -30,37 +31,26 @@ const LiveSession = () => {
   const fetchSessionData = useCallback(async () => {
     if (isGuestMode || !sessionId) return;
 
-    console.log('Fetching session data for ID:', sessionId);
-
     // Use a single secure RPC call to get both session and participants data
     const { data: sessionWithParticipants, error } = await supabase.rpc('get_session_with_participants_secure', {
       p_session_id: sessionId,
     });
 
-    console.log('Session fetch result:', { sessionWithParticipants, error });
-
     if (error) {
-      console.error('Session fetch error:', error);
-      toast({ title: 'Error fetching session', description: `Error: ${error.message}`, variant: 'destructive' });
+      toast({ title: 'Error fetching session', description: 'The session may have ended or the code is invalid.', variant: 'destructive' });
       setIsLoading(false);
       return;
     }
 
     if (!sessionWithParticipants) {
-      console.log('No session data returned');
       toast({ title: 'Session not found', description: 'The session may have expired.', variant: 'destructive' });
       setIsLoading(false);
       return;
     }
 
-    console.log('Session data parsed:', sessionWithParticipants);
-
     // Parse the returned JSON data
     const sessionData = sessionWithParticipants.session;
     const participantsData = sessionWithParticipants.participants || [];
-
-    console.log('Setting session:', sessionData);
-    console.log('Setting participants:', participantsData);
 
     setSession(sessionData);
     setParticipants(participantsData);
@@ -98,24 +88,22 @@ const LiveSession = () => {
     };
   }, [sessionId, isGuestMode, fetchSessionData]);
 
-  const test: AmcTest | undefined = useMemo(() => {
-    if (!session) {
-      console.log('No session data for test creation');
-      return undefined;
-    }
-    
-    console.log('Creating test from session:', session);
-    console.log('Session test_type:', session.test_type);
-    console.log('Session test_year:', session.test_year);
-    
-    const testId = `${session.test_type.toLowerCase().replace(/\s+/g, '')}-${session.test_year}`;
-    console.log('Generated testId:', testId);
-    
-    const foundTest = getTestById(testId);
-    console.log('Found test:', foundTest);
-    
-    return foundTest;
-  }, [session]);
+  useEffect(() => {
+    const fetchTestForSession = async () => {
+      if (!session) return;
+
+      const { data, error } = await supabase.rpc('get_test_by_session', { p_session_id: session.id });
+
+      if (error) {
+        toast({ title: 'Error fetching test data', description: error.message, variant: 'destructive' });
+        setTest(null);
+      } else {
+        setTest(data);
+      }
+    };
+
+    fetchTestForSession();
+  }, [session, toast]);
 
   const handleStartSession = async () => {
     const { error } = await supabase.from('live_sessions').update({ status: 'in_progress' }).eq('id', sessionId);
