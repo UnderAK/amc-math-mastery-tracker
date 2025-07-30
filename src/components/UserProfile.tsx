@@ -3,7 +3,7 @@ import { UserProfileData } from '@/types/amc';
 import { Avatar as AvatarType, avatars } from '@/data/avatars';
 import { useScoringMode } from '@/context/SettingsContext';
 import { User as AuthUser } from '@supabase/supabase-js';
-import { User, Edit3, Save, X, ShoppingCart, Coins, Calendar, Star, Settings } from "lucide-react";
+import { User, Edit3, Save, X, ShoppingCart, Coins, Calendar, Star, Settings, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
@@ -36,6 +36,13 @@ export const UserProfile = ({ isOpen, onClose }: UserProfilePopupProps) => {
   const [isShopOpen, setIsShopOpen] = useState(false);
   const { toast } = useToast();
   const { scoringMode, setScoringMode } = useScoringMode();
+
+  const handleClearCache = () => {
+    toast({ title: 'Cache Cleared', description: 'The application will now reload.' });
+    setTimeout(() => {
+      window.location.reload();
+    }, 1000); // Delay to allow toast to be seen
+  };
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -215,6 +222,16 @@ export const UserProfile = ({ isOpen, onClose }: UserProfilePopupProps) => {
                   checked={scoringMode === 'points'}
                   onCheckedChange={(checked) => setScoringMode(checked ? 'points' : 'questions')}
                 />
+              </div>
+              <div className="flex items-center justify-between rounded-lg border p-3 mt-2 bg-background/50">
+                <Label htmlFor="clear-cache-button" className="font-medium">
+                  Clear Cache
+                  <p className="text-xs text-muted-foreground">Force a reload of the latest application version.</p>
+                </Label>
+                <Button id="clear-cache-button" onClick={handleClearCache} variant="outline" className="gap-2">
+                  <RefreshCw className="w-4 h-4" />
+                  Reload
+                </Button>
               </div>
             </div>
 
