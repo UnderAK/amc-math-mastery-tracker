@@ -27,6 +27,7 @@ const LiveSession = () => {
   const [userAnswer, setUserAnswer] = useState<string | null>(null);
   const [answerStatus, setAnswerStatus] = useState<'correct' | 'incorrect' | null>(null);
   const [submittedAnswers, setSubmittedAnswers] = useState<Database['public']['Tables']['live_answers']['Row'][]>([]);
+  const [isSessionActive, setIsSessionActive] = useState(false);
 
   const isGuestMode = useMemo(() => location.state?.isGuest || sessionId?.startsWith('guest-'), [location.state, sessionId]);
 
@@ -98,6 +99,14 @@ const LiveSession = () => {
       supabase.removeChannel(channel);
     };
   }, [sessionId, isGuestMode, fetchSessionData]);
+
+  useEffect(() => {
+    if (session?.status === 'in_progress') {
+      setIsSessionActive(true);
+    } else {
+      setIsSessionActive(false);
+    }
+  }, [session?.status]);
 
   useEffect(() => {
     const fetchTestForSession = async () => {
@@ -211,8 +220,8 @@ const LiveSession = () => {
           </div>
         )}
 
-        {session.status === 'in_progress' && currentQuestion && (
-          <div key={session.status} className="mt-6">
+        {isSessionActive && currentQuestion && (
+          <div className="mt-6">
             <div className="mb-4">
               <p className="font-bold text-lg">Question {session.current_question_index + 1} of {test.questions.length}</p>
               <div className="text-xl mt-2 prose question-html" dangerouslySetInnerHTML={{ __html: currentQuestion.text }} />
