@@ -60,13 +60,25 @@ const LiveBuzzerLobby = () => {
       p_test_year: testYear,
     });
 
+    console.log('Session creation result:', { data, error });
+
     if (error) {
+      console.error('Session creation error:', error);
       toast({ title: 'Failed to create session', description: error.message, variant: 'destructive' });
       setIsCreating(false);
     } else if (data) {
-      toast({ title: 'Session Created!', description: 'You have been added to the lobby.' });
+      console.log('Session created successfully with ID:', data);
+      toast({ title: 'Session Created!', description: `Session ID: ${data}` });
       setIsLoading(true);
-      navigate(`/live-buzzer/${data}`);
+      
+      // Add a small delay to ensure the database transaction is committed
+      setTimeout(() => {
+        navigate(`/live-buzzer/${data}`);
+      }, 500);
+    } else {
+      console.error('No data returned from session creation');
+      toast({ title: 'Failed to create session', description: 'No session ID returned', variant: 'destructive' });
+      setIsCreating(false);
     }
   };
 

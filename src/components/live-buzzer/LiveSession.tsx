@@ -30,26 +30,37 @@ const LiveSession = () => {
   const fetchSessionData = useCallback(async () => {
     if (isGuestMode || !sessionId) return;
 
+    console.log('Fetching session data for ID:', sessionId);
+
     // Use a single secure RPC call to get both session and participants data
     const { data: sessionWithParticipants, error } = await supabase.rpc('get_session_with_participants_secure', {
       p_session_id: sessionId,
     });
 
+    console.log('Session fetch result:', { sessionWithParticipants, error });
+
     if (error) {
-      toast({ title: 'Error fetching session', description: 'The session may have ended or the code is invalid.', variant: 'destructive' });
+      console.error('Session fetch error:', error);
+      toast({ title: 'Error fetching session', description: `Error: ${error.message}`, variant: 'destructive' });
       setIsLoading(false);
       return;
     }
 
     if (!sessionWithParticipants) {
+      console.log('No session data returned');
       toast({ title: 'Session not found', description: 'The session may have expired.', variant: 'destructive' });
       setIsLoading(false);
       return;
     }
 
+    console.log('Session data parsed:', sessionWithParticipants);
+
     // Parse the returned JSON data
     const sessionData = sessionWithParticipants.session;
     const participantsData = sessionWithParticipants.participants || [];
+
+    console.log('Setting session:', sessionData);
+    console.log('Setting participants:', participantsData);
 
     setSession(sessionData);
     setParticipants(participantsData);
