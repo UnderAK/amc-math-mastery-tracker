@@ -4,7 +4,8 @@ import { supabase } from '@/lib/supabaseClient';
 import { Database } from '@/types/supabase';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
-import { Loader2 } from 'lucide-react';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Loader2, CheckIcon } from 'lucide-react';
 import { getTestById, AmcTest } from '@/data/amc-tests';
 
 type Participant = Omit<Database['public']['Tables']['live_participants']['Row'], 'id'> & {
@@ -36,6 +37,7 @@ const LiveSession = () => {
   const [userId, setUserId] = useState<string | undefined>(isGuestMode ? 'guest-user' : undefined);
   const [userAnswer, setUserAnswer] = useState<string | null>(null);
   const [answerStatus, setAnswerStatus] = useState<'correct' | 'incorrect' | null>(null);
+  const [answeredUsers, setAnsweredUsers] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(true);
 
   // Memoize test data to avoid re-calculating on every render
@@ -106,7 +108,7 @@ const LiveSession = () => {
 
   // Effect for fetching data and real-time updates for authenticated users
   useEffect(() => {
-    if (isGuestMode || !sessionId || !userId) return;
+    if (isGuestMode || !userId) return;
 
     const fetchSessionData = async () => {
       const { data, error } = await supabase
@@ -117,36 +119,72 @@ const LiveSession = () => {
 
       if (error || !data) {
         toast({ title: 'Error fetching session', description: error?.message || 'Session not found.', variant: 'destructive' });
-        setSession(null);
-      } else {
-        setSession(data as SessionData);
-        setParticipants(data.live_participants as Participant[]);
+        return;
       }
-      setIsLoading(false);
+      setSession(data);
+      setParticipants(data.live_participants);
     };
 
     fetchSessionData();
 
-    const channel = supabase
-      .channel(`session-${sessionId}`)
+    const sessionChannel = supabase
+      .channel(`session-updates-${sessionId}`)
       .on(
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'live_sessions', filter: `id=eq.${sessionId}` },
         (payload) => {
-          setSession(prev => ({ ...prev!, ...(payload.new as SessionData) }));
-          setUserAnswer(null); // Reset answer on question change
-          setAnswerStatus(null);
+          const newSession = payload.new as SessionData;
+          // Check previous state before updating
+          setSession((prev) => {
+            if (prev && prev.current_question_index !== newSession.current_question_index) {
+              setUserAnswer(null);
+              setAnswerStatus(null);
+              setAnsweredUsers(new Set()); // Reset for new question
+            }
+            return newSession;
+          });
         }
       )
+      .subscribe();
+
+    const participantsChannel = supabase
+      .channel(`participant-updates-${sessionId}`)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'live_participants', filter: `session_id=eq.${sessionId}` },
-        () => fetchSessionData() // Refetch all participants to update scores and list
+        (payload) => {
+          // On any change to participants, refetch the whole list for simplicity and robustness
+          fetchSessionData();
+          if (payload.eventType === 'INSERT') {
+            toast({ title: 'A new participant has joined!' });
+          }
+        }
+      )
+      .subscribe();
+
+    const answersChannel = supabase
+      .channel(`answers-updates-${sessionId}`)
+      .on(
+        'postgres_changes',
+        { 
+          event: 'INSERT', 
+          schema: 'public', 
+          table: 'live_answers', 
+          filter: `session_id=eq.${sessionId}` 
+        },
+        (payload) => {
+          const newAnswer = payload.new as { user_id: string, question_index: number };
+          if (newAnswer.question_index === session?.current_question_index) {
+            setAnsweredUsers(prev => new Set(prev).add(newAnswer.user_id));
+          }
+        }
       )
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(sessionChannel);
+      supabase.removeChannel(participantsChannel);
+      supabase.removeChannel(answersChannel);
     };
   }, [isGuestMode, sessionId, userId, toast]);
 
@@ -192,6 +230,28 @@ const LiveSession = () => {
     if (error) toast({ title: 'Error updating question', description: error.message, variant: 'destructive' });
   };
 
+  const handleFinishSession = async () => {
+    if (isGuestMode) {
+      setSession(prev => (prev ? { ...prev, status: 'ended' } : null));
+      return;
+    }
+
+    // First, update the session status to 'ended'
+    const { error: updateError } = await supabase.from('live_sessions').update({ status: 'ended' }).eq('id', sessionId);
+    if (updateError) {
+      toast({ title: 'Error finishing session', description: updateError.message, variant: 'destructive' });
+      return;
+    }
+
+    // Then, call the RPC function to distribute rewards
+    const { error: rpcError } = await supabase.rpc('distribute_session_rewards', { p_session_id: sessionId });
+    if (rpcError) {
+      toast({ title: 'Error distributing rewards', description: rpcError.message, variant: 'destructive' });
+    } else {
+      toast({ title: 'Session Ended!', description: 'Coins have been awarded to all participants.' });
+    }
+  };
+
   if (isLoading) {
     return <div className="flex justify-center items-center h-64"><Loader2 className="h-16 w-16 animate-spin" /></div>;
   }
@@ -207,13 +267,20 @@ const LiveSession = () => {
     <div className="p-4 border rounded-lg grid md:grid-cols-3 gap-8">
       <div className="md:col-span-2">
         <h2 className="text-2xl font-bold">{`${test.type} - ${test.year}`}</h2>
-        <p className="text-muted-foreground">Status: <span className="font-semibold capitalize">{session.status.replace('_', ' ')}</span></p>
+        <div className="flex items-center gap-4 mt-1">
+          <p className="text-muted-foreground">Status: <span className="font-semibold capitalize">{session.status.replace('_', ' ')}</span></p>
+          {isHost && (
+            <div className="flex items-center gap-2">
+              <p className="text-muted-foreground">Join Code:</p>
+              <span className="font-mono text-lg p-1 bg-secondary rounded-md">{session.join_code}</span>
+            </div>
+          )}
+        </div>
 
         {isHost && session.status === 'lobby' && (
           <div className="mt-4 bg-secondary/50 p-4 rounded-lg">
             <h3 className="font-bold text-lg">Host Controls</h3>
-            <p className="text-sm text-muted-foreground">Share this code to invite others.</p>
-            <div className="my-2 p-2 bg-background rounded-md text-center font-mono text-2xl tracking-widest">{session.join_code}</div>
+            <p className="text-sm text-muted-foreground">Press start when all participants have joined.</p>
             <Button onClick={handleStartSession} className="w-full mt-2">Start Session</Button>
           </div>
         )}
@@ -242,10 +309,20 @@ const LiveSession = () => {
             {isHost && (
               <div className="flex justify-between items-center mt-6">
                 <Button onClick={() => updateQuestionIndex(session.current_question_index - 1)} disabled={session.current_question_index <= 0}>Previous</Button>
-                <span className="font-semibold text-muted-foreground">Host Controls</span>
-                <Button onClick={() => updateQuestionIndex(session.current_question_index + 1)} disabled={session.current_question_index >= test.questions.length - 1}>Next</Button>
+                {session.current_question_index >= test.questions.length - 1 ? (
+                  <Button onClick={handleFinishSession} variant="destructive">Finish Session</Button>
+                ) : (
+                  <Button onClick={() => updateQuestionIndex(session.current_question_index + 1)}>Next Question</Button>
+                )}
               </div>
             )}
+          </div>
+        )}
+
+        {session.status === 'ended' && (
+          <div className="mt-6 text-center">
+            <h3 className="text-2xl font-bold">Session Ended</h3>
+            <p className="text-muted-foreground">Here are the final results.</p>
           </div>
         )}
       </div>
@@ -253,8 +330,17 @@ const LiveSession = () => {
         <h3 className="text-lg font-bold">Participants ({participants.length})</h3>
         <ul className="space-y-2 mt-2">
           {[...participants].sort((a, b) => b.score - a.score).map(p => (
-            <li key={p.id} className="flex items-center justify-between p-2 rounded-md bg-secondary/50">
-              <span>{p.profiles?.username || 'Anonymous'}</span>
+            <li key={p.user_id} className="flex items-center justify-between p-2 rounded-md bg-secondary/50">
+              <div className="flex items-center gap-2">
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={p.profiles?.avatar_url || undefined} />
+                  <AvatarFallback>{p.profiles?.username?.[0] || '?'}</AvatarFallback>
+                </Avatar>
+                <span>{p.profiles?.username || 'Anonymous'}</span>
+                {isHost && answeredUsers.has(p.user_id) && (
+                  <CheckIcon className="h-5 w-5 text-green-500" />
+                )}
+              </div>
               <span className="font-bold">{p.score} pts</span>
             </li>
           ))}
