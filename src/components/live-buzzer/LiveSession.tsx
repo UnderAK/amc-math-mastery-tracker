@@ -30,21 +30,33 @@ const LiveSession = () => {
   const fetchSessionData = useCallback(async () => {
     if (isGuestMode || !sessionId) return;
 
-    const { data, error } = await supabase
+    // Fetch session data (except participants) as before
+    const { data: sessionData, error: sessionError } = await supabase
       .from('live_sessions')
-      .select('*, session_participants_with_profiles(*)')
+      .select('*')
       .eq('id', sessionId)
       .single();
 
-    if (error) {
+    if (sessionError || !sessionData) {
       toast({ title: 'Error fetching session', description: 'The session may have ended or the code is invalid.', variant: 'destructive' });
       setIsLoading(false);
       return;
     }
 
-    const typedData = data as SessionData;
-    setSession(typedData);
-    setParticipants(typedData.session_participants_with_profiles || []);
+    setSession(sessionData as SessionData);
+
+    // Fetch all participants for the session using the secure RPC
+    const { data: participantsData, error: participantsError } = await supabase.rpc('get_session_participants', {
+      p_session_id: sessionId,
+    });
+
+    if (participantsError) {
+      toast({ title: 'Error fetching participants', description: participantsError.message, variant: 'destructive' });
+      setIsLoading(false);
+      return;
+    }
+
+    setParticipants(participantsData || []);
     setIsLoading(false);
   }, [sessionId, isGuestMode, toast]);
 
