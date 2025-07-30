@@ -9,6 +9,7 @@ import Analytics from "./pages/Analytics";
 import TestEntryPage from "./pages/TestEntryPage";
 import History from "./pages/History";
 import Leaderboard from "./pages/Leaderboard";
+import LiveBuzzerPage from "./pages/LiveBuzzerPage";
 import PracticePage from "./pages/PracticePage";
 import NotFound from "./pages/NotFound";
 import { Analytics as VercelAnalytics } from "@vercel/analytics/react";
@@ -90,6 +91,10 @@ const App = () => {
               <Route path="/practice" element={<PracticePage />} />
               <Route path="/history" element={<History />} />
               <Route path="/leaderboard" element={<Leaderboard />} />
+              <Route path="/live-buzzer">
+                <Route index element={<LiveBuzzerPage />} />
+                <Route path=":sessionId" element={<LiveBuzzerPage />} />
+              </Route>
             </Route>
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

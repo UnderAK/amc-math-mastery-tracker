@@ -1,4 +1,5 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient } from '@supabase/supabase-js';
+import { Database } from '@/types/supabase';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
@@ -23,7 +24,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
     from: () => ({ select: () => ({ data: null, error: null }) }),
   };
 } else {
-  client = createClient(supabaseUrl, supabaseAnonKey);
+  client = createClient<Database>(supabaseUrl, supabaseAnonKey);
 }
 
 export const supabase = client;

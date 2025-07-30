@@ -11,7 +11,8 @@ import {
   BookOpen,
   Award,
   BrainCircuit,
-  Loader2
+  Loader2,
+  Radio
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -164,27 +165,32 @@ const Index = () => {
 
 
           {/* Features Section */}
-          <section className="py-12 px-4">
-            <div className="max-w-5xl mx-auto grid md:grid-cols-3 gap-8">
-              <FeatureCard
-                to="/test-entry"
-                icon={<Target className="w-8 h-8 text-primary" />}
-                title="Enter a Test"
-                description="Log your AMC test scores and see detailed performance analytics to identify strengths and weaknesses."
-              />
-              <FeatureCard
-                to="/practice"
-                icon={<BrainCircuit className="w-8 h-8 text-primary" />}
-                title="Practice a Test"
-                description="Hone your skills by taking a full practice test from any year and any competition."
-              />
-              <FeatureCard 
-                icon={<Award className="w-8 h-8 text-primary" />} 
-                title="Compete & Improve"
-                description="Compare your progress on the leaderboard, earn coins, and unlock new avatars as you climb the ranks."
-              />
-            </div>
-          </section>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <FeatureCard 
+              icon={<Trophy className="w-8 h-8 text-yellow-500" />} 
+              title="Track Your Progress"
+              description="Log your test scores and see your improvement over time with detailed analytics."
+              to="/analytics"
+            />
+            <FeatureCard 
+              icon={<BrainCircuit className="w-8 h-8 text-green-500" />} 
+              title="Practice a Test"
+              description="Hone your skills by taking a full practice test from any year and any competition."
+              to="/practice"
+            />
+            <FeatureCard
+              icon={<Radio className="w-8 h-8 text-blue-500" />}
+              title="Live Buzzer"
+              description="Compete with others in real-time test sessions."
+              to="/live-buzzer"
+            />
+            <FeatureCard 
+              icon={<Award className="w-8 h-8 text-primary" />} 
+              title="Compete & Improve"
+              description="Earn badges for your achievements and climb the leaderboard."
+              to="/leaderboard"
+            />
+          </div>
 
           {generatingReport && reportData && (
             <div style={{ position: 'absolute', left: '-9999px', top: 0 }}>
@@ -196,7 +202,7 @@ const Index = () => {
 
           {/* --- Main Content --- */}
           <main className="space-y-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Quick Stats */}
               <div className="glass p-6 rounded-lg">
                 <QuickStats />
