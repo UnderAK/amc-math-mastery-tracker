@@ -1,18 +1,16 @@
-.question-html.prose p,
-.question-html.prose ul,
-.question-html.prose ol,
-.question-html.prose li {
-  display: inline;
-  margin: 0;
-  padding: 0;
+.question-html p,
+.question-html ul,
+.question-html ol,
+.question-html li {
+  display: inline !important;
 }
 
-.question-html.prose br {
-  display: none;
+.question-html br {
+  display: none !important;
 }
 
 .question-html img {
-  display: inline;
-  vertical-align: middle;
-  margin: 0 2px;
+  display: inline !important;
+  vertical-align: middle !important;
+  margin: 0 2px !important;
 }

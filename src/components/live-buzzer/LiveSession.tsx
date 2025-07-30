@@ -212,10 +212,10 @@ const LiveSession = () => {
         )}
 
         {session.status === 'in_progress' && currentQuestion && (
-          <div className="mt-6">
+          <div key={session.status} className="mt-6">
             <div className="mb-4">
               <p className="font-bold text-lg">Question {session.current_question_index + 1} of {test.questions.length}</p>
-              <div className="text-xl mt-2 prose" dangerouslySetInnerHTML={{ __html: currentQuestion.text }} />
+              <div className="text-xl mt-2 prose question-html" dangerouslySetInnerHTML={{ __html: currentQuestion.text }} />
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {Object.entries(currentQuestion.options).map(([key, value]) => (
