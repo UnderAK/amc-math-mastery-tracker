@@ -34,15 +34,17 @@ const LiveBuzzerLobby = () => {
 
     if (isGuestMode) {
       const guestSessionId = `guest-${Math.random().toString(36).substring(2, 9)}`;
+      const guestSessionData = {
+        isGuest: true,
+        test_type: testType,
+        test_year: testYear
+      };
+      // Store guest session details in sessionStorage to survive refresh
+      sessionStorage.setItem(`guest-session-${guestSessionId}`, JSON.stringify(guestSessionData));
+
       toast({ title: 'Entering Guest Session', description: 'Your session is local and will not be saved.' });
       setIsLoading(true);
-      navigate(`/live-buzzer/${guestSessionId}`, { 
-        state: { 
-          isGuest: true,
-          test_type: testType,
-          test_year: testYear
-        }
-      });
+      navigate(`/live-buzzer/${guestSessionId}`, { state: guestSessionData });
       return;
     }
 

@@ -53,16 +53,29 @@ const LiveSession = () => {
     const initializeSession = async () => {
       setIsLoading(true);
       if (isGuestMode) {
+        // Try to get session data from location state first, then fall back to sessionStorage
+        let sessionData = location.state;
+        if (!sessionData) {
+          const storedData = sessionStorage.getItem(`guest-session-${sessionId}`);
+          if (storedData) {
+            sessionData = JSON.parse(storedData);
+          } else {
+            toast({ title: 'Guest session expired', description: 'Session data not found.', variant: 'destructive' });
+            setIsLoading(false);
+            return;
+          }
+        }
+
         const guestSession: SessionData = {
           id: sessionId!,
           created_at: new Date().toISOString(),
           host_id: 'guest-user',
-          test_type: location.state.test_type,
-          test_year: location.state.test_year,
+          test_type: sessionData.test_type,
+          test_year: sessionData.test_year,
           join_code: 'GUEST',
           status: 'lobby',
           current_question_index: 0,
-          live_participants: [], // Will be populated by guest participant
+          live_participants: [],
         };
         const guestParticipant: Participant = {
           id: 'guest-participant',
@@ -89,7 +102,7 @@ const LiveSession = () => {
       setIsLoading(false);
     };
     initializeSession();
-  }, [isGuestMode, sessionId, location.state]);
+  }, [isGuestMode, sessionId, location.state, toast]);
 
   // Effect for fetching data and real-time updates for authenticated users
   useEffect(() => {
