@@ -37,6 +37,8 @@ const LiveSession = () => {
 
   const isGuestMode = useMemo(() => location.state?.isGuest || sessionId?.startsWith('guest-'), [location.state, sessionId]);
 
+  const isHost = useMemo(() => session?.host_id === userId, [session, userId]);
+
   const fetchSessionData = useCallback(async () => {
     if (isGuestMode || !sessionId) return;
 
@@ -258,7 +260,7 @@ const LiveSession = () => {
     return <div className="text-center"><p>Session not found or has expired.</p></div>;
   }
 
-  const isHost = session.host_id === userId;
+
   const currentQuestion = test.questions[session.current_question_index];
 
   return (
