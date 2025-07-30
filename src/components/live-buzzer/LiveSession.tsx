@@ -79,6 +79,7 @@ const LiveSession = () => {
     const channel = supabase
       .channel(`session-updates-${sessionId}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'live_sessions', filter: `id=eq.${sessionId}` }, (payload) => {
+        console.log('[DEBUG] Received live_sessions change:', payload);
         fetchSessionData();
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'live_participants', filter: `session_id=eq.${sessionId}` }, (payload) => {
