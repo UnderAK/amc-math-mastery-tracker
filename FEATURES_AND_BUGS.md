@@ -33,10 +33,9 @@ Below is a comprehensive, up-to-date list of **features** and **known bugs / lim
 
 ---
 
-### 🚀 **Quick Wins / Next Ideas**
-If you want to expand further:
-- Add **dark-mode toggle** (already uses CSS variables).  
-- Introduce **leaderboards** (needs multi-user auth).  
-- Support **custom problem tags** (algebra, geometry, etc.) for granular analytics.  
-- Add **calendar heat-map** of test days.  
+### 🚀 **Future Features & Ideas**
 
+- **Practice Missed Questions**: A dedicated mode to review and re-attempt questions that were previously answered incorrectly.
+- **Expanded Test Library**: Add support for more standardized tests, such as MATHCOUNTS and AIME, to broaden the practice scope.
+- **Host Customization for Live Buzzer**: Give session hosts more control over the live buzzer sessions, such as custom scoring, time limits, and rules.
+- **Structured Courses**: Develop guided courses or learning paths that group questions by topic and difficulty to create a structured curriculum.
