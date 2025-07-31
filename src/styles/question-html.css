@@ -14,3 +14,7 @@
   vertical-align: middle !important;
   margin: 0 2px !important;
 }
+
+.dark .question-html img {
+  filter: invert(1);
+}
