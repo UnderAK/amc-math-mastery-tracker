@@ -236,6 +236,11 @@ All colors MUST be HSL.
   .trophy-glow {
     animation: trophyGlow 2s ease-in-out infinite alternate;
   }
+
+  /* Invert LaTeX images in dark mode for readability */
+  .dark .question-html img {
+    filter: invert(1) hue-rotate(180deg);
+  }
 }
 
 @layer utilities {
