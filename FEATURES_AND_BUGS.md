@@ -21,19 +21,22 @@ Below is a comprehensive, up-to-date list of **features** and **known bugs / lim
 
 | Severity | Issue | Notes / Work-around |
 |---|---|---|
-| **Medium** | Missing source maps in production | Stack traces are minified; use dev build for debugging. |
-| **Low** | Edge-case import/export quirks | Malformed JSON or partial overwrites can corrupt state—manual JSON repair needed. |
-| **Medium** | No multi-user auth | Only single-user via localStorage or single Supabase project. |
-| **Low** | No PWA/offline mode | Requires service-worker setup for true offline installability. |
-| **Low** | Missing avatar support | Profile limited to name & preferences only. |
-| **Low** | Accessibility gaps | Some ARIA roles and keyboard shortcuts could be richer. |
+| **High**   | Live buzzer system not working                                  | The core real-time buzzer functionality is broken. Needs full investigation. |
+| **High**   | Practice test scoring incorrect                                 | Scoring for both "questions" and "points" mode is reported as inaccurate. |
+| **High**   | Question topics not saving on analytics page                    | Topics selected for questions are defaulting to "Other" and not saving correctly. |
+| **High**   | Answer keys not working for preloaded tests                     | When preloading questions, the corresponding answer keys are not loading correctly. |
+| **Medium** | Test Data error on analytics                                    | Unspecified error related to test data on the analytics page. |
+| **Medium** | Missed questions not loading                                    | The feature to review missed questions is not working. |
+| **Medium** | Points to questions toggle not working                          | The UI toggle to switch between scoring modes is broken. |
+| **Medium** | Leaderboard not live updating                                   | The leaderboard does not update in real-time as users complete sessions. |
+| **Low**    | Dark theme errors on LaTeX                                      | LaTeX rendering has display issues or glitches when the dark theme is active. |
 
 ---
 
-### 🚀 **Quick Wins / Next Ideas**
-If you want to expand further:
-- Add **dark-mode toggle** (already uses CSS variables).  
-- Introduce **leaderboards** (needs multi-user auth).  
-- Support **custom problem tags** (algebra, geometry, etc.) for granular analytics.  
-- Add **calendar heat-map** of test days.  
+### 🚀 **Future Features & Ideas**
 
+- **Practice Missed Questions**: A dedicated mode to review and re-attempt questions that were previously answered incorrectly.
+- **Expanded Test Library**: Add support for more standardized tests, such as MATHCOUNTS and AIME, to broaden the practice scope.
+- **Host Customization for Live Buzzer**: Give session hosts more control over the live buzzer sessions, such as custom scoring, time limits, and rules.
+- **Structured Courses**: Develop guided courses or learning paths that group questions by topic and difficulty to create a structured curriculum.
+- **Countdown**:: Displays countdowns to the next AMC dates
