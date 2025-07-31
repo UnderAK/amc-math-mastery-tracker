@@ -217,7 +217,7 @@ export const TestEntryForm = ({ inputMode, initialAnswerKey }: TestEntryFormProp
           userAnswers={userAnswers}
           answerKey={answerKey}
           onUserAnswersChange={setUserAnswers}
-          onAnswerKeyChange={selectedTestId === 'manual' ? setAnswerKey : () => {}}
+          onAnswerKeyChange={setAnswerKey}
         />
 
         <div className="flex justify-end">
