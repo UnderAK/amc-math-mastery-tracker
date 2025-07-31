@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { Trophy, Loader2, ServerCrash } from 'lucide-react';
 
@@ -20,32 +20,49 @@ const Leaderboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchLeaderboard = async () => {
-      try {
-        setLoading(true);
-        const { data, error } = await supabase.rpc('get_leaderboard');
+  const fetchLeaderboard = useCallback(async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase.rpc('get_leaderboard');
 
-        if (error) {
-          throw error;
-        }
-
-        const rankedData = data.map((item, index) => ({
-          ...item,
-          rank: index + 1,
-        }));
-
-        setLeaderboardData(rankedData as LeaderboardEntry[]);
-      } catch (err: any) {
-        setError('Failed to fetch leaderboard data. Please try again later.');
-        console.error(err);
-      } finally {
-        setLoading(false);
+      if (error) {
+        throw error;
       }
-    };
 
-    fetchLeaderboard();
+      const rankedData = data.map((item, index) => ({
+        ...item,
+        rank: index + 1,
+      }));
+
+      setLeaderboardData(rankedData as LeaderboardEntry[]);
+      setError(null);
+    } catch (err: any) {
+      setError('Failed to fetch leaderboard data. Please try again later.');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchLeaderboard();
+
+    const channel = supabase
+      .channel('public:profiles')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'profiles' },
+        (payload) => {
+          console.log('Leaderboard updated!', payload);
+          fetchLeaderboard();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [fetchLeaderboard]);
 
   return (
     <main className="container mx-auto p-4 sm:p-6 lg:p-8 animate-fade-in">
