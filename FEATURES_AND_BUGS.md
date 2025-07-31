@@ -39,3 +39,4 @@ Below is a comprehensive, up-to-date list of **features** and **known bugs / lim
 - **Expanded Test Library**: Add support for more standardized tests, such as MATHCOUNTS and AIME, to broaden the practice scope.
 - **Host Customization for Live Buzzer**: Give session hosts more control over the live buzzer sessions, such as custom scoring, time limits, and rules.
 - **Structured Courses**: Develop guided courses or learning paths that group questions by topic and difficulty to create a structured curriculum.
+- **Countdown**:: Displays countdowns to the next AMC dates
