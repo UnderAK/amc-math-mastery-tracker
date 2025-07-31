@@ -75,14 +75,14 @@ const PracticePage = () => {
     try {
       // Get all competitions of the selected type (e.g., AMC 10 => AMC 10A, AMC 10B)
       // Robustly match all relevant tests using ilike (case-insensitive SQL LIKE)
-      let compQuery = supabase.from('tests').select('competition, name, id');
+      let orConditions: string;
       if (competitionType === 'AMC 8') {
-        compQuery = compQuery.or(`competition.ilike.%AMC 8%,name.ilike.%AMC 8%,competition.ilike.%AHSME%,name.ilike.%AHSME%`);
+        orConditions = `competition.ilike.%AMC 8%,name.ilike.%AMC 8%,competition.ilike.%AHSME%,name.ilike.%AHSME%`;
       } else {
         // e.g. 'AMC 12' matches 'AMC 12', 'AMC_12', etc.
         const baseWithUnderscore = competitionType.replace(/\s/g, '_');
         const baseWithoutSpace = competitionType.replace(/\s/g, '');
-        const orConditions = [
+        orConditions = [
           `competition.ilike.%${competitionType}%`,
           `name.ilike.%${competitionType}%`,
           `competition.ilike.%${baseWithUnderscore}%`,
@@ -90,9 +90,12 @@ const PracticePage = () => {
           `competition.ilike.%${baseWithoutSpace}%`,
           `name.ilike.%${baseWithoutSpace}%`,
         ].join(',');
-        compQuery = compQuery.or(orConditions);
       }
-      const { data: compData, error: compError } = await compQuery;
+
+      const { data: compData, error: compError } = await supabase
+        .from('tests')
+        .select('competition, name, id')
+        .or(orConditions);
       console.log('DEBUG: compData returned from Supabase:', compData);
       console.log('DEBUG: normalized competitionType:', competitionType);
       if (compError) throw compError;
