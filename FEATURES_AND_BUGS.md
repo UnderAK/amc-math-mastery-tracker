@@ -21,6 +21,7 @@ Below is a comprehensive, up-to-date list of **features** and **known bugs / lim
 
 | Severity | Issue | Notes / Work-around |
 |---|---|---|
+| **Medium** | Score calculation is incorrect on "Enter Test" page | 
 | **Medium** | Missing source maps in production | Stack traces are minified; use dev build for debugging. |
 | **Low** | Edge-case import/export quirks | Malformed JSON or partial overwrites can corrupt state—manual JSON repair needed. |
 | **Medium** | No multi-user auth | Only single-user via localStorage or single Supabase project. |

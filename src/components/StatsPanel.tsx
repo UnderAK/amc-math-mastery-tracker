@@ -60,7 +60,13 @@ export const StatsPanel = ({ filterType = "all" }: StatsPanelProps) => {
       }
 
       const total = scoresWithData.length;
-      const lastDate = scoresWithData[scoresWithData.length - 1].date;
+      const lastDateString = scoresWithData[scoresWithData.length - 1].date;
+      const lastDate = new Date(lastDateString).toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+
+      });
       const percentages = scoresWithData.map(s => s.percentage);
       
       const best = Math.max(...percentages);
