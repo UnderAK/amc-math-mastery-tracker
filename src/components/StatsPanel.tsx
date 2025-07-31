@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useScoringMode } from '@/context/SettingsContext';
-import { getCorrectCount, getTotalQuestions, getMaxPoints } from '@/lib/scoring';
+import { getTotalQuestions, getMaxPoints } from '@/lib/scoring';
 import { TrendingUp, Calendar, Target, Award, Filter, BarChart3, Zap, TrendingDown, Clock } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TestScore } from "@/types/TestScore";
@@ -23,105 +23,108 @@ export const StatsPanel = ({ filterType = "all" }: StatsPanelProps) => {
     recentAverage: "—"
   });
   const [internalFilter, setInternalFilter] = useState("all");
+  const { scoringMode } = useScoringMode();
 
   useEffect(() => {
     const updateStats = () => {
-      console.log('DEBUG StatsPanel: updateStats called');
       const allScores: TestScore[] = JSON.parse(localStorage.getItem("scores") || "[]");
-      console.log('DEBUG StatsPanel: Retrieved scores from localStorage:', allScores);
-      console.log('DEBUG StatsPanel: Number of scores:', allScores.length);
       
-      // Apply filter based on internalFilter
+      const getCorrectCount = (score: TestScore): number => {
+        if (score.questionCorrectness) {
+          return Object.values(score.questionCorrectness).filter(Boolean).length;
+        }
+        if (score.input && score.key) {
+          return score.input.split('').filter((char, i) => char.toLowerCase() === score.key![i].toLowerCase()).length;
+        }
+        return score.score; // Fallback to the score property if others are missing
+      };
+
       const filteredScores = internalFilter === "all" 
         ? allScores 
         : allScores.filter(s => s.testType === internalFilter);
       
       const scoresWithData = filteredScores.map(s => {
-        const totalQuestions = 
-          (s.questionCorrectness && Object.keys(s.questionCorrectness).length > 0) 
-          ? Object.keys(s.questionCorrectness).length 
-          : (s.key && s.key.length > 0) ? s.key.length : 25;
-        const percentage = totalQuestions > 0 ? (s.score / totalQuestions) * 100 : 0;
-        return { ...s, totalQuestions, percentage };
+        const correctCount = getCorrectCount(s);
+        const totalQuestions = getTotalQuestions(s.testType);
+        const maxPoints = getMaxPoints(s.testType);
+
+        const displayValue = scoringMode === 'points' ? s.score : correctCount;
+        const maxValue = scoringMode === 'points' ? maxPoints : totalQuestions;
+        const percentage = maxValue > 0 ? (displayValue / maxValue) * 100 : 0;
+        
+        return { ...s, displayValue, maxValue, percentage };
       });
 
       if (scoresWithData.length === 0) {
         setStats({
-          total: 0,
-          lastDate: "—",
-          average: "—",
-          best: "—",
-          worst: "—",
-          improvement: "—",
-          consistency: "—",
-          recentAverage: "—"
+          total: 0, lastDate: "—", average: "—", best: "—", worst: "—",
+          improvement: "—", consistency: "—", recentAverage: "—"
         });
         return;
       }
 
       const total = scoresWithData.length;
       const lastDate = scoresWithData[scoresWithData.length - 1].date;
-      const percentages = scoresWithData.map(s => s.percentage);
+      const displayValues = scoresWithData.map(s => s.displayValue);
+      const maxValues = scoresWithData.map(s => s.maxValue);
       
-      const best = Math.max(...percentages);
-      const worst = Math.min(...percentages);
-      const average = percentages.reduce((acc, p) => acc + p, 0) / percentages.length;
+      const bestValue = Math.max(...displayValues);
+      const worstValue = Math.min(...displayValues);
+      const averageValue = displayValues.reduce((acc, p) => acc + p, 0) / displayValues.length;
+      const averageMax = maxValues.reduce((acc, p) => acc + p, 0) / maxValues.length;
+
+      const formatValue = (val: number) => scoringMode === 'points' ? val.toFixed(0) : val.toFixed(1);
 
       let improvement = "—";
-      if (percentages.length >= 6) {
-        const firstThree = percentages.slice(0, 3).reduce((a, b) => a + b, 0) / 3;
-        const lastThree = percentages.slice(-3).reduce((a, b) => a + b, 0) / 3;
+      if (scoresWithData.length >= 6) {
+        const firstThree = scoresWithData.slice(0, 3).reduce((a, b) => a + b.percentage, 0) / 3;
+        const lastThree = scoresWithData.slice(-3).reduce((a, b) => a + b.percentage, 0) / 3;
         const improvementValue = lastThree - firstThree;
         improvement = `${improvementValue > 0 ? '+' : ''}${improvementValue.toFixed(1)}%`;
       }
 
       let consistency = "—";
-      if (percentages.length >= 3) {
-        const mean = average;
+      if (scoresWithData.length >= 3) {
+        const percentages = scoresWithData.map(s => s.percentage);
+        const mean = percentages.reduce((a, b) => a + b, 0) / percentages.length;
         const variance = percentages.reduce((acc, p) => acc + Math.pow(p - mean, 2), 0) / percentages.length;
         const stdDev = Math.sqrt(variance);
-        // Lower std dev is better. We can represent this on a 0-100 scale.
-        const consistencyPercent = Math.max(0, 100 - (stdDev / 25) * 100); // Assuming 25% is a high std dev
+        const consistencyPercent = Math.max(0, 100 - (stdDev / 25) * 100);
         consistency = `${consistencyPercent.toFixed(0)}%`;
       }
 
       let recentAverage = "—";
-      if (percentages.length >= 3) {
-        const recentTests = Math.min(5, percentages.length);
-        const recentScores = percentages.slice(-recentTests);
+      if (scoresWithData.length >= 3) {
+        const recentTests = Math.min(5, scoresWithData.length);
+        const recentScores = displayValues.slice(-recentTests);
         const recentAvg = recentScores.reduce((a, b) => a + b, 0) / recentScores.length;
-        recentAverage = `${recentAvg.toFixed(1)}%`;
+        recentAverage = formatValue(recentAvg);
       }
 
       setStats({
         total,
-        lastDate,
-        average: `${average.toFixed(1)}%`,
-        best: `${best.toFixed(1)}%`,
-        worst: `${worst.toFixed(1)}%`,
+        lastDate: new Date(lastDate).toLocaleDateString(),
+        average: `${formatValue(averageValue)} / ${formatValue(averageMax)}`,
+        best: `${formatValue(bestValue)} / ${formatValue(maxValues[displayValues.indexOf(bestValue)])}`,
+        worst: `${formatValue(worstValue)} / ${formatValue(maxValues[displayValues.indexOf(worstValue)])}`,
         improvement,
         consistency,
         recentAverage
       });
     };
 
-    console.log('DEBUG StatsPanel: Component mounted, calling initial updateStats');
     updateStats();
 
-    // Listen for data updates
     const handleDataUpdate = () => {
-      console.log('DEBUG StatsPanel: dataUpdate event received!');
       updateStats();
     };
     
-    console.log('DEBUG StatsPanel: Adding dataUpdate event listener');
     window.addEventListener('dataUpdate', handleDataUpdate);
 
     return () => {
-      console.log('DEBUG StatsPanel: Removing dataUpdate event listener');
       window.removeEventListener('dataUpdate', handleDataUpdate);
     };
-  }, [internalFilter]);
+  }, [internalFilter, scoringMode]);
 
   const statItems = [
     {

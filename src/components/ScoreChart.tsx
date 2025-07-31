@@ -11,6 +11,7 @@ interface ScoreChartProps {
 export const ScoreChart = ({ filterType = "all" }: ScoreChartProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [allScores, setAllScores] = useState<TestScore[]>([]);
+  const { scoringMode } = useScoringMode();
 
   const updateScores = useCallback(() => {
     const savedScores: TestScore[] = JSON.parse(localStorage.getItem("scores") || "[]");
@@ -33,15 +34,17 @@ export const ScoreChart = ({ filterType = "all" }: ScoreChartProps) => {
 
   const scoresWithData = useMemo(() => {
     return filteredScores.map(s => {
-      const totalQuestions = 
-        (s.questionCorrectness && Object.keys(s.questionCorrectness).length > 0) 
-        ? Object.keys(s.questionCorrectness).length 
-        : (s.key && s.key.length > 0) ? s.key.length : 25;
-      const score = typeof s.score === 'number' ? s.score : 0;
-      const percentage = totalQuestions > 0 ? (score / totalQuestions) * 100 : 0;
-      return { ...s, totalQuestions, percentage };
+      const correctCount = getCorrectCount(s);
+      const totalQuestions = getTotalQuestions(s);
+      const maxPoints = getMaxPoints(s.testType);
+
+      const displayValue = scoringMode === 'points' ? s.score : correctCount;
+      const maxValue = scoringMode === 'points' ? maxPoints : totalQuestions;
+      const percentage = maxValue > 0 ? (displayValue / maxValue) * 100 : 0;
+      
+      return { ...s, displayValue, maxValue, percentage };
     });
-  }, [filteredScores]);
+  }, [filteredScores, scoringMode]);
 
   const trend = useMemo(() => {
     if (scoresWithData.length < 2) return "stable";
@@ -62,9 +65,9 @@ export const ScoreChart = ({ filterType = "all" }: ScoreChartProps) => {
 
   useEffect(() => {
     drawChart(scoresWithData);
-  }, [scoresWithData]);
+  }, [scoresWithData, scoringMode]);
 
-  const drawChart = useCallback((data: (TestScore & { totalQuestions: number; percentage: number })[]) => {
+  const drawChart = useCallback((data: (TestScore & { displayValue: number; maxValue: number; percentage: number })[]) => {
     const canvas = canvasRef.current;
     if (!canvas || data.length === 0) return;
 
@@ -100,8 +103,8 @@ export const ScoreChart = ({ filterType = "all" }: ScoreChartProps) => {
     const textColor = isDark ? '#f8fafc' : '#1e293b';
 
     // Set up data
-    const scores = data.map(d => d.percentage);
-    const maxScore = 100;
+    const scores = data.map(d => d.displayValue);
+    const maxScore = data.length > 0 ? data[0].maxValue : (scoringMode === 'points' ? 150 : 25);
     const minScore = 0;
 
     // Calculate positions
@@ -126,7 +129,8 @@ export const ScoreChart = ({ filterType = "all" }: ScoreChartProps) => {
       ctx.fillStyle = textColor;
       ctx.font = "12px Inter, sans-serif";
       ctx.textAlign = "right";
-      ctx.fillText(`${100 - (i * 20)}%`, padding - 10, y + 4);
+      const label = Math.round(maxScore - (i * (maxScore / 5)));
+      ctx.fillText(`${label}`, padding - 10, y + 4);
     }
 
     // Draw the line chart
