@@ -41,8 +41,8 @@ export const TopicBreakdown = ({ filterType = "all" }: TopicBreakdownProps) => {
 
   const topicStats = useMemo(() => {
     const topicData: { [topic: string]: { correct: number; total: number; mistakes: number } } = {};
-    const possibleTopics = TOPICS;
-    possibleTopics.forEach(topic => {
+    
+    TOPICS.forEach(topic => {
       topicData[topic] = { correct: 0, total: 0, mistakes: 0 };
     });
 
@@ -63,7 +63,7 @@ export const TopicBreakdown = ({ filterType = "all" }: TopicBreakdownProps) => {
       }
     });
 
-    const stats: TopicStats[] = possibleTopics.map(topic => ({
+    const stats: TopicStats[] = TOPICS.map(topic => ({
       topic,
       correct: topicData[topic].correct,
       total: topicData[topic].total,
