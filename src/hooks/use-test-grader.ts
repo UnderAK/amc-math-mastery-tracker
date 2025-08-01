@@ -22,6 +22,7 @@ export function useTestGrader({ debouncedUserAnswers, debouncedAnswerKey, testTy
   const { toast } = useToast();
 
   const gradeTest = () => {
+    console.log('Test Type being graded:', testType);
     return new Promise<string>((resolve) => {
       if (debouncedUserAnswers.length !== NUM_QUESTIONS || debouncedAnswerKey.length !== NUM_QUESTIONS) {
         const errorMsg = `❌ You must enter exactly ${NUM_QUESTIONS} characters in both fields.`;
@@ -36,13 +37,32 @@ export function useTestGrader({ debouncedUserAnswers, debouncedAnswerKey, testTy
 
       setIsGrading(true);
       setTimeout(() => {
+        
         let score = 0;
         const questionCorrectness: { [key: number]: boolean } = {};
+
+        let pointsPerCorrect = 1;
+        let pointsPerUnanswered = 0;
+        
+        if (testType.toLowerCase() == 'amc 10a' || testType.toLowerCase() == 'amc 10b' || testType.toLowerCase() == 'amc 12a' || testType.toLowerCase() == 'amc 12b') {
+          pointsPerCorrect = 6;
+          pointsPerUnanswered = 1.5;
+        }
+
+
         for (let i = 0; i < NUM_QUESTIONS; i++) {
-          const isCorrect = debouncedUserAnswers[i].toLowerCase() === debouncedAnswerKey[i].toLowerCase();
-          questionCorrectness[i + 1] = isCorrect;
-          if (isCorrect) {
-            score++;
+          const userAnswer = debouncedUserAnswers[i]?.toLowerCase();
+          const answerKey = debouncedAnswerKey[i]?.toLowerCase();
+          const questionNumber = i + 1;
+          if (userAnswer == answerKey) {
+            score += pointsPerCorrect; //grants 6 points for AMC 10 and 12, 1 point for AMC 8
+            questionCorrectness[questionNumber] = true;
+          } else if (userAnswer == ' ') {
+            score += pointsPerUnanswered; //grants 1.5 points for AMC 10 and 12, 0 points for AMC 8
+            questionCorrectness[questionNumber] = false;
+          } else {
+            //grants 0 points
+            questionCorrectness[questionNumber] = false;
           }
         }
 

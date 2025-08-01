@@ -9,7 +9,7 @@ interface TypingInputProps {
 
 export const TypingInput = ({ userAnswers, answerKey, onUserAnswersChange, onAnswerKeyChange }: TypingInputProps) => {
   const sanitizeInput = (value: string) => {
-    return value.toUpperCase().replace(/[^A-E]/g, '').slice(0, 25);
+    return value.toUpperCase().replace(/[^A-E\s]/g, '').slice(0, 25);
   };
 
   return (
