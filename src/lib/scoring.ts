@@ -24,7 +24,7 @@ export function calculateScore(userAnswers: (string | null)[], correctAnswers: s
     const userAnswer = userAnswers[i];
     const correctAnswer = correctAnswers[i];
 
-    if (userAnswer === null || userAnswer === '' || userAnswer === undefined) {
+    if (userAnswer === ' ') {
       if (testType === 'amc10' || testType === 'amc12') {
         score += 1.5; // Blank answers are worth 1.5 points
       }

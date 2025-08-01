@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 interface TestResult {
   score: number;
   totalQuestions: number;
+  maxPoints: number;
   incorrectQuestions: number[];
   testType: string;
   year: number;
@@ -31,7 +32,7 @@ interface TestResultsPopupProps {
 export const TestResultsPopup = ({ result, isOpen, onClose }: TestResultsPopupProps) => {
   if (!result) return null;
 
-  const percentage = result.totalQuestions > 0 ? Math.round((result.score / result.totalQuestions) * 100) : 0;
+  const percentage = result.totalQuestions > 0 ? Math.round((result.score / result.maxPoints) * 100) : 0;
   
   const getScoreColor = () => {
     if (percentage >= 90) return "text-green-600";
@@ -76,7 +77,7 @@ export const TestResultsPopup = ({ result, isOpen, onClose }: TestResultsPopupPr
           {/* Score Display */}
           <div className="text-center space-y-2">
             <div className={`text-4xl font-bold ${getScoreColor()}`}>
-              {result.score}/{result.totalQuestions}
+              {result.score}/{result.maxPoints}
             </div>
             <div className={`text-2xl font-semibold ${getScoreColor()}`}>
               {percentage}%
@@ -113,7 +114,7 @@ export const TestResultsPopup = ({ result, isOpen, onClose }: TestResultsPopupPr
           )}
 
           {/* Perfect Score */}
-          {result.score === result.totalQuestions && (
+          {result.score === result.maxPoints && (
             <div className="text-center p-4 bg-gradient-to-r from-yellow-100 to-yellow-200 dark:from-yellow-900/20 dark:to-yellow-800/20 rounded-lg">
               <div className="text-2xl mb-2">🎯</div>
               <h3 className="font-bold text-yellow-800 dark:text-yellow-200">
