@@ -44,12 +44,13 @@ export const TestHistoryTable = ({ filterType = "all" }: TestHistoryTableProps) 
     })
   , [scores, filterType, filterLabel]);
 
-  const getScoreColor = (score: number, mode: 'points' | 'questions') => {
-    const threshold = mode === 'points' ? 150 : 25;
-    if (score / threshold >= 0.9) return "text-green-600 font-semibold";
-    if (score / threshold >= 0.8) return "text-blue-600 font-medium";
-    if (score / threshold >= 0.6) return "text-yellow-600";
+  const getScoreColor = (score: number, max: number, mode: 'points' | 'questions') => {
+    const maxScore = mode === 'points' ? max : 25; 
+    if (score / maxScore >= 0.9) return "text-green-600 font-semibold";
+    if (score / maxScore >= 0.8) return "text-blue-600 font-medium";
+    if (score / maxScore >= 0.6) return "text-yellow-600";
     return "text-red-600";
+
   };
 
   if (scores.length === 0) {
@@ -119,23 +120,25 @@ export const TestHistoryTable = ({ filterType = "all" }: TestHistoryTableProps) 
 
                 const displayScore = scoringMode === 'questions' ? correctCount : score;
                 const displayTotal = scoringMode === 'questions' ? totalQuestions : maxPoints;
+                console.log('Test:', test.testType, test.year, 'Score:', displayScore, 'Percent:', percent, 'Text Color:', getScoreColor(displayScore, maxPoints, scoringMode));
+
 
                 return (
                   <tr key={test.id} className="hover:bg-secondary/30 transition-colors">
                     <td className="px-4 py-3 text-sm text-muted-foreground whitespace-nowrap">
                       {format(new Date(test.date), 'MMM d, yyyy')}
                     </td>
-                    <td className={`px-4 py-3 text-sm font-medium ${getScoreColor(displayScore, scoringMode)}`}>
+                    <td className={`px-4 py-3 text-sm font-medium ${getScoreColor(displayScore, maxPoints, scoringMode)}`}>
                       {displayScore} / {displayTotal}
                     </td>
                     <td className="px-4 py-3 text-sm">
                       <div className="flex items-center gap-2">
-                        <span className={getScoreColor(displayScore, scoringMode)}>{percent}%</span>
+                        <span className={getScoreColor(displayScore, maxPoints, scoringMode)}>{percent}%</span>
                         <div className="w-16 h-2 bg-secondary rounded-full overflow-hidden">
                           <div
                             className={`h-full transition-all duration-500 ${
                               percent >= 90 ? 'bg-green-500' :
-                              percent >= 75 ? 'bg-blue-500' :
+                              percent >= 80 ? 'bg-blue-500' :
                               percent >= 60 ? 'bg-yellow-500' : 'bg-red-500'
                             }`}
                             style={{ width: `${percent}%` }}

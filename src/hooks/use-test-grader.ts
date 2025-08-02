@@ -12,17 +12,17 @@ interface UseTestGraderProps {
   testYear: string;
   allQuestionTopics: { [key: number]: Topic };
   savedTests: TestScore[];
+  maxPoints: number;
   setSavedTests: (tests: TestScore[]) => void;
   setNewAchievements: (achievements: any[]) => void;
   setShowAchievementPopup: (show: boolean) => void;
 }
 
-export function useTestGrader({ debouncedUserAnswers, debouncedAnswerKey, testType, testYear, allQuestionTopics, savedTests, setSavedTests, setNewAchievements, setShowAchievementPopup }: UseTestGraderProps) {
+export function useTestGrader({ debouncedUserAnswers, debouncedAnswerKey, testType, testYear, allQuestionTopics, savedTests, setSavedTests, setNewAchievements, setShowAchievementPopup, maxPoints }: UseTestGraderProps) {
   const [isGrading, setIsGrading] = useState(false);
   const { toast } = useToast();
 
   const gradeTest = () => {
-    console.log('Test Type being graded:', testType);
     return new Promise<string>((resolve) => {
       if (debouncedUserAnswers.length !== NUM_QUESTIONS || debouncedAnswerKey.length !== NUM_QUESTIONS) {
         const errorMsg = `❌ You must enter exactly ${NUM_QUESTIONS} characters in both fields.`;
@@ -43,12 +43,13 @@ export function useTestGrader({ debouncedUserAnswers, debouncedAnswerKey, testTy
 
         let pointsPerCorrect = 1;
         let pointsPerUnanswered = 0;
-        
+
         if (testType.toLowerCase() == 'amc 10a' || testType.toLowerCase() == 'amc 10b' || testType.toLowerCase() == 'amc 12a' || testType.toLowerCase() == 'amc 12b') {
           pointsPerCorrect = 6;
           pointsPerUnanswered = 1.5;
         }
 
+        maxPoints = pointsPerCorrect * NUM_QUESTIONS;
 
         for (let i = 0; i < NUM_QUESTIONS; i++) {
           const userAnswer = debouncedUserAnswers[i]?.toLowerCase();
@@ -114,7 +115,7 @@ export function useTestGrader({ debouncedUserAnswers, debouncedAnswerKey, testTy
           description: `You gained ${xpEarned} XP.`,
         });
 
-        const resultText = `🎉 Graded! Score: ${score}/${NUM_QUESTIONS}`;
+        const resultText = `🎉 Graded! Score: ${score}/${maxPoints}`;
         setIsGrading(false);
         window.dispatchEvent(new CustomEvent('dataUpdate'));
         resolve(resultText);
