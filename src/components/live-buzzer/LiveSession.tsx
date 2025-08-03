@@ -234,7 +234,12 @@ const LiveSession = () => {
       }
       toast({ title: 'Correct!', description: 'Great job!' });
     } else {
-      toast({ title: 'Incorrect', description: `The correct answer was: ${currentQuestion.answer}`, variant: 'destructive' });
+      toast({ title: 'Incorrect', description: `The correct answer was: ${currentQuestion.answer}`, variant: 'destructive' });     // Reset buzzer so someone else can try
+      await supabase.rpc('reset_buzzer_state', {
+        p_session_id: session.id,
+        p_question_number: session.current_question_index + 1
+      });
+
     }
   };
 
