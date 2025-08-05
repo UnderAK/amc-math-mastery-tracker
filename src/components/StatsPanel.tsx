@@ -35,13 +35,15 @@ export const StatsPanel = ({ filterType = "all" }: StatsPanelProps) => {
       const filteredScores = internalFilter === "all" 
         ? allScores 
         : allScores.filter(s => s.testType === internalFilter);
+
+      const maxPoints = getMaxPoints(internalFilter);
       
       const scoresWithData = filteredScores.map(s => {
         const totalQuestions = 
           (s.questionCorrectness && Object.keys(s.questionCorrectness).length > 0) 
           ? Object.keys(s.questionCorrectness).length 
           : (s.key && s.key.length > 0) ? s.key.length : 25;
-        const percentage = totalQuestions > 0 ? (s.score / totalQuestions) * 100 : 0;
+        const percentage = totalQuestions > 0 ? (s.score / maxPoints) * 100 : 0;
         return { ...s, totalQuestions, percentage };
       });
 
