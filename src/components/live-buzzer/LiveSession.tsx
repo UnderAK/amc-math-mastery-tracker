@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Loader2, CheckIcon } from 'lucide-react';
 import { getTestById, AmcTest } from '@/data/amc-tests';
+import LiveLeaderboard from './LiveLeaderboard';
 
 
 type Participant = Database['public']['Views']['session_participants_with_profiles']['Row'];
@@ -91,9 +92,7 @@ const LiveSession = () => {
         console.log('[DEBUG] Received live_sessions change:', payload);
         fetchSessionData();
       })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'live_participants', filter: `session_id=eq.${sessionId}` }, (payload) => {
-        fetchSessionData();
-      })
+
       .on('postgres_changes', { event: '*', schema: 'public', table: 'live_buzzer_state', filter: `session_id=eq.${sessionId}` }, (payload) => {
         console.log('[DEBUG] Buzzer state changed:', payload);
         if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
@@ -116,6 +115,12 @@ const LiveSession = () => {
         // Check if the answer is for the current session by checking if the participant is in the current session
         if (participants.some(p => p.id === newAnswer.participant_id)) {
           setSubmittedAnswers(currentAnswers => [...currentAnswers, newAnswer]);
+        }
+      })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'user_profiles' }, (payload) => {
+        const changedUserId = payload.new.id;
+        if (participants.some(p => p.user_id === changedUserId)) {
+          fetchSessionData();
         }
       })
       .subscribe();
@@ -384,27 +389,8 @@ const LiveSession = () => {
           </div>
         )}
       </div>
-      <div>
-        <h3 className="text-lg font-bold">Participants ({participants.length})</h3>
-        <ul className="space-y-2 mt-2">
-          {[...participants].sort((a, b) => (b.score || 0) - (a.score || 0)).map(p => (
-            <li key={p.user_id} className="flex items-center justify-between p-2 rounded-md bg-secondary/50">
-              <div className="flex items-center gap-2">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src={p.avatar || undefined} />
-                  <AvatarFallback>{p.username?.[0] || '?'}</AvatarFallback>
-                </Avatar>
-                <span>{p.username || 'Anonymous'}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                {submittedAnswers.some(a => a.participant_id === p.id && a.question_number === (session?.current_question_index ?? 0) + 1) && (
-                  <CheckIcon className="h-5 w-5 text-green-500" />
-                )}
-                <span className="font-bold">{p.score || 0} pts</span>
-              </div>
-            </li>
-          ))}
-        </ul>
+      <div className="w-full lg:w-1/3">
+        <LiveLeaderboard participants={participants} />
       </div>
     </div>
   );

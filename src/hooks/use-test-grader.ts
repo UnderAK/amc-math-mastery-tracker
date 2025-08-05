@@ -12,13 +12,13 @@ interface UseTestGraderProps {
   testYear: string;
   allQuestionTopics: { [key: number]: Topic };
   savedTests: TestScore[];
-  maxPoints: number;
+
   setSavedTests: (tests: TestScore[]) => void;
   setNewAchievements: (achievements: any[]) => void;
   setShowAchievementPopup: (show: boolean) => void;
 }
 
-export function useTestGrader({ debouncedUserAnswers, debouncedAnswerKey, testType, testYear, allQuestionTopics, savedTests, setSavedTests, setNewAchievements, setShowAchievementPopup, maxPoints }: UseTestGraderProps) {
+export function useTestGrader({ debouncedUserAnswers, debouncedAnswerKey, testType, testYear, allQuestionTopics, savedTests, setSavedTests, setNewAchievements, setShowAchievementPopup }: UseTestGraderProps) {
   const [isGrading, setIsGrading] = useState(false);
   const { toast } = useToast();
 
@@ -49,7 +49,7 @@ export function useTestGrader({ debouncedUserAnswers, debouncedAnswerKey, testTy
           pointsPerUnanswered = 1.5;
         }
 
-        maxPoints = pointsPerCorrect * NUM_QUESTIONS;
+        const maxPoints = pointsPerCorrect * NUM_QUESTIONS;
 
         for (let i = 0; i < NUM_QUESTIONS; i++) {
           const userAnswer = debouncedUserAnswers[i]?.toLowerCase();
@@ -84,7 +84,7 @@ export function useTestGrader({ debouncedUserAnswers, debouncedAnswerKey, testTy
         localStorage.setItem('scores', JSON.stringify(updatedTests));
 
         // Award coins
-        const coinsEarned = score * 5;
+        const coinsEarned = Math.floor(Math.random() * 11) + 5; // Random coins between 5 and 15
         const currentCoins = parseInt(localStorage.getItem('coins') || '0', 10);
         const newTotalCoins = currentCoins + coinsEarned;
         localStorage.setItem('coins', newTotalCoins.toString());
