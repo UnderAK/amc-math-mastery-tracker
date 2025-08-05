@@ -184,7 +184,10 @@ export const ScoreChart = ({ filterType = "all" }: ScoreChartProps) => {
     data.forEach((test, index) => {
       if (data.length <= 8 || index % Math.ceil(data.length / 6) === 0) {
         const x = padding + index * stepX;
-        const shortDate = test.date.split('-').slice(1).join('/'); // MM/DD format
+        const shortDate = new Date(test.date).toLocaleDateString('en-us', {
+          month: '2-digit',
+          day: '2-digit',
+        });
         ctx.fillText(shortDate, x, height - 10);
       }
     });
