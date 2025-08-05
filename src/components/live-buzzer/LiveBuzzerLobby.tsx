@@ -1,4 +1,6 @@
+import React from 'react';
 
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabaseClient';
 import { Button } from '@/components/ui/button';
@@ -6,13 +8,12 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import React, { useEffect, useState } from 'react';
-import { getAllTests, TestName } from '@/data/tests';
+import { useEffect } from 'react';
 
 const LiveBuzzerLobby = () => {
   const [joinCode, setJoinCode] = useState('');
-  const [tests, setTests] = useState<TestName[]>([]);
-  const [selectedTestId, setSelectedTestId] = useState<string>('');
+  const [testType, setTestType] = useState('AMC 10');
+  const [testYear, setTestYear] = useState(2023);
   const [isCreating, setIsCreating] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -21,18 +22,11 @@ const LiveBuzzerLobby = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    const loadData = async () => {
+    const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       setIsGuestMode(!session);
-
-      // Always fetch the list of available tests
-      const availableTests = await getAllTests();
-      setTests(availableTests);
-      if (availableTests.length > 0) {
-        setSelectedTestId(availableTests[0].id);
-      }
     };
-    loadData();
+    checkAuth();
   }, []);
 
   const handleCreateSession = async () => {
@@ -40,11 +34,10 @@ const LiveBuzzerLobby = () => {
 
     if (isGuestMode) {
       const guestSessionId = `guest-${Math.random().toString(36).substring(2, 9)}`;
-      const selectedTest = tests.find(t => t.id === selectedTestId);
       const guestSessionData = {
         isGuest: true,
-        test_id: selectedTestId,
-        test_name: selectedTest?.name || 'Custom Test'
+        test_type: testType,
+        test_year: testYear
       };
       // Store guest session details in sessionStorage to survive refresh
       sessionStorage.setItem(`guest-session-${guestSessionId}`, JSON.stringify(guestSessionData));
@@ -63,7 +56,8 @@ const LiveBuzzerLobby = () => {
     }
 
     const { data, error } = await supabase.rpc('create_session_and_add_host', {
-      p_test_id: selectedTestId,
+      p_test_type: testType,
+      p_test_year: testYear,
     });
 
     console.log('Session creation result:', { data, error });
@@ -155,22 +149,30 @@ const LiveBuzzerLobby = () => {
         <h2 className="text-2xl font-bold mb-4">Create a New Session</h2>
         <div className="space-y-4">
           <div>
-            <label htmlFor="testId" className="block text-sm font-medium text-muted-foreground">Select Test</label>
+            <label htmlFor="testType" className="block text-sm font-medium text-muted-foreground">Test Type</label>
             <select 
-              id="testId" 
-              value={selectedTestId} 
-              onChange={(e) => setSelectedTestId(e.target.value)} 
+              id="testType" 
+              value={testType} 
+              onChange={(e) => setTestType(e.target.value)} 
               className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 mt-1"
-              disabled={tests.length === 0}
             >
-              {tests.length > 0 ? (
-                tests.map(test => (
-                  <option key={test.id} value={test.id}>{test.name}</option>
-                ))
-              ) : (
-                <option>Loading tests...</option>
-              )}
+              <option>AMC 10</option>
+              <option>AMC 12</option>
             </select>
+          </div>
+          <div>
+            <label htmlFor="testYear" className="block text-sm font-medium text-muted-foreground">Year</label>
+            <Input
+              id="testYear"
+              type="number"
+              value={testYear}
+              onChange={(e) => {
+                const year = parseInt(e.target.value);
+                if (!isNaN(year)) {
+                  setTestYear(year);
+                }
+              }}
+            />
           </div>
           <Button onClick={handleCreateSession} disabled={isCreating} className="w-full">
             {isCreating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} 

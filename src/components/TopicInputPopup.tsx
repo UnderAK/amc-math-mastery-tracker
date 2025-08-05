@@ -100,13 +100,22 @@ export const TopicInputPopup: React.FC<TopicInputPopupProps> = ({
       }
       
       // Ensure the current question has a topic before saving all
-
+      const topicForCurrentQuestion = topics[currentQuestionNumber];
+      if (!topicForCurrentQuestion || topicForCurrentQuestion.trim() === '') {
+        updatedTopics[currentQuestionNumber] = "Other"; // Default to 'Other' if nothing was selected
+        console.log('DEBUG: Set current question to Other');
+      } else {
+        console.log('DEBUG: Current question already has topic:', topicForCurrentQuestion);
+      }
       
       // Ensure ALL questions have topics (fill any missing ones with "Other")
       for (let i = 0; i < totalQuestions; i++) {
         const questionNum = questionsToTopic[i];
-        if (!updatedTopics[questionNum]) {
+        if (!updatedTopics[questionNum] || updatedTopics[questionNum].trim() === '') {
           updatedTopics[questionNum] = "Other";
+          console.log(`DEBUG: Set question ${questionNum} to Other (was missing/empty)`);
+        } else {
+          console.log(`DEBUG: Question ${questionNum} already has topic:`, updatedTopics[questionNum]);
         }
       }
       

@@ -14,10 +14,12 @@ import { TestScore } from "@/types/TestScore";
 import { TestType } from "@/types/amc";
 import { NUM_QUESTIONS, TEST_TYPES, MIN_YEAR, MAX_YEAR } from "@/config/test-config";
 import { TOPICS, Topic } from "@/lib/topics";
-import { getAllTests, getTestById, TestName } from '@/data/tests';
+import { preloadedTests } from '@/data/tests';
 
 
-
+const getTopicForQuestion = (): Topic => {
+  return "Other";
+};
 
 interface TestEntryFormProps {
   inputMode: InputMode;
@@ -27,7 +29,6 @@ interface TestEntryFormProps {
 export const TestEntryForm = ({ inputMode, initialAnswerKey }: TestEntryFormProps) => {
   const [showAchievementPopup, setShowAchievementPopup] = useState(false);
   const [newAchievements, setNewAchievements] = useState<any[]>([]);
-  const [availableTests, setAvailableTests] = useState<TestName[]>([]);
   const [savedTests, setSavedTests] = useState<TestScore[]>(() => {
     const saved = localStorage.getItem("scores");
     return saved ? JSON.parse(saved) : [];
@@ -64,48 +65,42 @@ export const TestEntryForm = ({ inputMode, initialAnswerKey }: TestEntryFormProp
     if (initialAnswerKey) {
       setAnswerKey(initialAnswerKey);
     }
-
-    const fetchTests = async () => {
-      const tests = await getAllTests();
-      setAvailableTests(tests);
-    };
-    fetchTests();
-
-    // Set initial topics for manual entry
-    const initialTopics: { [key: number]: Topic } = {};
-    for (let i = 1; i <= NUM_QUESTIONS; i++) {
-      initialTopics[i] = 'Other';
-    }
-    setAllQuestionTopics(initialTopics);
-
   }, [initialAnswerKey]);
 
-  const handlePreloadedTestSelect = async (testId: string) => {
-    setSelectedTestId(testId);
 
-    if (testId === 'manual') {
+
+  useEffect(() => {
+    const initialTopics: { [key: number]: Topic } = {};
+    for (let i = 1; i <= NUM_QUESTIONS; i++) {
+      initialTopics[i] = getTopicForQuestion();
+    }
+    setAllQuestionTopics(initialTopics);
+  }, []);
+
+  const handlePreloadedTestSelect = (testId: string) => {
+    setSelectedTestId(testId);
+    const test = preloadedTests.find(t => t.id === testId);
+
+    if (test) {
+      setTestType(test.competition as TestType);
+      setTestYear(test.year.toString());
+      const newAnswerKey = test.questions.map(q => q.answer).join('');
+      setAnswerKey(newAnswerKey);
+
+      const newTopics = test.questions.reduce((acc: { [key: number]: Topic }, q) => {
+        acc[q.questionNumber] = q.topic as Topic;
+        return acc;
+      }, {});
+      setAllQuestionTopics(newTopics);
+    } else {
       setAnswerKey('');
       setTestType('amc8');
       setTestYear(new Date().getFullYear().toString());
       const initialTopics: { [key: number]: Topic } = {};
       for (let i = 1; i <= NUM_QUESTIONS; i++) {
-        initialTopics[i] = 'Other';
+        initialTopics[i] = getTopicForQuestion();
       }
       setAllQuestionTopics(initialTopics);
-    } else {
-      const test = await getTestById(testId);
-      if (test) {
-        setTestType(test.competition as TestType);
-        setTestYear(test.year.toString());
-        const newAnswerKey = test.questions.map(q => q.answer).join('');
-        setAnswerKey(newAnswerKey);
-
-        const newTopics = test.questions.reduce((acc: { [key: number]: Topic }, q) => {
-          acc[q.question_number] = q.topic as Topic;
-          return acc;
-        }, {});
-        setAllQuestionTopics(newTopics);
-      }
     }
   };
 
@@ -178,7 +173,7 @@ export const TestEntryForm = ({ inputMode, initialAnswerKey }: TestEntryFormProp
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="manual">Manual Entry</SelectItem>
-            {availableTests.map(test => (
+            {preloadedTests.map(test => (
               <SelectItem key={test.id} value={test.id}>{test.name}</SelectItem>
             ))}
           </SelectContent>
