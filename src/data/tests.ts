@@ -1,47 +1,37 @@
-import { supabase } from '@/lib/supabaseClient';
+import { Test } from '@/types/Question';
 
-
-export type TestName = {
-  id: string;
-  name: string;
-};
-
-export const getAllTests = async (): Promise<TestName[]> => {
-  const { data, error } = await supabase
-    .from('tests')
-    .select('id, name, questions (count)')
-    .gt('questions.count', 0);
-
-  if (error) {
-    console.error('Error fetching tests:', error);
-    return [];
-  }
-
-  return data.map(({ id, name }) => ({ id, name })) || [];
-};
-
-export const getTestById = async (id: string) => {
-  const { data, error } = await supabase
-    .from('tests')
-    .select(`
-      id,
-      name,
-      year,
-      competition,
-      questions (
-        id,
-        question_number,
-        answer,
-        topic
-      )
-    `)
-    .eq('id', id)
-    .single();
-
-  if (error) {
-    console.error(`Error fetching test with id ${id}:`, error);
-    return null;
-  }
-
-  return data;
-};
+export const preloadedTests: Test[] = [
+  {
+    id: 'amc10a-2023',
+    name: '2023 AMC 10A',
+    year: 2023,
+    competition: 'AMC 10A',
+    questions: [
+      { id: '1', questionNumber: 1, answer: 'B', topic: 'Algebra' },
+      { id: '2', questionNumber: 2, answer: 'D', topic: 'Geometry' },
+      { id: '3', questionNumber: 3, answer: 'C', topic: 'Number Theory' },
+      { id: '4', questionNumber: 4, answer: 'A', topic: 'Algebra' },
+      { id: '5', questionNumber: 5, answer: 'E', topic: 'Combinatorics' },
+      { id: '6', questionNumber: 6, answer: 'B', topic: 'Geometry' },
+      { id: '7', questionNumber: 7, answer: 'D', topic: 'Algebra' },
+      { id: '8', questionNumber: 8, answer: 'A', topic: 'Number Theory' },
+      { id: '9', questionNumber: 9, answer: 'C', topic: 'Geometry' },
+      { id: '10', questionNumber: 10, answer: 'E', topic: 'Combinatorics' },
+      { id: '11', questionNumber: 11, answer: 'B', topic: 'Algebra' },
+      { id: '12', questionNumber: 12, answer: 'D', topic: 'Geometry' },
+      { id: '13', questionNumber: 13, answer: 'A', topic: 'Number Theory' },
+      { id: '14', questionNumber: 14, answer: 'C', topic: 'Combinatorics' },
+      { id: '15', questionNumber: 15, answer: 'E', topic: 'Algebra' },
+      { id: '16', questionNumber: 16, answer: 'B', topic: 'Geometry' },
+      { id: '17', questionNumber: 17, answer: 'D', topic: 'Number Theory' },
+      { id: '18', questionNumber: 18, answer: 'A', topic: 'Combinatorics' },
+      { id: '19', questionNumber: 19, answer: 'C', topic: 'Algebra' },
+      { id: '20', questionNumber: 20, answer: 'E', topic: 'Geometry' },
+      { id: '21', questionNumber: 21, answer: 'B', topic: 'Number Theory' },
+      { id: '22', questionNumber: 22, answer: 'D', topic: 'Combinatorics' },
+      { id: '23', questionNumber: 23, answer: 'A', topic: 'Algebra' },
+      { id: '24', questionNumber: 24, answer: 'C', topic: 'Geometry' },
+      { id: '25', questionNumber: 25, answer: 'E', topic: 'Number Theory' },
+    ],
+  },
+];

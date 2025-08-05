@@ -60,7 +60,7 @@ export const UserProfile = ({ isOpen, onClose }: UserProfilePopupProps) => {
         if (profileData) {
           setProfile({
             username: profileData.username || 'Math Enthusiast',
-            avatar: avatars.find(a => a.id === profileData.avatar_url)?.emoji || '🧑‍🚀',
+            avatar: profileData.avatar_url || 'avatar-01',
             joinDate: new Date(profileData.created_at).toISOString().split('T')[0],
             xp: parseInt(localStorage.getItem('xp') || '0', 10)
           });
@@ -70,7 +70,7 @@ export const UserProfile = ({ isOpen, onClose }: UserProfilePopupProps) => {
       } else {
         setProfile({
             username: "Guest",
-            avatar: "🧑‍🚀",
+            avatar: "avatar-01",
             joinDate: new Date().toISOString().split("T")[0],
             xp: 0
         });
@@ -124,7 +124,7 @@ export const UserProfile = ({ isOpen, onClose }: UserProfilePopupProps) => {
 
     const { error } = await supabase
       .from('profiles')
-      .update({ username: tempUsername, avatar_url: avatars.find(a => a.emoji === tempAvatar)?.id || 'avatar-01' })
+      .update({ username: tempUsername, avatar_url: tempAvatar })
       .eq('id', authUser.id);
 
     if (error) {
@@ -153,7 +153,7 @@ export const UserProfile = ({ isOpen, onClose }: UserProfilePopupProps) => {
     </div>
   );
 
-
+  const currentAvatarUrl = avatars.find(a => a.id === (isEditing ? tempAvatar : profile.avatar))?.imageUrl || '/avatars/cosmic-explorer.png';
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -163,7 +163,7 @@ export const UserProfile = ({ isOpen, onClose }: UserProfilePopupProps) => {
         </VisuallyHidden>
         <div className="space-y-6 animate-fade-in-up">
           <div className="flex items-center space-x-4">
-            <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center text-4xl border-4 border-primary/20">{isEditing ? tempAvatar : profile.avatar}</div>
+            <img src={currentAvatarUrl} alt="User Avatar" className="w-20 h-20 rounded-full object-cover border-4 border-primary/20" />
             <div className="flex-grow">
               {isEditing ? (
                 <Input
@@ -193,10 +193,10 @@ export const UserProfile = ({ isOpen, onClose }: UserProfilePopupProps) => {
                     .map((avatar) => (
                     <button
                       key={avatar.id}
-                      className={`p-1 rounded-lg transition-all duration-200 ${tempAvatar === avatar.emoji ? 'bg-accent ring-2 ring-accent-foreground' : 'hover:bg-accent/50'}`}
-                      onClick={() => setTempAvatar(avatar.emoji)}
+                      className={`p-1 rounded-lg transition-all duration-200 ${tempAvatar === avatar.id ? 'bg-accent ring-2 ring-accent-foreground' : 'hover:bg-accent/50'}`}
+                      onClick={() => setTempAvatar(avatar.id)}
                     >
-                      <span className="text-3xl">{avatar.emoji}</span>
+                      <img src={avatar.imageUrl} alt={avatar.name} className="w-14 h-14 rounded-full object-cover" />
                     </button>
                   ))}
                 </div>
